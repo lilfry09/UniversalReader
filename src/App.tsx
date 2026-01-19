@@ -3,7 +3,7 @@ import Layout from './Layout'
 import Library from './pages/Library'
 
 import Reader from './pages/Reader'
-const Settings = () => <div className="p-8">Settings (Coming Soon)</div>
+import Settings from './pages/Settings'
 
 function App() {
   return (

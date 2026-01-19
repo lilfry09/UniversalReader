@@ -8,7 +8,7 @@ interface FoliateView extends HTMLElement {
   goTo: (target: string | number | { fraction: number }) => Promise<void>
 }
 
-import { ReaderTheme } from '../types'
+import type { ReaderTheme } from '../../types'
 
 interface EpubReaderProps {
   filePath: string

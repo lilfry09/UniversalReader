@@ -1,7 +1,21 @@
 import { useState, useEffect } from 'react'
 import Markdown from 'react-markdown'
-import { ReaderTheme } from '../types'
+import type { ReaderTheme } from '../../types'
 import { clsx } from 'clsx'
+
+function shouldOpenExternal(href: string) {
+  try {
+    const url = new URL(href)
+    return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'mailto:'
+  } catch {
+    return false
+  }
+}
+
+function isExternalLinksEnabled() {
+  const raw = localStorage.getItem('open-external-links')
+  return raw == null ? true : raw === 'true'
+}
 
 interface MarkdownReaderProps {
   filePath: string
@@ -51,7 +65,36 @@ export default function MarkdownReader({ filePath, format, theme }: MarkdownRead
           )}
           style={{ '--tw-prose-body': theme.text } as any}
           >
-            <Markdown>{content}</Markdown>
+            <Markdown
+              components={{
+                a: ({ href, children, ...props }) => {
+                  const safeHref = href || ''
+                  const external = isExternalLinksEnabled() && shouldOpenExternal(safeHref)
+
+                  return (
+                    <a
+                      {...props}
+                      href={safeHref}
+                      onClick={async (e) => {
+                        if (!safeHref) return
+                        if (!external) return
+                        e.preventDefault()
+                        try {
+                          await window.ipcRenderer.invoke('open-external', safeHref)
+                        } catch (err) {
+                          console.error('Failed to open external link:', err)
+                        }
+                      }}
+                      rel={external ? 'noreferrer' : props.rel}
+                    >
+                      {children}
+                    </a>
+                  )
+                },
+              }}
+            >
+              {content}
+            </Markdown>
           </article>
         ) : (
           <pre 

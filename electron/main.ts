@@ -13,9 +13,26 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST! : path.join(process
 let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] as string | undefined
 
+function attachWebContentsDebugging(browserWindow: BrowserWindow) {
+  browserWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (!isMainFrame) return
+      console.error(
+        '[main] did-fail-load',
+        JSON.stringify({ errorCode, errorDescription, validatedURL })
+      )
+    }
+  )
+
+  browserWindow.webContents.on('render-process-gone', (_event, details) => {
+    console.error('[main] render-process-gone', JSON.stringify(details))
+  })
+}
+
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC!, 'electron-vite.svg'),
+    icon: path.join(process.env.VITE_PUBLIC!, 'vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       contextIsolation: true,
@@ -23,14 +40,20 @@ function createWindow() {
     },
   })
 
+  attachWebContentsDebugging(win)
+
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
   })
 
   if (VITE_DEV_SERVER_URL) {
+    console.log('[main] loading dev url:', VITE_DEV_SERVER_URL)
     win.loadURL(VITE_DEV_SERVER_URL)
+    win.webContents.openDevTools({ mode: 'detach' })
   } else {
-    win.loadFile(path.join(process.env.DIST!, 'index.html'))
+    const indexPath = path.join(process.env.DIST!, 'index.html')
+    console.log('[main] loading file:', indexPath)
+    win.loadFile(indexPath)
   }
 }
 

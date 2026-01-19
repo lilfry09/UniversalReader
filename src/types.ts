@@ -49,6 +49,9 @@ export interface Book {
 export interface IpcRenderer {
   invoke(channel: "open-file-dialog"): Promise<Book | null>;
   invoke(channel: "get-library"): Promise<Book[]>;
+  invoke(channel: "file-exists", filePath: string): Promise<boolean>;
+  invoke(channel: "open-external", url: string): Promise<void>;
+  invoke(channel: "open-user-data-folder"): Promise<string>;
   invoke(channel: "read-file", filePath: string): Promise<Uint8Array>;
   invoke(channel: "read-file-buffer", filePath: string): Promise<Uint8Array>;
   invoke(

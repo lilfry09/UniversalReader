@@ -1,5 +1,6 @@
-import { ipcMain, app, dialog } from 'electron'
+import { ipcMain, app, dialog, shell } from 'electron'
 import Database from 'better-sqlite3'
+import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
 
@@ -31,6 +32,23 @@ ipcMain.handle('read-file-buffer', async (_, filePath) => {
   return fs.promises.readFile(filePath)
 })
 
+ipcMain.handle('file-exists', async (_, filePath) => {
+  try {
+    await fs.promises.access(filePath, fs.constants.F_OK)
+    return true
+  } catch {
+    return false
+  }
+})
+
+ipcMain.handle('open-external', async (_, url: string) => {
+  return shell.openExternal(url)
+})
+
+ipcMain.handle('open-user-data-folder', async () => {
+  return shell.openPath(app.getPath('userData'))
+})
+
 ipcMain.handle('open-file-dialog', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -42,8 +60,17 @@ ipcMain.handle('open-file-dialog', async () => {
   if (result.canceled || result.filePaths.length === 0) return null
   
   const filePath = result.filePaths[0]
-  const filename = path.basename(filePath)
-  const ext = path.extname(filePath).toLowerCase().slice(1)
+  const extWithDot = path.extname(filePath).toLowerCase()
+  const ext = extWithDot.slice(1)
+  const baseName = path.basename(filePath, extWithDot)
+
+  // Copy imported file into app-managed storage so it won't break if the original moves.
+  const libraryDir = path.join(app.getPath('userData'), 'books')
+  await fs.promises.mkdir(libraryDir, { recursive: true })
+
+  const destName = `${baseName}-${crypto.randomUUID()}${extWithDot}`
+  const destPath = path.join(libraryDir, destName)
+  await fs.promises.copyFile(filePath, destPath)
   
   // Auto-add to DB
   try {
@@ -53,7 +80,7 @@ ipcMain.handle('open-file-dialog', async () => {
       ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP
       RETURNING *
     `)
-    return stmt.get(filename, filePath, ext)
+    return stmt.get(baseName, destPath, ext)
   } catch (e) {
     console.error('DB Insert Error:', e)
     return null

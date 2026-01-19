@@ -7,7 +7,7 @@ import 'react-pdf/dist/esm/Page/TextLayer.css'
 // Use CDN for worker - most reliable in Electron environment
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
-import { Book, ReaderTheme } from '../types'
+import type { Book, ReaderTheme } from '../../types'
 
 interface PdfReaderProps {
   filePath: string
@@ -73,6 +73,25 @@ export default function PdfReader({ filePath, initialProgress = 0, onProgressUpd
     setScale(prev => Math.min(Math.max(0.5, prev + delta), 3.0))
   }
 
+  const handleClickCapture = async (e: React.MouseEvent) => {
+    const raw = localStorage.getItem('open-external-links')
+    const enabled = raw == null ? true : raw === 'true'
+    if (!enabled) return
+
+    const target = e.target as HTMLElement | null
+    const anchor = target?.closest('a') as HTMLAnchorElement | null
+    if (!anchor?.href) return
+
+    try {
+      const url = new URL(anchor.href)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'mailto:') return
+      e.preventDefault()
+      await window.ipcRenderer.invoke('open-external', anchor.href)
+    } catch {
+      // ignore
+    }
+  }
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-red-600 p-8">
@@ -94,7 +113,7 @@ export default function PdfReader({ filePath, initialProgress = 0, onProgressUpd
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: theme.bg }}>
+    <div className="flex flex-col h-full" style={{ backgroundColor: theme.bg }} onClickCapture={handleClickCapture}>
       {/* Toolbar */}
       <div 
         className="flex items-center justify-between p-2 shadow-sm z-10"
