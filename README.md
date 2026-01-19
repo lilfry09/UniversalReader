@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# Universal Reader 📖
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个基于 Electron + React + Vite 构建的多功能本地阅读器。旨在提供丝滑的阅读体验，支持多种文档格式，并具备本地库管理功能。
 
-Currently, two official plugins are available:
+## ✨ 特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **多格式支持**: 
+  - 📄 **PDF**: 完整的 PDF 阅读体验。
+  - 📚 **EPUB**: 流式布局阅读，支持章节跳转。
+  - 📝 **Markdown**: 漂亮的文档渲染。
+- **本地书库**: 基于 SQLite 的图书管理，支持书籍导入和持久化存储。
+- **现代化 UI**: 使用 Tailwind CSS 构建，拥有简洁的侧边栏导航和响应式布局。
+- **跨平台**: 基于 Electron，可运行于 Windows, macOS 和 Linux。
 
-## React Compiler
+## 🚀 快速开始
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 前置要求
 
-## Expanding the ESLint configuration
+- [Node.js](https://nodejs.org/) (建议 v18+)
+- npm 或 yarn
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 安装步骤
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. 克隆仓库:
+   ```bash
+   git clone https://github.com/lilfry09/UniversalReader.git
+   cd UniversalReader
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2. 安装依赖:
+   ```bash
+   npm install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+3. 启动开发环境:
+   ```bash
+   npm run dev
+   ```
+
+### 构建打包
+
+如果你想构建可执行文件，请运行：
+```bash
+npm run build
 ```
+生成的文件将位于 `dist` 和 `dist-electron` 目录下。
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ 技术栈
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **前端**: React, TypeScript, Vite, Tailwind CSS
+- **桌面运行环境**: Electron
+- **数据库**: better-sqlite3
+- **阅读引擎**: 
+  - react-pdf (PDF)
+  - foliate-js (EPUB)
+  - react-markdown (Markdown)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📌 待办事项 / 计划
+
+- [ ] 支持书籍封面预览
+- [ ] 增加夜间模式/主题切换
+- [ ] 书籍标签与分类功能
+- [ ] 阅读历史记录
+
+---
+
+如果你觉得这个项目对你有帮助，欢迎点个 Star! ⭐
