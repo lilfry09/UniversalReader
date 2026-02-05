@@ -3,6 +3,7 @@ import Database from 'better-sqlite3'
 import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
+import { createCanvas } from 'canvas'
 
 // Database setup
 const dbPath = path.join(app.getPath('userData'), 'library.db')
@@ -23,7 +24,192 @@ db.exec(`
   );
 `)
 
-// File Handlers
+// Add annotations table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS annotations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bookId INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    cfi TEXT,
+    pageNumber INTEGER,
+    text TEXT,
+    note TEXT,
+    color TEXT DEFAULT '#ffeb3b',
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
+  );
+`)
+
+// Covers directory
+const coversDir = path.join(app.getPath('userData'), 'covers')
+fs.mkdirSync(coversDir, { recursive: true })
+
+// ============ Cover Extraction Utilities ============
+
+async function extractEpubCover(filePath: string, bookId: string): Promise<string | null> {
+  try {
+    const AdmZip = (await import('adm-zip')).default
+    const zip = new AdmZip(filePath)
+    const entries = zip.getEntries()
+
+    // Common cover file patterns
+    const coverPatterns = [
+      /cover\.(jpg|jpeg|png|gif)$/i,
+      /cover-image\.(jpg|jpeg|png|gif)$/i,
+      /images\/cover\.(jpg|jpeg|png|gif)$/i,
+      /OEBPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
+      /OPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
+    ]
+
+    // First try to find cover from OPF metadata
+    const opfEntry = entries.find(e => e.entryName.endsWith('.opf'))
+    if (opfEntry) {
+      const opfContent = opfEntry.getData().toString('utf-8')
+      // Look for cover image reference in OPF
+      const coverIdMatch = opfContent.match(/name="cover"\s+content="([^"]+)"/) ||
+                           opfContent.match(/properties="cover-image"[^>]*href="([^"]+)"/)
+      if (coverIdMatch) {
+        const coverId = coverIdMatch[1]
+        // Find the item with this id
+        const hrefMatch = opfContent.match(new RegExp(`id="${coverId}"[^>]*href="([^"]+)"`)) ||
+                          opfContent.match(new RegExp(`href="([^"]+)"[^>]*id="${coverId}"`))
+        if (hrefMatch) {
+          const coverHref = hrefMatch[1]
+          const opfDir = path.dirname(opfEntry.entryName)
+          const coverPath = opfDir ? `${opfDir}/${coverHref}` : coverHref
+          const coverEntry = entries.find(e => 
+            e.entryName === coverPath || 
+            e.entryName.endsWith(coverHref)
+          )
+          if (coverEntry) {
+            const coverData = coverEntry.getData()
+            const ext = path.extname(coverEntry.entryName) || '.jpg'
+            const coverFileName = `${bookId}${ext}`
+            const coverDestPath = path.join(coversDir, coverFileName)
+            await fs.promises.writeFile(coverDestPath, coverData)
+            return coverDestPath
+          }
+        }
+      }
+    }
+
+    // Fallback: search by common patterns
+    for (const pattern of coverPatterns) {
+      const coverEntry = entries.find(e => pattern.test(e.entryName))
+      if (coverEntry) {
+        const coverData = coverEntry.getData()
+        const ext = path.extname(coverEntry.entryName) || '.jpg'
+        const coverFileName = `${bookId}${ext}`
+        const coverDestPath = path.join(coversDir, coverFileName)
+        await fs.promises.writeFile(coverDestPath, coverData)
+        return coverDestPath
+      }
+    }
+
+    // Last resort: find any image that might be a cover
+    const imageEntry = entries.find(e => 
+      /\.(jpg|jpeg|png|gif)$/i.test(e.entryName) &&
+      (e.entryName.toLowerCase().includes('cover') || 
+       e.entryName.toLowerCase().includes('title'))
+    )
+    if (imageEntry) {
+      const coverData = imageEntry.getData()
+      const ext = path.extname(imageEntry.entryName) || '.jpg'
+      const coverFileName = `${bookId}${ext}`
+      const coverDestPath = path.join(coversDir, coverFileName)
+      await fs.promises.writeFile(coverDestPath, coverData)
+      return coverDestPath
+    }
+
+    return null
+  } catch (err) {
+    console.error('Failed to extract EPUB cover:', err)
+    return null
+  }
+}
+
+async function extractPdfCover(filePath: string, bookId: string): Promise<string | null> {
+  try {
+    // Use canvas to render first page of PDF
+    const pdfjs = await import('pdfjs-dist')
+    
+    // Set up worker
+    const workerSrc = path.join(__dirname, '../dist/pdf.worker.min.mjs')
+    if (fs.existsSync(workerSrc)) {
+      pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+    }
+
+    const data = await fs.promises.readFile(filePath)
+    const pdf = await pdfjs.getDocument({ data }).promise
+    const page = await pdf.getPage(1)
+    
+    const viewport = page.getViewport({ scale: 1.0 })
+    // Create a reasonable cover size (max 400px width)
+    const scale = Math.min(400 / viewport.width, 1.5)
+    const scaledViewport = page.getViewport({ scale })
+    
+    const canvas = createCanvas(scaledViewport.width, scaledViewport.height)
+    const context = canvas.getContext('2d')
+    
+    await page.render({
+      canvasContext: context as unknown as CanvasRenderingContext2D,
+      viewport: scaledViewport,
+    }).promise
+
+    const coverFileName = `${bookId}.png`
+    const coverDestPath = path.join(coversDir, coverFileName)
+    const buffer = canvas.toBuffer('image/png')
+    await fs.promises.writeFile(coverDestPath, buffer)
+    
+    return coverDestPath
+  } catch (err) {
+    console.error('Failed to extract PDF cover:', err)
+    return null
+  }
+}
+
+async function extractMetadata(filePath: string, format: string): Promise<{ title?: string; author?: string }> {
+  try {
+    if (format === 'epub') {
+      const AdmZip = (await import('adm-zip')).default
+      const zip = new AdmZip(filePath)
+      const entries = zip.getEntries()
+      
+      const opfEntry = entries.find(e => e.entryName.endsWith('.opf'))
+      if (opfEntry) {
+        const opfContent = opfEntry.getData().toString('utf-8')
+        
+        const titleMatch = opfContent.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i)
+        const authorMatch = opfContent.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i)
+        
+        return {
+          title: titleMatch ? titleMatch[1].trim() : undefined,
+          author: authorMatch ? authorMatch[1].trim() : undefined,
+        }
+      }
+    }
+    
+    if (format === 'pdf') {
+      const pdfjs = await import('pdfjs-dist')
+      const data = await fs.promises.readFile(filePath)
+      const pdf = await pdfjs.getDocument({ data }).promise
+      const metadata = await pdf.getMetadata()
+      
+      const info = metadata.info as Record<string, string> | undefined
+      return {
+        title: info?.Title || undefined,
+        author: info?.Author || undefined,
+      }
+    }
+  } catch (err) {
+    console.error('Failed to extract metadata:', err)
+  }
+  return {}
+}
+
+// ============ File Handlers ============
+
 ipcMain.handle('read-file', async (_, filePath) => {
   return fs.promises.readFile(filePath)
 })
@@ -49,6 +235,55 @@ ipcMain.handle('open-user-data-folder', async () => {
   return shell.openPath(app.getPath('userData'))
 })
 
+ipcMain.handle('get-cover-url', async (_, coverPath: string) => {
+  // Return file:// URL for local cover image
+  if (!coverPath) return null
+  try {
+    await fs.promises.access(coverPath, fs.constants.F_OK)
+    return `file://${coverPath.replace(/\\/g, '/')}`
+  } catch {
+    return null
+  }
+})
+
+// Background image handlers
+const backgroundsDir = path.join(app.getPath('userData'), 'backgrounds')
+fs.mkdirSync(backgroundsDir, { recursive: true })
+
+ipcMain.handle('select-background-image', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'] }
+    ]
+  })
+  
+  if (result.canceled || result.filePaths.length === 0) return null
+  
+  const filePath = result.filePaths[0]
+  const ext = path.extname(filePath)
+  const fileName = `background-${crypto.randomUUID()}${ext}`
+  const destPath = path.join(backgroundsDir, fileName)
+  
+  try {
+    await fs.promises.copyFile(filePath, destPath)
+    return destPath
+  } catch (err) {
+    console.error('Failed to copy background image:', err)
+    return null
+  }
+})
+
+ipcMain.handle('get-background-image-url', async (_, imagePath: string) => {
+  if (!imagePath) return null
+  try {
+    await fs.promises.access(imagePath, fs.constants.F_OK)
+    return `file://${imagePath.replace(/\\/g, '/')}`
+  } catch {
+    return null
+  }
+})
+
 ipcMain.handle('open-file-dialog', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
@@ -63,33 +298,57 @@ ipcMain.handle('open-file-dialog', async () => {
   const extWithDot = path.extname(filePath).toLowerCase()
   const ext = extWithDot.slice(1)
   const baseName = path.basename(filePath, extWithDot)
+  const bookId = crypto.randomUUID()
 
-  // Copy imported file into app-managed storage so it won't break if the original moves.
+  // Copy imported file into app-managed storage
   const libraryDir = path.join(app.getPath('userData'), 'books')
   await fs.promises.mkdir(libraryDir, { recursive: true })
 
-  const destName = `${baseName}-${crypto.randomUUID()}${extWithDot}`
+  const destName = `${baseName}-${bookId}${extWithDot}`
   const destPath = path.join(libraryDir, destName)
   await fs.promises.copyFile(filePath, destPath)
+  
+  // Extract metadata
+  const metadata = await extractMetadata(destPath, ext)
+  const title = metadata.title || baseName
+  const author = metadata.author || null
+
+  // Extract cover
+  let coverPath: string | null = null
+  if (ext === 'epub' || ext === 'mobi' || ext === 'azw3') {
+    coverPath = await extractEpubCover(destPath, bookId)
+  } else if (ext === 'pdf') {
+    coverPath = await extractPdfCover(destPath, bookId)
+  }
   
   // Auto-add to DB
   try {
     const stmt = db.prepare(`
-      INSERT INTO books (title, path, format) 
-      VALUES (?, ?, ?)
+      INSERT INTO books (title, author, path, format, coverPath) 
+      VALUES (?, ?, ?, ?, ?)
       ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP
       RETURNING *
     `)
-    return stmt.get(baseName, destPath, ext)
+    return stmt.get(title, author, destPath, ext, coverPath)
   } catch (e) {
     console.error('DB Insert Error:', e)
     return null
   }
 })
 
-// Database Handlers
+// ============ Database Handlers ============
+
 ipcMain.handle('get-library', () => {
   return db.prepare('SELECT * FROM books ORDER BY lastReadAt DESC').all()
+})
+
+ipcMain.handle('search-library', (_, query: string) => {
+  const searchTerm = `%${query}%`
+  return db.prepare(`
+    SELECT * FROM books 
+    WHERE title LIKE ? OR author LIKE ?
+    ORDER BY lastReadAt DESC
+  `).all(searchTerm, searchTerm)
 })
 
 ipcMain.handle('update-progress', (_, bookId, progress) => {
@@ -99,11 +358,87 @@ ipcMain.handle('update-progress', (_, bookId, progress) => {
 
 ipcMain.handle('delete-book', (_, bookId: number) => {
   try {
+    // Get book info first to delete cover
+    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(bookId) as { coverPath?: string; path?: string } | undefined
+    if (book) {
+      // Delete cover file if exists
+      if (book.coverPath) {
+        fs.promises.unlink(book.coverPath).catch(() => {})
+      }
+      // Delete book file
+      if (book.path) {
+        fs.promises.unlink(book.path).catch(() => {})
+      }
+    }
+    
     const stmt = db.prepare('DELETE FROM books WHERE id = ?')
     stmt.run(bookId)
     return true
   } catch (e) {
     console.error('Delete book error:', e)
+    return false
+  }
+})
+
+// ============ Annotation Handlers ============
+
+ipcMain.handle('get-annotations', (_, bookId: number) => {
+  return db.prepare('SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC').all(bookId)
+})
+
+ipcMain.handle('add-annotation', (_, annotation: {
+  bookId: number
+  type: 'highlight' | 'note'
+  cfi?: string
+  pageNumber?: number
+  text?: string
+  note?: string
+  color?: string
+}) => {
+  const stmt = db.prepare(`
+    INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    RETURNING *
+  `)
+  return stmt.get(
+    annotation.bookId,
+    annotation.type,
+    annotation.cfi || null,
+    annotation.pageNumber || null,
+    annotation.text || null,
+    annotation.note || null,
+    annotation.color || '#ffeb3b'
+  )
+})
+
+ipcMain.handle('update-annotation', (_, id: number, updates: { note?: string; color?: string }) => {
+  const fields: string[] = []
+  const values: (string | number)[] = []
+  
+  if (updates.note !== undefined) {
+    fields.push('note = ?')
+    values.push(updates.note)
+  }
+  if (updates.color !== undefined) {
+    fields.push('color = ?')
+    values.push(updates.color)
+  }
+  
+  if (fields.length === 0) return null
+  
+  fields.push('updatedAt = CURRENT_TIMESTAMP')
+  values.push(id)
+  
+  const stmt = db.prepare(`UPDATE annotations SET ${fields.join(', ')} WHERE id = ? RETURNING *`)
+  return stmt.get(...values)
+})
+
+ipcMain.handle('delete-annotation', (_, id: number) => {
+  try {
+    db.prepare('DELETE FROM annotations WHERE id = ?').run(id)
+    return true
+  } catch (e) {
+    console.error('Delete annotation error:', e)
     return false
   }
 })

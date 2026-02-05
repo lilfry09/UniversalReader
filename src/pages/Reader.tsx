@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Palette } from 'lucide-react'
-import type { Book, ThemeMode } from '../types'
-import { THEMES } from '../types'
+import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus } from 'lucide-react'
+import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme } from '../types'
+import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
 import PdfReader from '../components/readers/PdfReader'
 import MarkdownReader from '../components/readers/MarkdownReader'
 import EpubReader from '../components/readers/EpubReader'
@@ -16,11 +16,54 @@ export default function Reader() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     return (localStorage.getItem('reader-theme') as ThemeMode) || 'light'
   })
-  const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false)
+  const [customBgImage, setCustomBgImage] = useState<string | null>(() => {
+    return localStorage.getItem('reader-custom-bg') || null
+  })
+  const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
 
-  const currentTheme = THEMES[themeMode]
-  const hoverBg = themeMode === 'light' || themeMode === 'sepia' ? 'hover:bg-black/10' : 'hover:bg-white/10'
-  const dividerColor = themeMode === 'light' || themeMode === 'sepia' ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
+  // Reader settings
+  const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
+    const saved = localStorage.getItem('reader-settings')
+    return saved ? { ...DEFAULT_READER_SETTINGS, ...JSON.parse(saved) } : DEFAULT_READER_SETTINGS
+  })
+
+  // Load custom background image URL
+  useEffect(() => {
+    const loadCustomBg = async () => {
+      if (customBgImage) {
+        const url = await window.ipcRenderer.invoke('get-background-image-url', customBgImage)
+        setCustomBgUrl(url)
+      } else {
+        setCustomBgUrl(null)
+      }
+    }
+    loadCustomBg()
+  }, [customBgImage])
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('reader-settings', JSON.stringify(readerSettings))
+  }, [readerSettings])
+
+  useEffect(() => {
+    if (customBgImage) {
+      localStorage.setItem('reader-custom-bg', customBgImage)
+    } else {
+      localStorage.removeItem('reader-custom-bg')
+    }
+  }, [customBgImage])
+
+  const currentTheme: ReaderTheme = useMemo(() => {
+    const base = THEMES[themeMode]
+    if (themeMode === 'custom' && customBgUrl) {
+      return { ...base, customBgImage: customBgUrl }
+    }
+    return base
+  }, [themeMode, customBgUrl])
+
+  const hoverBg = themeMode === 'light' || themeMode === 'sepia' || themeMode === 'custom' ? 'hover:bg-black/10' : 'hover:bg-white/10'
+  const dividerColor = themeMode === 'light' || themeMode === 'sepia' || themeMode === 'custom' ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
 
   useEffect(() => {
     const loadBook = async () => {
@@ -65,7 +108,45 @@ export default function Reader() {
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode)
     localStorage.setItem('reader-theme', mode)
-    setShowThemeMenu(false)
+  }
+
+  const handleFontSizeChange = (delta: number) => {
+    setReaderSettings(prev => ({
+      ...prev,
+      fontSize: Math.min(Math.max(12, prev.fontSize + delta), 32)
+    }))
+  }
+
+  const handleLineHeightChange = (delta: number) => {
+    setReaderSettings(prev => ({
+      ...prev,
+      lineHeight: Math.min(Math.max(1.2, prev.lineHeight + delta), 2.5)
+    }))
+  }
+
+  const handlePageModeChange = (mode: PageMode) => {
+    setReaderSettings(prev => ({ ...prev, pageMode: mode }))
+  }
+
+  const handleFontFamilyChange = (fontFamily: string) => {
+    setReaderSettings(prev => ({ ...prev, fontFamily }))
+  }
+
+  const handleSelectBackgroundImage = async () => {
+    const imagePath = await window.ipcRenderer.invoke('select-background-image')
+    if (imagePath) {
+      setCustomBgImage(imagePath)
+      setThemeMode('custom')
+      localStorage.setItem('reader-theme', 'custom')
+    }
+  }
+
+  const handleClearBackgroundImage = () => {
+    setCustomBgImage(null)
+    if (themeMode === 'custom') {
+      setThemeMode('light')
+      localStorage.setItem('reader-theme', 'light')
+    }
   }
 
   if (loading) return <div className="p-8">Loading...</div>
@@ -141,51 +222,200 @@ export default function Reader() {
         
         <div className="relative">
           <button
-            onClick={() => setShowThemeMenu(!showThemeMenu)}
+            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
             className={`p-1.5 rounded transition-colors ${hoverBg}`}
             style={{ color: currentTheme.text }}
-            title="Appearance"
+            title="阅读设置"
           >
-            <Palette className="w-5 h-5" />
+            <Settings className="w-5 h-5" />
           </button>
 
-          {showThemeMenu && (
+          {showSettingsMenu && (
             <>
               <div 
                 className="fixed inset-0 z-10" 
-                onClick={() => setShowThemeMenu(false)}
+                onClick={() => setShowSettingsMenu(false)}
               />
               <div
-                className="absolute right-0 mt-2 w-56 rounded-lg shadow-xl border py-2 z-20"
+                className="absolute right-0 mt-2 w-80 rounded-lg shadow-xl border py-2 z-20 max-h-[80vh] overflow-y-auto"
                 style={{ backgroundColor: currentTheme.ui, color: currentTheme.text, borderColor: dividerColor }}
               >
-                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ opacity: 0.7 }}>
-                  Theme
+                {/* Theme Section */}
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-2" style={{ opacity: 0.7 }}>
+                  <BookOpen className="w-3.5 h-3.5" />
+                  主题
                 </div>
-                <div className="grid grid-cols-2 gap-2 px-3 py-2">
-                  {(Object.keys(THEMES) as ThemeMode[]).map((mode) => (
+                <div className="grid grid-cols-3 gap-2 px-3 py-2">
+                  {(Object.keys(THEMES) as ThemeMode[]).filter(m => m !== 'custom').map((mode) => (
                     <button
                       key={mode}
                       onClick={() => handleThemeChange(mode)}
                       className={`
-                        flex flex-col items-center gap-1.5 p-2 rounded-md border text-xs transition-all
+                        flex flex-col items-center gap-1 p-2 rounded-md border text-xs transition-all
                         ${themeMode === mode 
-                          ? 'border-blue-500 bg-blue-600/15 text-blue-500' 
+                          ? 'border-blue-500 bg-blue-600/15' 
                           : 'hover:border-gray-300'}
                       `}
                       style={{
                         borderColor: themeMode === mode ? '#3b82f6' : dividerColor,
-                        backgroundColor: themeMode === mode ? 'rgba(59,130,246,0.12)' : (themeMode === 'light' || themeMode === 'sepia') ? '#f9fafb' : 'rgba(255,255,255,0.06)',
+                        backgroundColor: themeMode === mode ? 'rgba(59,130,246,0.12)' : 'transparent',
                         color: themeMode === mode ? '#3b82f6' : currentTheme.text,
                       }}
                     >
                       <div 
-                        className="w-full h-8 rounded shadow-sm border border-black/5" 
+                        className="w-full h-6 rounded shadow-sm border border-black/5" 
                         style={{ backgroundColor: THEMES[mode].bg }}
                       />
-                      <span className="capitalize">{mode}</span>
+                      <span className="capitalize text-[10px]">{mode === 'light' ? '明亮' : mode === 'dark' ? '暗黑' : mode === 'sepia' ? '护眼' : '灰色'}</span>
                     </button>
                   ))}
+                </div>
+
+                <div className="h-px mx-3 my-2" style={{ backgroundColor: dividerColor }} />
+
+                {/* Font Size Section */}
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-2" style={{ opacity: 0.7 }}>
+                  <Type className="w-3.5 h-3.5" />
+                  字体设置
+                </div>
+                <div className="px-3 py-2 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">字体大小</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleFontSizeChange(-1)}
+                        className={`p-1 rounded ${hoverBg}`}
+                        style={{ color: currentTheme.text }}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-10 text-center text-sm font-mono">{readerSettings.fontSize}px</span>
+                      <button
+                        onClick={() => handleFontSizeChange(1)}
+                        className={`p-1 rounded ${hoverBg}`}
+                        style={{ color: currentTheme.text }}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">行高</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleLineHeightChange(-0.1)}
+                        className={`p-1 rounded ${hoverBg}`}
+                        style={{ color: currentTheme.text }}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-10 text-center text-sm font-mono">{readerSettings.lineHeight.toFixed(1)}</span>
+                      <button
+                        onClick={() => handleLineHeightChange(0.1)}
+                        className={`p-1 rounded ${hoverBg}`}
+                        style={{ color: currentTheme.text }}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-sm block mb-2">字体</span>
+                    <select
+                      value={readerSettings.fontFamily}
+                      onChange={(e) => handleFontFamilyChange(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded border text-sm"
+                      style={{ 
+                        backgroundColor: currentTheme.bg, 
+                        color: currentTheme.text, 
+                        borderColor: dividerColor 
+                      }}
+                    >
+                      {FONT_FAMILIES.map(f => (
+                        <option key={f.value} value={f.value}>{f.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="h-px mx-3 my-2" style={{ backgroundColor: dividerColor }} />
+
+                {/* Page Mode Section */}
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ opacity: 0.7 }}>
+                  翻页模式
+                </div>
+                <div className="px-3 py-2 flex gap-2">
+                  {([
+                    { mode: 'scroll' as PageMode, label: '滚动' },
+                    { mode: 'paginated' as PageMode, label: '分页' },
+                    { mode: 'single' as PageMode, label: '单页' },
+                  ]).map(({ mode, label }) => (
+                    <button
+                      key={mode}
+                      onClick={() => handlePageModeChange(mode)}
+                      className={`
+                        flex-1 py-1.5 rounded-md border text-xs transition-all
+                        ${readerSettings.pageMode === mode 
+                          ? 'border-blue-500 bg-blue-600/15 text-blue-500' 
+                          : 'hover:border-gray-300'}
+                      `}
+                      style={{
+                        borderColor: readerSettings.pageMode === mode ? '#3b82f6' : dividerColor,
+                        backgroundColor: readerSettings.pageMode === mode ? 'rgba(59,130,246,0.12)' : 'transparent',
+                        color: readerSettings.pageMode === mode ? '#3b82f6' : currentTheme.text,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="h-px mx-3 my-2" style={{ backgroundColor: dividerColor }} />
+
+                {/* Background Image Section */}
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-2" style={{ opacity: 0.7 }}>
+                  <Image className="w-3.5 h-3.5" />
+                  自定义背景
+                </div>
+                <div className="px-3 py-2">
+                  {customBgUrl ? (
+                    <div className="space-y-2">
+                      <div 
+                        className="w-full h-20 rounded-md border bg-cover bg-center"
+                        style={{ 
+                          backgroundImage: `url(${customBgUrl})`,
+                          borderColor: dividerColor
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSelectBackgroundImage}
+                          className="flex-1 py-1.5 text-xs rounded border hover:bg-black/5"
+                          style={{ borderColor: dividerColor, color: currentTheme.text }}
+                        >
+                          更换图片
+                        </button>
+                        <button
+                          onClick={handleClearBackgroundImage}
+                          className="flex-1 py-1.5 text-xs rounded border text-red-500 hover:bg-red-50"
+                          style={{ borderColor: dividerColor }}
+                        >
+                          移除背景
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleSelectBackgroundImage}
+                      className="w-full py-2 text-sm rounded border border-dashed hover:bg-black/5 flex items-center justify-center gap-2"
+                      style={{ borderColor: dividerColor, color: currentTheme.text }}
+                    >
+                      <Image className="w-4 h-4" />
+                      选择本地图片
+                    </button>
+                  )}
                 </div>
               </div>
             </>
@@ -197,10 +427,12 @@ export default function Reader() {
       <div className="flex-1 overflow-hidden relative">
         {book.format === 'pdf' && (
           <PdfReader 
-            filePath={book.path} 
+            filePath={book.path}
+            bookId={book.id}
             initialProgress={book.progress}
             onProgressUpdate={handleProgressUpdate}
             theme={currentTheme}
+            readerSettings={readerSettings}
           />
         )}
         
@@ -209,15 +441,18 @@ export default function Reader() {
             filePath={book.path}
             format={book.format}
             theme={currentTheme}
+            readerSettings={readerSettings}
           />
         )}
 
         {(book.format === 'epub' || book.format === 'mobi' || book.format === 'azw3') && (
           <EpubReader 
             filePath={book.path}
+            bookId={book.id}
             initialProgress={book.progress}
             onProgressUpdate={handleProgressUpdate}
             theme={currentTheme}
+            readerSettings={readerSettings}
           />
         )}
 

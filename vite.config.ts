@@ -15,7 +15,8 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ['better-sqlite3'],
+              // Native/node addons must stay external in Electron main.
+              external: ['better-sqlite3', 'canvas'],
             },
           },
         },

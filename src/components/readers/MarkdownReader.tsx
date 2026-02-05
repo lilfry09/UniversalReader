@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Markdown from 'react-markdown'
-import type { ReaderTheme } from '../../types'
+import type { ReaderTheme, ReaderSettings } from '../../types'
+import { DEFAULT_READER_SETTINGS } from '../../types'
 import { clsx } from 'clsx'
 
 function shouldOpenExternal(href: string) {
@@ -21,9 +22,15 @@ interface MarkdownReaderProps {
   filePath: string
   format: 'md' | 'txt'
   theme: ReaderTheme
+  readerSettings?: ReaderSettings
 }
 
-export default function MarkdownReader({ filePath, format, theme }: MarkdownReaderProps) {
+export default function MarkdownReader({ 
+  filePath, 
+  format, 
+  theme,
+  readerSettings = DEFAULT_READER_SETTINGS 
+}: MarkdownReaderProps) {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
@@ -52,18 +59,42 @@ export default function MarkdownReader({ filePath, format, theme }: MarkdownRead
     )
   }
 
+  // Compute background style for custom background image
+  const backgroundStyle: React.CSSProperties = theme.customBgImage
+    ? {
+        backgroundImage: `url(${theme.customBgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        color: theme.text,
+      }
+    : { backgroundColor: theme.bg, color: theme.text }
+
+  // Compute content styles based on reader settings
+  const contentStyle: React.CSSProperties = {
+    fontSize: `${readerSettings.fontSize}px`,
+    lineHeight: readerSettings.lineHeight,
+    fontFamily: readerSettings.fontFamily,
+  }
+
   return (
     <div 
       className="h-full overflow-auto transition-colors duration-200" 
-      style={{ backgroundColor: theme.bg, color: theme.text }}
+      style={backgroundStyle}
     >
-      <div className="max-w-3xl mx-auto px-8 py-12">
+      <div className="max-w-3xl mx-auto px-8 py-12" style={contentStyle}>
         {format === 'md' ? (
           <article className={clsx(
             "prose lg:prose-lg max-w-none transition-colors duration-200",
             (theme.mode === 'dark' || theme.mode === 'gray') ? "prose-invert" : "prose-slate"
           )}
-          style={{ '--tw-prose-body': theme.text } as any}
+          style={{ 
+            '--tw-prose-body': theme.text,
+            fontSize: 'inherit',
+            lineHeight: 'inherit',
+            fontFamily: 'inherit',
+          } as React.CSSProperties}
           >
             <Markdown
               components={{
@@ -98,11 +129,13 @@ export default function MarkdownReader({ filePath, format, theme }: MarkdownRead
           </article>
         ) : (
           <pre 
-            className="whitespace-pre-wrap font-mono text-sm leading-relaxed p-4 rounded-lg border transition-colors duration-200"
+            className="whitespace-pre-wrap font-mono leading-relaxed p-4 rounded-lg border transition-colors duration-200"
             style={{ 
-              backgroundColor: theme.ui, 
+              backgroundColor: theme.customBgImage ? 'rgba(255,255,255,0.85)' : theme.ui, 
               color: theme.text,
-              borderColor: theme.mode === 'light' ? '#e5e7eb' : 'transparent'
+              borderColor: theme.mode === 'light' || theme.mode === 'custom' ? '#e5e7eb' : 'transparent',
+              fontSize: `${readerSettings.fontSize}px`,
+              lineHeight: readerSettings.lineHeight,
             }}
           >
             {content}
