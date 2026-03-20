@@ -1,4 +1,4 @@
-// Simple QA Service using DeepSeek API directly
+// Simple QA Service using OpenRouter API
 import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
@@ -10,14 +10,17 @@ interface Doc {
   metadata: Record<string, unknown>;
 }
 
-// DeepSeek API Key from environment variable (read lazily for testability)
-function getDeepSeekApiKey(): string {
-  return process.env.DEEPSEEK_API_KEY || "";
+// OpenRouter API configuration (read lazily for testability)
+function getApiKey(): string {
+  return process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
 }
 
-function getDeepSeekBaseUrl(): string {
-  return process.env.DEEPSEEK_API_URL || "https://api.deepseek.com";
+function getBaseUrl(): string {
+  return process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
 }
+
+// Free model selection - using models that have free tiers on OpenRouter
+const FREE_CHAT_MODEL = "google/gemini-2.0-flash-thinking-exp:free";
 
 // Simple in-memory vector store
 interface DocChunk {
@@ -33,64 +36,114 @@ let currentStatus: QAStatus = "idle";
 let currentError: string | null = null;
 let chunkCount = 0;
 
-// Simple cosine similarity
-function cosineSimilarity(a: number[], b: number[]): number {
-  const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-  const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-  const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  if (magA === 0 || magB === 0) return 0;
-  return dotProduct / (magA * magB);
+// Simple TF-IDF like vectorizer (no API needed)
+function tokenize(text: string): string[] {
+  return text.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 2);
 }
 
-// Call DeepSeek API for embeddings
-async function getEmbedding(text: string): Promise<number[]> {
-  const response = await fetch(`${getDeepSeekBaseUrl()}/v1/embeddings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${getDeepSeekApiKey()}`
-    },
-    body: JSON.stringify({
-      model: "text-embedding-3-small",
-      input: text
-    })
-  });
+function computeTfIdfVector(tokens: string[], vocab: Map<string, number>, idf: Map<string, number>): number[] {
+  const vector = new Array(vocab.size).fill(0);
+  const tf = new Map<string, number>();
 
-  const data = await response.json() as { data?: { embedding: number[] }[] };
-  return data.data?.[0]?.embedding || [];
+  for (const token of tokens) {
+    tf.set(token, (tf.get(token) || 0) + 1);
+  }
+
+  for (const [token, count] of tf) {
+    const idx = vocab.get(token);
+    if (idx !== undefined) {
+      const tfVal = count / tokens.length;
+      const idfVal = idf.get(token) || 0;
+      vector[idx] = tfVal * idfVal;
+    }
+  }
+
+  return vector;
 }
 
-// Call DeepSeek API for chat
+function buildVocabAndIdf(chunks: string[]): { vocab: Map<string, number>; idf: Map<string, number> } {
+  const vocab = new Map<string, number>();
+  const docFreq = new Map<string, number>();
+  const allTokens = chunks.map(c => tokenize(c));
+
+  for (const tokens of allTokens) {
+    const uniqueTokens = new Set(tokens);
+    for (const token of uniqueTokens) {
+      docFreq.set(token, (docFreq.get(token) || 0) + 1);
+    }
+  }
+
+  let idx = 0;
+  for (const token of docFreq.keys()) {
+    vocab.set(token, idx++);
+  }
+
+  const idf = new Map<string, number>();
+  const nDocs = chunks.length;
+  for (const [token, freq] of docFreq) {
+    idf.set(token, Math.log((nDocs + 1) / (freq + 1)) + 1);
+  }
+
+  return { vocab, idf };
+}
+
+// Simple keyword-based similarity (fallback)
+function keywordSimilarity(query: string, content: string): number {
+  const queryTokens = new Set(tokenize(query));
+  const contentTokens = new Set(tokenize(content));
+
+  let matchCount = 0;
+  for (const token of queryTokens) {
+    if (contentTokens.has(token)) matchCount++;
+  }
+
+  return matchCount / queryTokens.size;
+}
+
+// Call OpenRouter API for chat
 async function chat(messages: { role: string; content: string }[]): Promise<string> {
-  const response = await fetch(`${getDeepSeekBaseUrl()}/v1/chat/completions`, {
+  const response = await fetch(`${getBaseUrl()}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${getDeepSeekApiKey()}`
+      "Authorization": `Bearer ${getApiKey()}`,
+      "HTTP-Referer": "https://github.com",
+      "X-Title": "UniversalReader"
     },
     body: JSON.stringify({
-      model: "deepseek-chat",
+      model: FREE_CHAT_MODEL,
       messages,
       temperature: 0.7
     })
   });
-  
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+  }
+
   const data = await response.json() as { choices?: { message: { content: string } }[] };
   return data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 }
 
-// Search similar documents
+// Search similar documents using TF-IDF
 async function similaritySearch(query: string, k: number = 4): Promise<Doc[]> {
-  const queryEmbedding = await getEmbedding(query);
-  const similarities = documents.map((doc, idx) => ({
+  if (documents.length === 0) return [];
+
+  // Find documents with keyword overlap first
+  const scored = documents.map((doc, idx) => ({
     idx,
-    score: cosineSimilarity(queryEmbedding, doc.embedding),
+    score: keywordSimilarity(query, doc.content),
     doc
   }));
-  
-  similarities.sort((a, b) => b.score - a.score);
-  
-  return similarities.slice(0, k).map(s => ({
+
+  // Sort by score and return top k
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, k).map(s => ({
     pageContent: s.doc.content,
     metadata: s.doc.metadata
   }));
@@ -115,6 +168,8 @@ async function extractTextFromFile(
   filePath: string,
   format: string
 ): Promise<string> {
+  // For web blob URLs, we can't read them directly in Node
+  // This is handled at a higher level
   switch (format.toLowerCase()) {
     case "txt":
     case "md":
@@ -122,7 +177,7 @@ async function extractTextFromFile(
 
     case "pdf": {
       const pdfjs = await import("pdfjs-dist");
-      
+
       // Set up worker - try multiple possible locations
       const possibleWorkerPaths = [
         path.join(process.cwd(), 'public', 'pdf.worker.min.mjs'),
@@ -131,20 +186,19 @@ async function extractTextFromFile(
         path.join(process.cwd(), 'dist-electron', 'pdf.worker.mjs'),
         path.join(__dirname, '..', 'dist-electron', 'pdf.worker.mjs'),
       ];
-      
+
       for (const workerPath of possibleWorkerPaths) {
         if (fs.existsSync(workerPath)) {
           pdfjs.GlobalWorkerOptions.workerSrc = workerPath;
           break;
         }
       }
-      
+
       const buffer = await fs.promises.readFile(filePath);
-      // Convert Buffer to Uint8Array for pdfjs-dist
       const data = new Uint8Array(buffer);
       const pdf = await pdfjs.getDocument({ data }).promise;
       const textParts: string[] = [];
-      
+
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -165,7 +219,7 @@ async function extractTextFromFile(
       const zip = new AdmZip(filePath);
       const entries = zip.getEntries();
       const htmlContents: string[] = [];
-      
+
       for (const entry of entries) {
         if (
           entry.entryName.endsWith(".html") ||
@@ -177,7 +231,6 @@ async function extractTextFromFile(
         }
       }
 
-      // Simple HTML tag stripping
       const text = htmlContents
         .map(html =>
           html
@@ -221,10 +274,11 @@ async function loadBookForQA(
     updateStatus("loading");
 
     // Check API key
-    if (!getDeepSeekApiKey()) {
+    if (!getApiKey()) {
       throw new Error(
-        "DEEPSEEK_API_KEY environment variable is not set. " +
-        "Please set it in your .env file or system environment."
+        "OPENROUTER_API_KEY environment variable is not set. " +
+        "Please set it in your .env file or system environment. " +
+        "Get your free API key from https://openrouter.ai/keys"
       );
     }
 
@@ -250,17 +304,18 @@ async function loadBookForQA(
 
     console.log(`[QA] Created ${chunks.length} text chunks`);
 
-    // Create embeddings for all chunks
-    documents = [];
-    for (const chunk of chunks) {
-      const embedding = await getEmbedding(chunk);
-      documents.push({
-        content: chunk,
-        embedding,
-        metadata: { source: path.basename(bookPath) }
-      });
-    }
-    
+    // Build TF-IDF index
+    const { vocab, idf } = buildVocabAndIdf(chunks);
+
+    documents = chunks.map((content, idx) => {
+      const tokens = tokenize(content);
+      return {
+        content,
+        embedding: computeTfIdfVector(tokens, vocab, idf),
+        metadata: { source: path.basename(bookPath), chunkIndex: idx }
+      };
+    });
+
     chunkCount = chunks.length;
     currentBookPath = bookPath;
     updateStatus("ready");
@@ -292,12 +347,12 @@ async function askQuestion(
 
   console.log(`[QA] Question: ${question}`);
 
-  // Get relevant documents
+  // Get relevant documents using TF-IDF
   const relevantDocs = await similaritySearch(question, 4);
 
-  // Build context from relevant docs (limit context size)
+  // Build context from relevant docs
   const context = relevantDocs.map(d => d.pageContent.slice(0, 2000)).join("\n\n");
-  
+
   // Create a prompt with context
   const prompt = `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
 
