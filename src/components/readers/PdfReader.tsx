@@ -10,6 +10,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).href
 
+import { isElectron } from '../../utils/platform'
 import type { ReaderTheme, Annotation, ReaderSettings } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 
@@ -50,11 +51,8 @@ export default function PdfReader({
 
   // Load annotations
   const loadAnnotations = useCallback(async () => {
-    // Check if running in Electron
-    const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-
     // Annotations not supported in web mode yet
-    if (!isElectron) {
+    if (!isElectron()) {
       setAnnotations([])
       return
     }
@@ -79,10 +77,7 @@ export default function PdfReader({
 
         let arrayBuffer: ArrayBuffer
 
-        // Check if running in Electron
-        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-
-        if (isElectron) {
+        if (isElectron()) {
           const data = await window.ipcRenderer.invoke('read-file-buffer', filePath)
           const uint8Array = new Uint8Array(data)
           arrayBuffer = uint8Array.buffer.slice(
@@ -92,6 +87,9 @@ export default function PdfReader({
         } else {
           // Web mode: filePath is a blob URL
           const response = await fetch(filePath)
+          if (!response.ok) {
+            throw new Error(`Failed to load PDF: ${response.status} ${response.statusText}`)
+          }
           arrayBuffer = await response.arrayBuffer()
         }
 
@@ -244,9 +242,7 @@ export default function PdfReader({
       if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'mailto:') return
       e.preventDefault()
 
-      // Check if running in Electron
-      const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-      if (isElectron) {
+      if (isElectron()) {
         await window.ipcRenderer.invoke('open-external', anchor.href)
       } else {
         // Web mode: open in new tab

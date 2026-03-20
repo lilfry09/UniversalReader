@@ -3,6 +3,7 @@ import Markdown from 'react-markdown'
 import type { ReaderTheme, ReaderSettings } from '../../types'
 import { DEFAULT_READER_SETTINGS } from '../../types'
 import { clsx } from 'clsx'
+import { isElectron, OPEN_EXTERNAL_LINKS_KEY } from '../../utils'
 
 function shouldOpenExternal(href: string) {
   try {
@@ -14,7 +15,7 @@ function shouldOpenExternal(href: string) {
 }
 
 function isExternalLinksEnabled() {
-  const raw = localStorage.getItem('open-external-links')
+  const raw = localStorage.getItem(OPEN_EXTERNAL_LINKS_KEY)
   return raw == null ? true : raw === 'true'
 }
 
@@ -39,16 +40,16 @@ export default function MarkdownReader({
       try {
         setLoading(true)
 
-        // Check if running in Electron
-        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-
         let text: string
-        if (isElectron) {
+        if (isElectron()) {
           const buffer = await window.ipcRenderer.invoke('read-file', filePath)
           text = new TextDecoder().decode(buffer)
         } else {
           // Web mode: fetch the blob URL directly
           const response = await fetch(filePath)
+          if (!response.ok) {
+            throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
+          }
           text = await response.text()
         }
         setContent(text)
@@ -112,7 +113,6 @@ export default function MarkdownReader({
                 a: ({ href, children, ...props }) => {
                   const safeHref = href || ''
                   const external = isExternalLinksEnabled() && shouldOpenExternal(safeHref)
-                  const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
 
                   return (
                     <a
@@ -123,7 +123,7 @@ export default function MarkdownReader({
                         if (!external) return
                         e.preventDefault()
                         try {
-                          if (isElectron) {
+                          if (isElectron()) {
                             await window.ipcRenderer.invoke('open-external', safeHref)
                           } else {
                             // Web mode: open in new tab

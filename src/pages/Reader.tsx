@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus, MessageSquare } from 'lucide-react'
 import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme } from '../types'
 import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
+import { isElectron, isLightTheme, WEB_LIBRARY_KEY, READER_THEME_KEY, READER_SETTINGS_KEY, READER_CUSTOM_BG_KEY } from '../utils'
+import { safeGetItem, safeSetItem } from '../utils/storage'
 import PdfReader from '../components/readers/PdfReader'
 import MarkdownReader from '../components/readers/MarkdownReader'
 import EpubReader from '../components/readers/EpubReader'
@@ -15,19 +17,18 @@ export default function Reader() {
   const [loading, setLoading] = useState(true)
   const [fileExists, setFileExists] = useState<boolean | null>(null)
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    return (localStorage.getItem('reader-theme') as ThemeMode) || 'light'
+    return safeGetItem<ThemeMode>(READER_THEME_KEY, 'light')
   })
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [customBgImage, setCustomBgImage] = useState<string | null>(() => {
-    return localStorage.getItem('reader-custom-bg') || null
+    return safeGetItem<string | null>(READER_CUSTOM_BG_KEY, null)
   })
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [showQA, setShowQA] = useState(false)
 
   // Reader settings
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
-    const saved = localStorage.getItem('reader-settings')
-    return saved ? { ...DEFAULT_READER_SETTINGS, ...JSON.parse(saved) } : DEFAULT_READER_SETTINGS
+    return safeGetItem<ReaderSettings>(READER_SETTINGS_KEY, DEFAULT_READER_SETTINGS)
   })
 
   // Load custom background image URL
@@ -45,14 +46,14 @@ export default function Reader() {
 
   // Save settings to localStorage
   useEffect(() => {
-    localStorage.setItem('reader-settings', JSON.stringify(readerSettings))
+    safeSetItem(READER_SETTINGS_KEY, readerSettings)
   }, [readerSettings])
 
   useEffect(() => {
     if (customBgImage) {
-      localStorage.setItem('reader-custom-bg', customBgImage)
+      safeSetItem(READER_CUSTOM_BG_KEY, customBgImage)
     } else {
-      localStorage.removeItem('reader-custom-bg')
+      localStorage.removeItem(READER_CUSTOM_BG_KEY)
     }
   }, [customBgImage])
 
@@ -64,21 +65,18 @@ export default function Reader() {
     return base
   }, [themeMode, customBgUrl])
 
-  const hoverBg = themeMode === 'light' || themeMode === 'sepia' || themeMode === 'custom' ? 'hover:bg-black/10' : 'hover:bg-white/10'
-  const dividerColor = themeMode === 'light' || themeMode === 'sepia' || themeMode === 'custom' ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
+  const hoverBg = isLightTheme(themeMode) ? 'hover:bg-black/10' : 'hover:bg-white/10'
+  const dividerColor = isLightTheme(themeMode) ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
 
   useEffect(() => {
     const loadBook = async () => {
       try {
-        // Check if running in Electron
-        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-
         let library: Book[] = []
-        if (isElectron) {
+        if (isElectron()) {
           library = await window.ipcRenderer.invoke('get-library')
         } else {
           // Web: get books from localStorage
-          library = JSON.parse(localStorage.getItem('web-library') || '[]')
+          library = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
         }
 
         const found = library.find(b => b.id === Number(id))
@@ -107,9 +105,7 @@ export default function Reader() {
           return
         }
 
-        // Check if running in Electron
-        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
-        if (isElectron) {
+        if (isElectron()) {
           const ok = await window.ipcRenderer.invoke('file-exists', book.path)
           setFileExists(ok)
         } else {
@@ -129,11 +125,11 @@ export default function Reader() {
 
     // For web books, save to localStorage
     if (book.isWebBook) {
-      const webBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+      const webBooks = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
       const updatedBooks = webBooks.map((b: Book) =>
         b.id === book.id ? { ...b, progress, updatedAt: new Date().toISOString() } : b
       )
-      localStorage.setItem('web-library', JSON.stringify(updatedBooks))
+      safeSetItem(WEB_LIBRARY_KEY, updatedBooks)
       return
     }
 
@@ -143,7 +139,7 @@ export default function Reader() {
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode)
-    localStorage.setItem('reader-theme', mode)
+    safeSetItem(READER_THEME_KEY, mode)
   }
 
   const handleFontSizeChange = (delta: number) => {
@@ -181,7 +177,7 @@ export default function Reader() {
     setCustomBgImage(null)
     if (themeMode === 'custom') {
       setThemeMode('light')
-      localStorage.setItem('reader-theme', 'light')
+      safeSetItem(READER_THEME_KEY, 'light')
     }
   }
 
