@@ -134,14 +134,9 @@ async function extractPdfCover(filePath: string, bookId: string): Promise<string
   try {
     // Use canvas to render first page of PDF
     const pdfjs = await import('pdfjs-dist')
-    
-    // Set up worker
-    const workerSrc = path.join(__dirname, '../dist/pdf.worker.min.mjs')
-    if (fs.existsSync(workerSrc)) {
-      pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
-    }
 
-    const data = await fs.promises.readFile(filePath)
+    const dataBuffer = await fs.promises.readFile(filePath)
+    const data = new Uint8Array(dataBuffer)
     const pdf = await pdfjs.getDocument({ data }).promise
     const page = await pdf.getPage(1)
     
@@ -193,7 +188,8 @@ async function extractMetadata(filePath: string, format: string): Promise<{ titl
     
     if (format === 'pdf') {
       const pdfjs = await import('pdfjs-dist')
-      const data = await fs.promises.readFile(filePath)
+      const dataBuffer = await fs.promises.readFile(filePath)
+      const data = new Uint8Array(dataBuffer)
       const pdf = await pdfjs.getDocument({ data }).promise
       const metadata = await pdf.getMetadata()
       

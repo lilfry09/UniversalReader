@@ -1,8 +1,13 @@
 // Simple QA Service using OpenRouter API
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import AdmZip from "adm-zip";
 import type { SourceChunk, QAServiceStatus, QAStatus } from "../src/types.ts";
+
+// ESM __dirname fix
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Simple Document interface
 interface Doc {

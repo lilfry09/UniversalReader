@@ -92,7 +92,7 @@
         "验证答案和引用来源显示正确",
         "测试多轮对话"
       ],
-      "passes": false,
+      "passes": true,
       "dependencies": ["6"]
     },
     {
@@ -129,6 +129,53 @@
         "将 DEEPSEEK_API_KEY 改为 getter 函数",
         "将 DEEPSEEK_API_URL 改为 getter 函数",
         "添加 API Key 缺失时的友好错误提示"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "11",
+      "title": "Bug 修复 - Web 版 PDF 导入显示 book not found",
+      "description": "修复网页版导入 PDF 后显示 book not found 的问题",
+      "steps": [
+        "Reader.tsx 中添加 localStorage 检查支持 web 书库",
+        "PdfReader.tsx 中添加 web 模式文件读取支持",
+        "MarkdownReader.tsx 中添加 web 模式文件读取支持"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "12",
+      "title": "Bug 修复 - PDF 超链接在网页版无法打开",
+      "description": "修复网页版 PDF 中链接点击无反应的问题",
+      "steps": [
+        "PdfReader.tsx 中添加 web 模式 open-external 支持",
+        "MarkdownReader.tsx 中添加 web 模式 open-external 支持",
+        "使用 window.open 在新标签页打开链接"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "13",
+      "title": "Bug 修复 - Electron __dirname 未定义",
+      "description": "修复 Electron 主进程中 __dirname 未定义导致的 PDF 封面提取失败",
+      "steps": [
+        "handlers.ts 移除对 __dirname 的依赖",
+        "qa-service.ts 添加 ESM __dirname 修复",
+        "pdfjs-dist 改用动态导入"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "14",
+      "title": "Bug 修复 - PDF Buffer 类型错误",
+      "description": "修复 pdfjs-dist 期望 Uint8Array 但收到 Buffer 的类型错误",
+      "steps": [
+        "extractPdfCover 函数中将 Buffer 转为 Uint8Array",
+        "extractMetadata 函数中将 Buffer 转为 Uint8Array"
       ],
       "passes": true,
       "dependencies": []

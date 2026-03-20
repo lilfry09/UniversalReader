@@ -38,8 +38,19 @@ export default function MarkdownReader({
     const loadContent = async () => {
       try {
         setLoading(true)
-        const buffer = await window.ipcRenderer.invoke('read-file', filePath)
-        const text = new TextDecoder().decode(buffer)
+
+        // Check if running in Electron
+        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+
+        let text: string
+        if (isElectron) {
+          const buffer = await window.ipcRenderer.invoke('read-file', filePath)
+          text = new TextDecoder().decode(buffer)
+        } else {
+          // Web mode: fetch the blob URL directly
+          const response = await fetch(filePath)
+          text = await response.text()
+        }
         setContent(text)
       } catch (err) {
         console.error('Failed to load markdown/text file:', err)
@@ -101,6 +112,7 @@ export default function MarkdownReader({
                 a: ({ href, children, ...props }) => {
                   const safeHref = href || ''
                   const external = isExternalLinksEnabled() && shouldOpenExternal(safeHref)
+                  const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
 
                   return (
                     <a
@@ -111,7 +123,12 @@ export default function MarkdownReader({
                         if (!external) return
                         e.preventDefault()
                         try {
-                          await window.ipcRenderer.invoke('open-external', safeHref)
+                          if (isElectron) {
+                            await window.ipcRenderer.invoke('open-external', safeHref)
+                          } else {
+                            // Web mode: open in new tab
+                            window.open(safeHref, '_blank', 'noopener,noreferrer')
+                          }
                         } catch (err) {
                           console.error('Failed to open external link:', err)
                         }

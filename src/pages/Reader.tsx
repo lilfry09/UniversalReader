@@ -70,7 +70,17 @@ export default function Reader() {
   useEffect(() => {
     const loadBook = async () => {
       try {
-        const library = await window.ipcRenderer.invoke('get-library')
+        // Check if running in Electron
+        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+
+        let library: Book[] = []
+        if (isElectron) {
+          library = await window.ipcRenderer.invoke('get-library')
+        } else {
+          // Web: get books from localStorage
+          library = JSON.parse(localStorage.getItem('web-library') || '[]')
+        }
+
         const found = library.find(b => b.id === Number(id))
         if (found) {
           setBook(found)
@@ -91,8 +101,21 @@ export default function Reader() {
     const check = async () => {
       if (!book) return
       try {
-        const ok = await window.ipcRenderer.invoke('file-exists', book.path)
-        setFileExists(ok)
+        // For web books (blob URLs), they always exist
+        if (book.isWebBook) {
+          setFileExists(true)
+          return
+        }
+
+        // Check if running in Electron
+        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+        if (isElectron) {
+          const ok = await window.ipcRenderer.invoke('file-exists', book.path)
+          setFileExists(ok)
+        } else {
+          // Web mode - check if blob URL is valid
+          setFileExists(true)
+        }
       } catch (err) {
         console.error('Error checking file existence:', err)
         setFileExists(true)
@@ -102,9 +125,20 @@ export default function Reader() {
   }, [book])
 
   const handleProgressUpdate = (progress: number) => {
-    if (book) {
-      window.ipcRenderer.invoke('update-progress', book.id, progress)
+    if (!book) return
+
+    // For web books, save to localStorage
+    if (book.isWebBook) {
+      const webBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+      const updatedBooks = webBooks.map((b: Book) =>
+        b.id === book.id ? { ...b, progress, updatedAt: new Date().toISOString() } : b
+      )
+      localStorage.setItem('web-library', JSON.stringify(updatedBooks))
+      return
     }
+
+    // Electron mode
+    window.ipcRenderer.invoke('update-progress', book.id, progress)
   }
 
   const handleThemeChange = (mode: ThemeMode) => {

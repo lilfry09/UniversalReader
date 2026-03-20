@@ -50,6 +50,15 @@ export default function PdfReader({
 
   // Load annotations
   const loadAnnotations = useCallback(async () => {
+    // Check if running in Electron
+    const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+
+    // Annotations not supported in web mode yet
+    if (!isElectron) {
+      setAnnotations([])
+      return
+    }
+
     try {
       const annots = await window.ipcRenderer.invoke('get-annotations', bookId)
       setAnnotations(annots)
@@ -67,12 +76,25 @@ export default function PdfReader({
       try {
         setError(null)
         setLoading(true)
-        const data = await window.ipcRenderer.invoke('read-file-buffer', filePath)
-        const uint8Array = new Uint8Array(data)
-        const arrayBuffer = uint8Array.buffer.slice(
-          uint8Array.byteOffset,
-          uint8Array.byteOffset + uint8Array.byteLength
-        )
+
+        let arrayBuffer: ArrayBuffer
+
+        // Check if running in Electron
+        const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+
+        if (isElectron) {
+          const data = await window.ipcRenderer.invoke('read-file-buffer', filePath)
+          const uint8Array = new Uint8Array(data)
+          arrayBuffer = uint8Array.buffer.slice(
+            uint8Array.byteOffset,
+            uint8Array.byteOffset + uint8Array.byteLength
+          )
+        } else {
+          // Web mode: filePath is a blob URL
+          const response = await fetch(filePath)
+          arrayBuffer = await response.arrayBuffer()
+        }
+
         setPdfData({ data: arrayBuffer })
       } catch (err) {
         console.error('Failed to load PDF:', err)
@@ -221,7 +243,15 @@ export default function PdfReader({
       const url = new URL(anchor.href)
       if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'mailto:') return
       e.preventDefault()
-      await window.ipcRenderer.invoke('open-external', anchor.href)
+
+      // Check if running in Electron
+      const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
+      if (isElectron) {
+        await window.ipcRenderer.invoke('open-external', anchor.href)
+      } else {
+        // Web mode: open in new tab
+        window.open(anchor.href, '_blank', 'noopener,noreferrer')
+      }
     } catch {
       // ignore
     }
