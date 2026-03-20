@@ -4,6 +4,7 @@ import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
 import { createCanvas } from 'canvas'
+import { qaService } from './qa-service'
 
 // Database setup
 const dbPath = path.join(app.getPath('userData'), 'library.db')
@@ -441,4 +442,22 @@ ipcMain.handle('delete-annotation', (_, id: number) => {
     console.error('Delete annotation error:', e)
     return false
   }
+})
+
+// ============ QA Handlers ============
+
+ipcMain.handle('qa-load-book', async (_, bookPath: string, format: string) => {
+  return qaService.loadBookForQA(bookPath, format)
+})
+
+ipcMain.handle('qa-ask', async (_, question: string) => {
+  return qaService.askQuestion(question)
+})
+
+ipcMain.handle('qa-clear', async () => {
+  qaService.clearQA()
+})
+
+ipcMain.handle('qa-get-status', async () => {
+  return qaService.getStatus()
 })

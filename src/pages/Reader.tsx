@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus, MessageSquare } from 'lucide-react'
 import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme } from '../types'
 import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
 import PdfReader from '../components/readers/PdfReader'
 import MarkdownReader from '../components/readers/MarkdownReader'
 import EpubReader from '../components/readers/EpubReader'
+import QAChat from '../components/QAChat'
 
 export default function Reader() {
   const { id } = useParams<{ id: string }>()
@@ -21,6 +22,7 @@ export default function Reader() {
     return localStorage.getItem('reader-custom-bg') || null
   })
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
+  const [showQA, setShowQA] = useState(false)
 
   // Reader settings
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
@@ -220,6 +222,17 @@ export default function Reader() {
           {book.title}
         </h1>
         
+        <div className="relative">
+          <button
+            onClick={() => setShowQA(!showQA)}
+            className={`p-1.5 rounded transition-colors ${hoverBg} ${showQA ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
+            style={{ color: showQA ? '#3b82f6' : currentTheme.text }}
+            title="AI 问答"
+          >
+            <MessageSquare className="w-5 h-5" />
+          </button>
+        </div>
+
         <div className="relative">
           <button
             onClick={() => setShowSettingsMenu(!showSettingsMenu)}
@@ -424,41 +437,55 @@ export default function Reader() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden relative">
-        {book.format === 'pdf' && (
-          <PdfReader 
-            filePath={book.path}
-            bookId={book.id}
-            initialProgress={book.progress}
-            onProgressUpdate={handleProgressUpdate}
-            theme={currentTheme}
-            readerSettings={readerSettings}
-          />
-        )}
+      <div className={`flex-1 overflow-hidden relative ${showQA ? 'flex' : ''}`}>
+        <div className={`${showQA ? 'w-2/3' : 'w-full'} h-full overflow-hidden`}>
+          {book.format === 'pdf' && (
+            <PdfReader 
+              filePath={book.path}
+              bookId={book.id}
+              initialProgress={book.progress}
+              onProgressUpdate={handleProgressUpdate}
+              theme={currentTheme}
+              readerSettings={readerSettings}
+            />
+          )}
+          
+          {(book.format === 'md' || book.format === 'txt') && (
+            <MarkdownReader 
+              filePath={book.path}
+              format={book.format}
+              theme={currentTheme}
+              readerSettings={readerSettings}
+            />
+          )}
+
+          {(book.format === 'epub' || book.format === 'mobi' || book.format === 'azw3') && (
+            <EpubReader 
+              filePath={book.path}
+              bookId={book.id}
+              initialProgress={book.progress}
+              onProgressUpdate={handleProgressUpdate}
+              theme={currentTheme}
+              readerSettings={readerSettings}
+            />
+          )}
+
+          {book.format !== 'pdf' && book.format !== 'md' && book.format !== 'txt' && book.format !== 'epub' && book.format !== 'mobi' && book.format !== 'azw3' && (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              Format .{book.format} viewer not implemented yet
+            </div>
+          )}
+        </div>
         
-        {(book.format === 'md' || book.format === 'txt') && (
-          <MarkdownReader 
-            filePath={book.path}
-            format={book.format}
-            theme={currentTheme}
-            readerSettings={readerSettings}
-          />
-        )}
-
-        {(book.format === 'epub' || book.format === 'mobi' || book.format === 'azw3') && (
-          <EpubReader 
-            filePath={book.path}
-            bookId={book.id}
-            initialProgress={book.progress}
-            onProgressUpdate={handleProgressUpdate}
-            theme={currentTheme}
-            readerSettings={readerSettings}
-          />
-        )}
-
-        {book.format !== 'pdf' && book.format !== 'md' && book.format !== 'txt' && book.format !== 'epub' && book.format !== 'mobi' && book.format !== 'azw3' && (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Format .{book.format} viewer not implemented yet
+        {showQA && (
+          <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-700">
+            <QAChat
+              bookPath={book.path}
+              bookFormat={book.format}
+              bookTitle={book.title}
+              isOpen={showQA}
+              onToggle={() => setShowQA(false)}
+            />
           </div>
         )}
       </div>

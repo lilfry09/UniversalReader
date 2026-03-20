@@ -1,0 +1,98 @@
+# UniversalReader AI 问答助手 - 进度记录
+
+## 2026-03-20 - 自动化测试框架搭建
+
+### 完成内容:
+1. ✅ 安装 Vitest 测试框架及依赖 (@vitest/ui, jsdom, @testing-library/*)
+2. ✅ 创建 vitest.config.ts 配置文件
+3. ✅ 创建 electron/qa-service.test.ts - 20 个 QA 服务单元测试
+4. ✅ 创建 src/types.test.ts - 12 个类型验证测试
+5. ✅ 创建 src/components/QAChat.test.tsx - 18 个组件逻辑测试
+6. ✅ 创建 src/components/readers/EpubReader.test.tsx - 18 个阅读器逻辑测试
+7. ✅ 修复余弦相似度计算错误 (cosineSimilarity)
+8. ✅ 修复 API Key 环境变量读取方式 (改为 getter 函数便于测试)
+
+### 测试:
+- `npm run test:run` - 68 个测试全部通过
+
+### 备注:
+- 测试覆盖: QA 服务、类型定义、组件逻辑、IPC 通信
+- API Key 现在通过 getDeepSeekApiKey() 函数读取，支持测试注入
+
+---
+
+## 2026-03-01 - Bug 修复
+
+### 完成内容:
+1. ✅ 修复 EpubReader.tsx CFI 获取错误 - `getCFI` 方法需要参数，现已正确传参
+2. ✅ 修复 QAChat.tsx 未使用的 import (QAServiceStatus)
+3. ✅ 修复 PdfReader.tsx 未使用的 readerSettings 变量
+4. ✅ 修复 QAChat.tsx useEffect 依赖警告 - 添加 useCallback
+5. ✅ 修复 EpubReader.tsx useEffect 依赖警告
+
+### 测试:
+- `npm run lint` 通过
+- `npx tsc --noEmit` 通过
+
+### 备注:
+- 主要 bug 是 EPUB 选中文本时获取 CFI 崩溃
+
+---
+
+## 2026-03-01 - AZW3 格式支持
+
+### 完成内容:
+1. ✅ 安装 mobijs 依赖用于解析 AZW3/Mobi 格式
+2. ✅ 在 qa-service.ts 添加 AZW3/AZW/Mobi 格式支持
+
+### 测试:
+- `npm run lint` 通过
+- `npx tsc --noEmit` 通过
+
+### 备注:
+- 支持 azw3, azw, mobi 格式
+
+---
+
+## 2026-03-01 - AZW3 格式处理
+
+### 完成内容:
+1. ✅ 调查 AZW3/Mobi 格式支持问题
+2. ✅ 由于 Node.js 缺乏有效的 AZW3 解析库，添加友好错误提示
+3. ✅ 用户需要将 AZW3/Mobi 转换为 EPUB 格式才能使用 AI 问答
+
+### 测试:
+- `npm run lint` 通过
+- `npx tsc --noEmit` 通过
+
+### 备注:
+- AZW3/Mobi 格式需要使用 Calibre 转换为 EPUB
+- 错误信息会提示用户如何操作
+
+---
+
+## 2026-03-01 - 任务 1-6 完成
+
+### 完成内容:
+1. ✅ 安装 LangChain 依赖 (`npm install langchain @langchain/openai --legacy-peer-deps`)
+2. ✅ QA 类型定义 (types.ts)
+3. ✅ qa-service.ts 服务 (LangChain RAG)
+4. ✅ IPC 处理器 (handlers.ts)
+5. ✅ QAChat.tsx 前端组件
+6. ✅ 集成到 Reader.tsx
+
+### 新增文件:
+- `electron/qa-service.ts` - LangChain QA 服务
+- `src/components/QAChat.tsx` - AI 问答面板组件
+
+### 修改文件:
+- `src/types.ts` - 添加 QA 相关类型
+- `electron/handlers.ts` - 添加 QA IPC 处理器
+- `src/pages/Reader.tsx` - 集成 QA 面板
+
+### 待完成:
+- 任务 7: 端到端测试
+
+### 备注:
+- 需要设置 OPENAI_API_KEY 环境变量才能使用 LLM
+- 支持 PDF、MD、TXT、EPUB 格式

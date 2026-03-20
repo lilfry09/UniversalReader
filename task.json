@@ -1,0 +1,137 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "安装 LangChain 依赖",
+      "description": "在项目中安装 LangChain 相关依赖",
+      "steps": [
+        "运行 npm install langchain @langchain/openai langchain-community chromadb",
+        "确认依赖安装成功",
+        "确保 package.json 已更新"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "2",
+      "title": "创建 QA 类型定义",
+      "description": "在 types.ts 中添加 QA 相关的类型定义",
+      "steps": [
+        "添加 SourceChunk 接口",
+        "添加 QA IPC 通道类型",
+        "确保类型与后端服务匹配"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "3",
+      "title": "创建 qa-service.ts 服务",
+      "description": "在 electron 文件夹创建 LangChain QA 服务",
+      "steps": [
+        "创建 src/electron/qa-service.ts",
+        "实现文档加载器（PDF、MD、TXT）",
+        "实现文本分块",
+        "实现 Chroma 向量存储",
+        "实现 RAG QA Chain",
+        "实现问答、清理、状态查询功能"
+      ],
+      "passes": true,
+      "dependencies": ["1"]
+    },
+    {
+      "id": "4",
+      "title": "注册 IPC 处理器",
+      "description": "在 main.ts 中注册 QA 相关的 IPC 处理器",
+      "steps": [
+        "导入 qa-service",
+        "注册 qa-load-book 处理器",
+        "注册 qa-ask 处理器",
+        "注册 qa-clear 处理器",
+        "注册 qa-get-status 处理器"
+      ],
+      "passes": true,
+      "dependencies": ["2", "3"]
+    },
+    {
+      "id": "5",
+      "title": "创建 QA Panel 组件",
+      "description": "创建前端 QA 面板组件",
+      "steps": [
+        "创建 src/components/QAChat.tsx",
+        "实现问题输入框",
+        "实现对话列表显示",
+        "实现引用来源展示",
+        "实现加载状态"
+      ],
+      "passes": true,
+      "dependencies": ["2"]
+    },
+    {
+      "id": "6",
+      "title": "集成 QA Panel 到阅读器",
+      "description": "在阅读页面中集成 QA 面板",
+      "steps": [
+        "修改阅读页面，添加 QA 面板",
+        "实现打开书籍时自动加载到 QA",
+        "实现切换书籍时重置 QA",
+        "美化界面布局"
+      ],
+      "passes": true,
+      "dependencies": ["4", "5"]
+    },
+    {
+      "id": "7",
+      "title": "端到端测试",
+      "description": "完整测试 QA 功能",
+      "steps": [
+        "启动开发服务器",
+        "打开一本书籍",
+        "向 AI 提问关于书籍内容的问题",
+        "验证答案和引用来源显示正确",
+        "测试多轮对话"
+      ],
+      "passes": false,
+      "dependencies": ["6"]
+    },
+    {
+      "id": "8",
+      "title": "自动化测试框架",
+      "description": "搭建 Vitest 自动化测试框架，编写单元测试和集成测试",
+      "steps": [
+        "安装 Vitest 测试框架",
+        "配置 vitest.config.ts",
+        "编写 QA Service 单元测试 (20+ tests)",
+        "编写类型验证测试 (10+ tests)",
+        "编写组件逻辑测试 (15+ tests)",
+        "编写 IPC 通信测试 (10+ tests)"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "9",
+      "title": "Bug 修复 - 余弦相似度",
+      "description": "修复 qa-service.ts 中余弦相似度计算错误",
+      "steps": [
+        "修复 cosineSimilarity 函数中的除法错误",
+        "添加零向量检查避免除零错误"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "10",
+      "title": "Bug 修复 - API Key 环境变量",
+      "description": "将 DeepSeek API Key 改为从环境变量读取，支持测试注入",
+      "steps": [
+        "将 DEEPSEEK_API_KEY 改为 getter 函数",
+        "将 DEEPSEEK_API_URL 改为 getter 函数",
+        "添加 API Key 缺失时的友好错误提示"
+      ],
+      "passes": true,
+      "dependencies": []
+    }
+  ]
+}

@@ -11,7 +11,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).href
 
 import type { ReaderTheme, Annotation, ReaderSettings } from '../../types'
-import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 
 interface PdfReaderProps {
@@ -34,8 +33,7 @@ export default function PdfReader({
   bookId, 
   initialProgress = 0, 
   onProgressUpdate, 
-  theme,
-  readerSettings = DEFAULT_READER_SETTINGS 
+  theme
 }: PdfReaderProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)

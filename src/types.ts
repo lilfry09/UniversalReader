@@ -129,6 +129,28 @@ export interface IpcRenderer {
   invoke(channel: "delete-annotation", id: number): Promise<boolean>;
   invoke(channel: "select-background-image"): Promise<string | null>;
   invoke(channel: "get-background-image-url", imagePath: string): Promise<string | null>;
+  // QA handlers
+  invoke(channel: "qa-load-book", bookPath: string, format: string): Promise<{ success: boolean; error?: string }>;
+  invoke(channel: "qa-ask", question: string): Promise<{ answer: string; sources: SourceChunk[] }>;
+  invoke(channel: "qa-clear"): Promise<void>;
+  invoke(channel: "qa-get-status"): Promise<QAServiceStatus>;
+}
+
+// ============ QA Types ============
+
+export interface SourceChunk {
+  content: string;
+  source: string;
+  page?: number;
+}
+
+export type QAStatus = "idle" | "loading" | "ready" | "error";
+
+export interface QAServiceStatus {
+  status: QAStatus;
+  currentBook?: string;
+  error?: string;
+  chunkCount?: number;
 }
 
 declare global {

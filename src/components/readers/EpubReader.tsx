@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
-import type { ReaderTheme, Annotation, ReaderSettings, PageMode } from '../../types'
+import type { ReaderTheme, Annotation, ReaderSettings } from '../../types'
 import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 
@@ -82,7 +82,7 @@ export default function EpubReader({
         fontFamily: readerSettings.fontFamily,
       })
     }
-  }, [readerSettings])
+  }, [readerSettings.fontFamily, readerSettings.fontSize, readerSettings.lineHeight])
 
   useEffect(() => {
     let mounted = true
@@ -160,7 +160,7 @@ export default function EpubReader({
     return () => {
       mounted = false
     }
-  }, [filePath, initialProgress, onProgressUpdate, theme.bg, theme.text])
+  }, [filePath, initialProgress, onProgressUpdate, theme.bg, theme.text, theme.customBgImage, readerSettings.fontFamily, readerSettings.fontSize, readerSettings.lineHeight])
 
   // Handle text selection
   const handleMouseUp = useCallback(() => {
@@ -179,8 +179,20 @@ export default function EpubReader({
     const range = sel.getRangeAt(0)
     const rect = range.getBoundingClientRect()
     
-    // Try to get CFI from foliate-view if available
-    const cfi = viewRef.current?.getCFI?.()
+    // Try to get CFI from foliate-view - getCFI requires (index, range) parameters
+    // We'll try to get the current location from the view's lastLocation
+    let cfi: string | undefined
+    try {
+      const view = viewRef.current
+      if (view && typeof view.getCFI === 'function') {
+        // Try to get current section index from the view
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const currentIndex = (view as any).currentIndex ?? 0
+        cfi = view.getCFI(currentIndex, range)
+      }
+    } catch (err) {
+      console.warn('Failed to get CFI:', err)
+    }
 
     setSelection({
       text,
@@ -194,7 +206,7 @@ export default function EpubReader({
 
   // Add highlight
   const handleHighlight = async (color: string) => {
-    if (!selection) return
+    if (!selection || !selection.cfi) return
 
     try {
       await window.ipcRenderer.invoke('add-annotation', {
@@ -214,7 +226,7 @@ export default function EpubReader({
 
   // Add note
   const handleAddNote = async () => {
-    if (!selection) return
+    if (!selection || !selection.cfi) return
 
     const note = prompt('Add a note:')
     if (note === null) return
