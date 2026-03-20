@@ -73,9 +73,14 @@ export interface Book {
   path: string;
   format: "pdf" | "epub" | "mobi" | "azw3" | "txt" | "md";
   coverPath?: string;
-  addedAt: string;
+  addedAt?: string;
   lastReadAt?: string;
   progress: number;
+  // Web-specific fields
+  totalPages?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  isWebBook?: boolean;
 }
 
 export interface Annotation {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Plus, Book as BookIcon, Trash2, Search, X, ImageOff } from 'lucide-react'
 import type { Book } from '../types'
 import { useNavigate } from 'react-router-dom'
@@ -10,45 +10,63 @@ export default function Library() {
   const [coverUrls, setCoverUrls] = useState<Record<number, string>>({})
   const [coverLoading, setCoverLoading] = useState<Record<number, boolean>>({})
   const [coverErrors, setCoverErrors] = useState<Record<number, boolean>>({})
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+
+  // Check if we're running in Electron (has ipcRenderer)
+  const isElectron = typeof window !== 'undefined' && window.ipcRenderer != null
 
   const loadBooks = useCallback(async () => {
     try {
       setLoading(true)
-      const library = await window.ipcRenderer.invoke('get-library')
+      let library: Book[] = []
+
+      if (isElectron) {
+        // Electron: get books from SQLite via IPC
+        library = await window.ipcRenderer.invoke('get-library')
+      } else {
+        // Web: get books from localStorage
+        library = JSON.parse(localStorage.getItem('web-library') || '[]')
+      }
+
       setBooks(library)
-      
+
       // Initialize cover loading states
       const loadingStates: Record<number, boolean> = {}
       library.forEach((book: Book) => {
         if (book.coverPath) loadingStates[book.id] = true
       })
       setCoverLoading(loadingStates)
-      
+
       // Load cover URLs in parallel
       const coverPromises = library.map(async (book: Book) => {
         if (book.coverPath) {
           try {
-            const url = await window.ipcRenderer.invoke('get-cover-url', book.coverPath)
-            return { id: book.id, url }
+            if (isElectron) {
+              const url = await window.ipcRenderer.invoke('get-cover-url', book.coverPath)
+              return { id: book.id, url }
+            } else {
+              // Web books may have blob URLs as cover
+              return { id: book.id, url: book.coverPath }
+            }
           } catch {
             return { id: book.id, url: null, error: true }
           }
         }
         return null
       })
-      
+
       const results = await Promise.all(coverPromises)
       const urls: Record<number, string> = {}
       const errors: Record<number, boolean> = {}
-      
+
       results.forEach(result => {
         if (result) {
           if (result.url) urls[result.id] = result.url
           if ('error' in result && result.error) errors[result.id] = true
         }
       })
-      
+
       setCoverUrls(urls)
       setCoverErrors(errors)
       setCoverLoading({})
@@ -57,7 +75,7 @@ export default function Library() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isElectron])
 
   useEffect(() => {
     loadBooks()
@@ -75,21 +93,85 @@ export default function Library() {
 
   const handleImport = async () => {
     try {
-      const book = await window.ipcRenderer.invoke('open-file-dialog')
-      if (book) {
-        await loadBooks()
+      if (isElectron) {
+        // Electron: use native file dialog
+        const book = await window.ipcRenderer.invoke('open-file-dialog')
+        if (book) {
+          await loadBooks()
+        }
+      } else {
+        // Web: use HTML5 File API
+        fileInputRef.current?.click()
       }
     } catch (err) {
       console.error('Failed to import book:', err)
     }
   }
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      // For web, we read the file and store metadata in localStorage
+      // The actual file reading is limited due to browser security
+      const ext = file.name.split('.').pop()?.toLowerCase() || ''
+      const supportedExts = ['pdf', 'epub', 'mobi', 'azw3', 'txt', 'md']
+
+      if (!supportedExts.includes(ext)) {
+        alert(`不支持的文件格式。支持的格式: ${supportedExts.join(', ')}`)
+        return
+      }
+
+      // Create a web-compatible book entry
+      const webBook: Book = {
+        id: Date.now(),
+        title: file.name.replace(/\.[^/.]+$/, ''),
+        author: '',
+        path: URL.createObjectURL(file),
+        format: ext as Book['format'],
+        coverPath: null,
+        progress: 0,
+        totalPages: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isWebBook: true // Mark as web book for special handling
+      }
+
+      // Store in localStorage
+      const existingBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+      existingBooks.push(webBook)
+      localStorage.setItem('web-library', JSON.stringify(existingBooks))
+
+      await loadBooks()
+    } catch (err) {
+      console.error('Failed to import book:', err)
+      alert('导入书籍失败')
+    }
+
+    // Reset input
+    e.target.value = ''
+  }
+
   const handleDelete = async (e: React.MouseEvent, bookId: number) => {
     e.stopPropagation()
     if (confirm('确定要从书库中删除这本书吗？')) {
       try {
-        const success = await window.ipcRenderer.invoke('delete-book', bookId)
-        if (success) {
+        if (isElectron) {
+          const success = await window.ipcRenderer.invoke('delete-book', bookId)
+          if (success) {
+            await loadBooks()
+          }
+        } else {
+          // Web: delete from localStorage
+          const webBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+          const bookToDelete = webBooks.find((b: Book) => b.id === bookId)
+          if (bookToDelete) {
+            // Revoke the blob URL to free memory
+            URL.revokeObjectURL(bookToDelete.path)
+          }
+          const updatedBooks = webBooks.filter((b: Book) => b.id !== bookId)
+          localStorage.setItem('web-library', JSON.stringify(updatedBooks))
           await loadBooks()
         }
       } catch (err) {
@@ -110,13 +192,25 @@ export default function Library() {
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">我的书库</h1>
-        <button
-          onClick={handleImport}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          导入书籍
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Hidden file input for web import */}
+          {!isElectron && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.epub,.mobi,.azw3,.txt,.md"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          )}
+          <button
+            onClick={handleImport}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            导入书籍
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}

@@ -2571,8 +2571,12 @@ const admZip$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProp
   __proto__: null,
   default: AdmZip
 }, Symbol.toStringTag, { value: "Module" }));
-const DEEPSEEK_API_KEY = "sk-efd7d86922c9475da126e6eda4491d3c";
-const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+function getDeepSeekApiKey() {
+  return process.env.DEEPSEEK_API_KEY || "";
+}
+function getDeepSeekBaseUrl() {
+  return process.env.DEEPSEEK_API_URL || "https://api.deepseek.com";
+}
 let documents = [];
 let currentBookPath = null;
 let currentStatus = "idle";
@@ -2582,15 +2586,16 @@ function cosineSimilarity(a, b) {
   const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
   const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
   const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-  return dotProduct / (magA * magA * magB * magB);
+  if (magA === 0 || magB === 0) return 0;
+  return dotProduct / (magA * magB);
 }
 async function getEmbedding(text) {
   var _a, _b;
-  const response = await fetch(`${DEEPSEEK_BASE_URL}/v1/embeddings`, {
+  const response = await fetch(`${getDeepSeekBaseUrl()}/v1/embeddings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+      "Authorization": `Bearer ${getDeepSeekApiKey()}`
     },
     body: JSON.stringify({
       model: "text-embedding-3-small",
@@ -2602,11 +2607,11 @@ async function getEmbedding(text) {
 }
 async function chat(messages) {
   var _a, _b, _c;
-  const response = await fetch(`${DEEPSEEK_BASE_URL}/v1/chat/completions`, {
+  const response = await fetch(`${getDeepSeekBaseUrl()}/v1/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+      "Authorization": `Bearer ${getDeepSeekApiKey()}`
     },
     body: JSON.stringify({
       model: "deepseek-chat",
@@ -2708,6 +2713,11 @@ async function extractTextFromFile(filePath, format) {
 async function loadBookForQA(bookPath, format) {
   try {
     updateStatus("loading");
+    if (!getDeepSeekApiKey()) {
+      throw new Error(
+        "DEEPSEEK_API_KEY environment variable is not set. Please set it in your .env file or system environment."
+      );
+    }
     if (!fs.existsSync(bookPath)) {
       throw new Error(`File not found: ${bookPath}`);
     }
