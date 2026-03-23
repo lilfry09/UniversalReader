@@ -5,6 +5,13 @@ import fs from 'fs'
 import path from 'path'
 import { createCanvas } from 'canvas'
 import { qaService } from './qa-service'
+import type { ReaderProgressLocator } from '../src/types'
+import { getDocumentKind, normalizeExtension } from '../src/domain/document'
+import type { DocumentFormat } from '../src/domain/document'
+import {
+  buildImportPlan,
+  getAllowedImportExtensions,
+} from '../src/services/importService'
 
 // Database setup
 const dbPath = path.join(app.getPath('userData'), 'library.db')
@@ -21,9 +28,28 @@ db.exec(`
     coverPath TEXT,
     addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     lastReadAt DATETIME,
-    progress REAL DEFAULT 0
+    progress REAL DEFAULT 0,
+    progressLocator TEXT,
+    progressUpdatedAt INTEGER,
+    documentKind TEXT,
+    ingestStatus TEXT,
+    sourceFormat TEXT
   );
 `)
+
+const ensureBookColumn = (columnName: string, sqlType: string) => {
+  const columns = db.prepare('PRAGMA table_info(books)').all() as Array<{ name: string }>
+  const hasColumn = columns.some(column => column.name === columnName)
+  if (!hasColumn) {
+    db.exec(`ALTER TABLE books ADD COLUMN ${columnName} ${sqlType}`)
+  }
+}
+
+ensureBookColumn('progressLocator', 'TEXT')
+ensureBookColumn('progressUpdatedAt', 'INTEGER')
+ensureBookColumn('documentKind', 'TEXT')
+ensureBookColumn('ingestStatus', 'TEXT')
+ensureBookColumn('sourceFormat', 'TEXT')
 
 // Add annotations table
 db.exec(`
@@ -40,6 +66,14 @@ db.exec(`
     updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
   );
+`)
+
+// Performance indexes for frequent read paths.
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);
+  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
+  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
+  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);
 `)
 
 // Covers directory
@@ -165,7 +199,41 @@ async function extractPdfCover(filePath: string, bookId: string): Promise<string
   }
 }
 
-async function extractMetadata(filePath: string, format: string): Promise<{ title?: string; author?: string }> {
+function decodeXmlEntities(input: string): string {
+  return input
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+}
+
+async function convertDocxToMarkdown(filePath: string): Promise<string> {
+  const AdmZip = (await import('adm-zip')).default
+  const zip = new AdmZip(filePath)
+  const documentEntry = zip.getEntry('word/document.xml')
+  if (!documentEntry) {
+    throw new Error('DOCX 内容缺失: word/document.xml')
+  }
+
+  const xml = documentEntry.getData().toString('utf-8')
+  const paragraphs = xml
+    .split(/<\/w:p>/i)
+    .map(paragraphXml => {
+      const withBreaks = paragraphXml
+        .replace(/<w:tab\s*\/>/gi, '\t')
+        .replace(/<w:br\s*\/>/gi, '\n')
+      const matches = [...withBreaks.matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)]
+      const text = matches.map(match => decodeXmlEntities(match[1])).join('')
+      return text.trim()
+    })
+    .filter(Boolean)
+
+  return paragraphs.join('\n\n')
+}
+
+async function extractMetadata(filePath: string, format: DocumentFormat): Promise<{ title?: string; author?: string }> {
   try {
     if (format === 'epub') {
       const AdmZip = (await import('adm-zip')).default
@@ -204,6 +272,56 @@ async function extractMetadata(filePath: string, format: string): Promise<{ titl
   }
   return {}
 }
+
+interface BookRow {
+  id: number
+  title: string
+  author?: string
+  path: string
+  format: string
+  coverPath?: string
+  addedAt?: string
+  lastReadAt?: string
+  progress: number
+  progressLocator?: string | null
+  progressUpdatedAt?: number | null
+  documentKind?: string | null
+  ingestStatus?: string | null
+  sourceFormat?: string | null
+}
+
+function parseProgressLocator(raw: string | null | undefined): ReaderProgressLocator | undefined {
+  if (!raw) return undefined
+  try {
+    return JSON.parse(raw) as ReaderProgressLocator
+  } catch {
+    return undefined
+  }
+}
+
+function normalizeBookRow(book: BookRow) {
+  const fallbackFormat = (book.format || 'txt') as DocumentFormat
+  return {
+    ...book,
+    progressLocator: parseProgressLocator(book.progressLocator),
+    progressUpdatedAt: book.progressUpdatedAt ?? undefined,
+    documentKind: book.documentKind || getDocumentKind(fallbackFormat),
+    ingestStatus: book.ingestStatus || 'ready',
+    sourceFormat: book.sourceFormat || fallbackFormat,
+  }
+}
+
+const selectLibraryStmt = db.prepare('SELECT * FROM books ORDER BY lastReadAt DESC')
+const searchLibraryStmt = db.prepare(`
+  SELECT * FROM books
+  WHERE title LIKE ? OR author LIKE ?
+  ORDER BY lastReadAt DESC
+`)
+const updateProgressStmt = db.prepare(`
+  UPDATE books
+  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
+  WHERE id = ?
+`)
 
 // ============ File Handlers ============
 
@@ -285,7 +403,7 @@ ipcMain.handle('open-file-dialog', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [
-      { name: 'Books', extensions: ['pdf', 'epub', 'mobi', 'azw3', 'txt', 'md'] }
+      { name: 'Books', extensions: [...getAllowedImportExtensions()] }
     ]
   })
   
@@ -293,7 +411,11 @@ ipcMain.handle('open-file-dialog', async () => {
   
   const filePath = result.filePaths[0]
   const extWithDot = path.extname(filePath).toLowerCase()
-  const ext = extWithDot.slice(1)
+  const ext = normalizeExtension(extWithDot)
+  const importPlan = buildImportPlan(ext)
+  if (importPlan.capability === 'unsupported' || !importPlan.targetFormat || !importPlan.documentKind || !importPlan.ingestStatus) {
+    return null
+  }
   const baseName = path.basename(filePath, extWithDot)
   const bookId = crypto.randomUUID()
 
@@ -301,32 +423,55 @@ ipcMain.handle('open-file-dialog', async () => {
   const libraryDir = path.join(app.getPath('userData'), 'books')
   await fs.promises.mkdir(libraryDir, { recursive: true })
 
-  const destName = `${baseName}-${bookId}${extWithDot}`
-  const destPath = path.join(libraryDir, destName)
-  await fs.promises.copyFile(filePath, destPath)
+  let destPath: string
+
+  if (importPlan.requiresConversion && importPlan.sourceFormat === 'docx') {
+    const sourceName = `${baseName}-${bookId}.docx`
+    const sourcePath = path.join(libraryDir, sourceName)
+    await fs.promises.copyFile(filePath, sourcePath)
+
+    const markdown = await convertDocxToMarkdown(sourcePath)
+    const convertedName = `${baseName}-${bookId}.md`
+    destPath = path.join(libraryDir, convertedName)
+    await fs.promises.writeFile(destPath, markdown, 'utf-8')
+  } else {
+    const destName = `${baseName}-${bookId}${extWithDot}`
+    destPath = path.join(libraryDir, destName)
+    await fs.promises.copyFile(filePath, destPath)
+  }
   
   // Extract metadata
-  const metadata = await extractMetadata(destPath, ext)
+  const metadata = await extractMetadata(destPath, importPlan.targetFormat)
   const title = metadata.title || baseName
   const author = metadata.author || null
 
   // Extract cover
   let coverPath: string | null = null
-  if (ext === 'epub' || ext === 'mobi' || ext === 'azw3') {
+  if (importPlan.targetFormat === 'epub' || importPlan.targetFormat === 'mobi' || importPlan.targetFormat === 'azw3') {
     coverPath = await extractEpubCover(destPath, bookId)
-  } else if (ext === 'pdf') {
+  } else if (importPlan.targetFormat === 'pdf') {
     coverPath = await extractPdfCover(destPath, bookId)
   }
   
   // Auto-add to DB
   try {
     const stmt = db.prepare(`
-      INSERT INTO books (title, author, path, format, coverPath) 
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP
       RETURNING *
     `)
-    return stmt.get(title, author, destPath, ext, coverPath)
+    const book = stmt.get(
+      title,
+      author,
+      destPath,
+      importPlan.targetFormat,
+      importPlan.sourceFormat,
+      importPlan.documentKind,
+      importPlan.ingestStatus,
+      coverPath
+    ) as BookRow | undefined
+    return book ? normalizeBookRow(book) : null
   } catch (e) {
     console.error('DB Insert Error:', e)
     return null
@@ -336,21 +481,20 @@ ipcMain.handle('open-file-dialog', async () => {
 // ============ Database Handlers ============
 
 ipcMain.handle('get-library', () => {
-  return db.prepare('SELECT * FROM books ORDER BY lastReadAt DESC').all()
+  const books = selectLibraryStmt.all() as BookRow[]
+  return books.map(normalizeBookRow)
 })
 
 ipcMain.handle('search-library', (_, query: string) => {
   const searchTerm = `%${query}%`
-  return db.prepare(`
-    SELECT * FROM books 
-    WHERE title LIKE ? OR author LIKE ?
-    ORDER BY lastReadAt DESC
-  `).all(searchTerm, searchTerm)
+  const books = searchLibraryStmt.all(searchTerm, searchTerm) as BookRow[]
+  return books.map(normalizeBookRow)
 })
 
-ipcMain.handle('update-progress', (_, bookId, progress) => {
-  const stmt = db.prepare('UPDATE books SET progress = ?, lastReadAt = CURRENT_TIMESTAMP WHERE id = ?')
-  stmt.run(progress, bookId)
+ipcMain.handle('update-progress', (_, bookId: number, progress: number, locator?: ReaderProgressLocator, updatedAt?: number) => {
+  const timestamp = typeof updatedAt === 'number' ? updatedAt : Date.now()
+  const serializedLocator = locator ? JSON.stringify(locator) : null
+  updateProgressStmt.run(progress, serializedLocator, timestamp, bookId)
 })
 
 ipcMain.handle('delete-book', (_, bookId: number) => {

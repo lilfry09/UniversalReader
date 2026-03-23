@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Plus, Book as BookIcon, Trash2, Search, X, ImageOff } from 'lucide-react'
 import type { Book } from '../types'
 import { useNavigate } from 'react-router-dom'
+import { buildImportPlan, getAllowedImportExtensions } from '../services/importService'
+import { normalizeExtension } from '../domain/document'
 
 export default function Library() {
   const [books, setBooks] = useState<Book[]>([])
@@ -10,6 +12,7 @@ export default function Library() {
   const [coverUrls, setCoverUrls] = useState<Record<number, string>>({})
   const [coverLoading, setCoverLoading] = useState<Record<number, boolean>>({})
   const [coverErrors, setCoverErrors] = useState<Record<number, boolean>>({})
+  const coverUrlCacheRef = useRef<Record<number, string>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -30,16 +33,31 @@ export default function Library() {
       }
 
       setBooks(library)
+      const activeIds = new Set(library.map(b => b.id))
+      Object.keys(coverUrlCacheRef.current).forEach((idStr) => {
+        const id = Number(idStr)
+        if (!activeIds.has(id)) {
+          delete coverUrlCacheRef.current[id]
+        }
+      })
 
       // Initialize cover loading states
       const loadingStates: Record<number, boolean> = {}
-      library.forEach((book: Book) => {
-        if (book.coverPath) loadingStates[book.id] = true
+      const cachedUrls: Record<number, string> = {}
+      const pendingCoverBooks = library.filter(book => {
+        if (!book.coverPath) return false
+        const cached = coverUrlCacheRef.current[book.id]
+        if (cached) {
+          cachedUrls[book.id] = cached
+          return false
+        }
+        loadingStates[book.id] = true
+        return true
       })
       setCoverLoading(loadingStates)
 
-      // Load cover URLs in parallel
-      const coverPromises = library.map(async (book: Book) => {
+      // Load uncached cover URLs in parallel
+      const coverPromises = pendingCoverBooks.map(async (book: Book) => {
         if (book.coverPath) {
           try {
             if (isElectron) {
@@ -57,12 +75,15 @@ export default function Library() {
       })
 
       const results = await Promise.all(coverPromises)
-      const urls: Record<number, string> = {}
+      const urls: Record<number, string> = { ...cachedUrls }
       const errors: Record<number, boolean> = {}
 
       results.forEach(result => {
         if (result) {
-          if (result.url) urls[result.id] = result.url
+          if (result.url) {
+            urls[result.id] = result.url
+            coverUrlCacheRef.current[result.id] = result.url
+          }
           if ('error' in result && result.error) errors[result.id] = true
         }
       })
@@ -115,11 +136,16 @@ export default function Library() {
     try {
       // For web, we read the file and store metadata in localStorage
       // The actual file reading is limited due to browser security
-      const ext = file.name.split('.').pop()?.toLowerCase() || ''
-      const supportedExts = ['pdf', 'epub', 'mobi', 'azw3', 'txt', 'md']
+      const ext = normalizeExtension(file.name.split('.').pop() || '')
 
-      if (!supportedExts.includes(ext)) {
-        alert(`不支持的文件格式。支持的格式: ${supportedExts.join(', ')}`)
+      const plan = buildImportPlan(ext)
+      if (plan.capability === 'unsupported') {
+        alert(`不支持的文件格式。支持的格式: ${getAllowedImportExtensions().join(', ')}`)
+        return
+      }
+
+      if (plan.capability === 'convertible') {
+        alert('Web 模式暂不支持自动转换该格式，请使用桌面版导入（将自动转为可阅读文本）。')
         return
       }
 
@@ -129,9 +155,12 @@ export default function Library() {
         title: file.name.replace(/\.[^/.]+$/, ''),
         author: '',
         path: URL.createObjectURL(file),
-        format: ext as Book['format'],
-        coverPath: null,
+        format: plan.targetFormat || 'txt',
+        coverPath: undefined,
         progress: 0,
+        documentKind: plan.documentKind,
+        ingestStatus: plan.ingestStatus,
+        sourceFormat: plan.sourceFormat,
         totalPages: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -174,6 +203,7 @@ export default function Library() {
           localStorage.setItem('web-library', JSON.stringify(updatedBooks))
           await loadBooks()
         }
+        delete coverUrlCacheRef.current[bookId]
       } catch (err) {
         console.error('Failed to delete book:', err)
       }
@@ -198,7 +228,7 @@ export default function Library() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.epub,.mobi,.azw3,.txt,.md"
+              accept={getAllowedImportExtensions().map(ext => `.${ext}`).join(',')}
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -265,6 +295,7 @@ export default function Library() {
                     alt={book.title}
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     onError={() => {
+                      delete coverUrlCacheRef.current[book.id]
                       setCoverErrors(prev => ({ ...prev, [book.id]: true }))
                       setCoverUrls(prev => {
                         const newUrls = { ...prev }
@@ -291,6 +322,18 @@ export default function Library() {
                 <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded uppercase backdrop-blur-sm">
                   {book.format}
                 </div>
+
+                {/* Kind badge */}
+                <div className="absolute top-2 left-2 px-2 py-1 bg-white/85 text-gray-700 text-[10px] rounded uppercase backdrop-blur-sm">
+                  {book.documentKind === 'paged' ? 'Paged' : 'Flow'}
+                </div>
+
+                {/* Converted badge */}
+                {book.ingestStatus === 'converted' && (
+                  <div className="absolute top-9 left-2 px-2 py-1 bg-amber-500/85 text-white text-[10px] rounded backdrop-blur-sm">
+                    已转换
+                  </div>
+                )}
                 
                 {/* Delete button */}
                 <button

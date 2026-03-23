@@ -1,18 +1,37 @@
-import { useState, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus, MessageSquare } from 'lucide-react'
-import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme } from '../types'
+import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme, ReaderProgressUpdate } from '../types'
 import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
 import { isElectron, isLightTheme, WEB_LIBRARY_KEY, READER_THEME_KEY, READER_SETTINGS_KEY, READER_CUSTOM_BG_KEY } from '../utils'
 import { safeGetItem, safeSetItem } from '../utils/storage'
-import PdfReader from '../components/readers/PdfReader'
-import MarkdownReader from '../components/readers/MarkdownReader'
-import EpubReader from '../components/readers/EpubReader'
-import QAChat from '../components/QAChat'
+import { getReaderEngine } from '../domain/document'
+
+const PdfReader = lazy(() => import('../components/readers/PdfReader'))
+const MarkdownReader = lazy(() => import('../components/readers/MarkdownReader'))
+const EpubReader = lazy(() => import('../components/readers/EpubReader'))
+const QAChat = lazy(() => import('../components/QAChat'))
+const PROGRESS_FLUSH_INTERVAL_MS = 1200
+const PROGRESS_SKIP_DELTA = 0.001
+
+interface PendingProgressUpdate {
+  bookId: number
+  isWebBook: boolean
+  update: ReaderProgressUpdate
+}
+
+function ReaderFallback({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-center h-full text-gray-500">
+      {label}
+    </div>
+  )
+}
 
 export default function Reader() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const isDesktop = isElectron()
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [fileExists, setFileExists] = useState<boolean | null>(null)
@@ -25,6 +44,13 @@ export default function Reader() {
   })
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [showQA, setShowQA] = useState(false)
+  const pendingProgressRef = useRef<PendingProgressUpdate | null>(null)
+  const progressFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastPersistedProgressRef = useRef<{
+    bookId: number
+    progress: number
+    updatedAt: number
+  } | null>(null)
 
   // Reader settings
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
@@ -34,15 +60,21 @@ export default function Reader() {
   // Load custom background image URL
   useEffect(() => {
     const loadCustomBg = async () => {
-      if (customBgImage) {
+      if (!customBgImage || !isDesktop) {
+        setCustomBgUrl(null)
+        return
+      }
+
+      try {
         const url = await window.ipcRenderer.invoke('get-background-image-url', customBgImage)
         setCustomBgUrl(url)
-      } else {
+      } catch (err) {
+        console.error('Error loading background image URL:', err)
         setCustomBgUrl(null)
       }
     }
-    loadCustomBg()
-  }, [customBgImage])
+    void loadCustomBg()
+  }, [customBgImage, isDesktop])
 
   // Save settings to localStorage
   useEffect(() => {
@@ -67,12 +99,14 @@ export default function Reader() {
 
   const hoverBg = isLightTheme(themeMode) ? 'hover:bg-black/10' : 'hover:bg-white/10'
   const dividerColor = isLightTheme(themeMode) ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
+  const readerEngine = getReaderEngine(book?.format ?? 'txt')
+  const currentBookId = book?.id
 
   useEffect(() => {
     const loadBook = async () => {
       try {
         let library: Book[] = []
-        if (isElectron()) {
+        if (isDesktop) {
           library = await window.ipcRenderer.invoke('get-library')
         } else {
           // Web: get books from localStorage
@@ -93,7 +127,7 @@ export default function Reader() {
       }
     }
     loadBook()
-  }, [id, navigate])
+  }, [id, navigate, isDesktop])
 
   useEffect(() => {
     const check = async () => {
@@ -105,7 +139,7 @@ export default function Reader() {
           return
         }
 
-        if (isElectron()) {
+        if (isDesktop) {
           const ok = await window.ipcRenderer.invoke('file-exists', book.path)
           setFileExists(ok)
         } else {
@@ -118,24 +152,103 @@ export default function Reader() {
       }
     }
     void check()
-  }, [book])
+  }, [book, isDesktop])
 
-  const handleProgressUpdate = (progress: number) => {
-    if (!book) return
+  const clearProgressTimer = useCallback(() => {
+    if (!progressFlushTimerRef.current) return
+    clearTimeout(progressFlushTimerRef.current)
+    progressFlushTimerRef.current = null
+  }, [])
+
+  const persistProgressUpdate = useCallback((pending: PendingProgressUpdate) => {
+    const progress = pending.update.progress
+    const progressLocator = pending.update.locator
+    const progressUpdatedAt = pending.update.updatedAt ?? Date.now()
 
     // For web books, save to localStorage
-    if (book.isWebBook) {
+    if (pending.isWebBook) {
       const webBooks = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
       const updatedBooks = webBooks.map((b: Book) =>
-        b.id === book.id ? { ...b, progress, updatedAt: new Date().toISOString() } : b
+        b.id === pending.bookId
+          ? { ...b, progress, progressLocator, progressUpdatedAt, updatedAt: new Date().toISOString() }
+          : b
       )
       safeSetItem(WEB_LIBRARY_KEY, updatedBooks)
+    } else if (isDesktop) {
+      // Electron mode
+      window.ipcRenderer.invoke('update-progress', pending.bookId, progress, progressLocator, progressUpdatedAt)
+    }
+
+    lastPersistedProgressRef.current = {
+      bookId: pending.bookId,
+      progress,
+      updatedAt: progressUpdatedAt,
+    }
+  }, [isDesktop])
+
+  const flushPendingProgress = useCallback(() => {
+    clearProgressTimer()
+    const pending = pendingProgressRef.current
+    if (!pending) return
+    pendingProgressRef.current = null
+    persistProgressUpdate(pending)
+  }, [clearProgressTimer, persistProgressUpdate])
+
+  useEffect(() => {
+    return () => {
+      flushPendingProgress()
+    }
+  }, [flushPendingProgress])
+
+  useEffect(() => {
+    if (currentBookId == null) return
+    flushPendingProgress()
+  }, [currentBookId, flushPendingProgress])
+
+  const handleProgressUpdate = useCallback((update: ReaderProgressUpdate) => {
+    if (!book) return
+
+    const normalizedUpdate: ReaderProgressUpdate = {
+      ...update,
+      updatedAt: update.updatedAt ?? Date.now(),
+    }
+
+    const lastPersisted = lastPersistedProgressRef.current
+    const isTinyUpdate = lastPersisted != null
+      && lastPersisted.bookId === book.id
+      && Math.abs(normalizedUpdate.progress - lastPersisted.progress) < PROGRESS_SKIP_DELTA
+      && (normalizedUpdate.updatedAt ?? 0) - lastPersisted.updatedAt < PROGRESS_FLUSH_INTERVAL_MS
+    if (isTinyUpdate) {
       return
     }
 
-    // Electron mode
-    window.ipcRenderer.invoke('update-progress', book.id, progress)
-  }
+    setBook(prev => prev
+      ? {
+          ...prev,
+          progress: normalizedUpdate.progress,
+          progressLocator: normalizedUpdate.locator,
+          progressUpdatedAt: normalizedUpdate.updatedAt,
+        }
+      : prev
+    )
+
+    pendingProgressRef.current = {
+      bookId: book.id,
+      isWebBook: !!book.isWebBook,
+      update: normalizedUpdate,
+    }
+
+    if (normalizedUpdate.progress <= 0 || normalizedUpdate.progress >= 0.999) {
+      flushPendingProgress()
+      return
+    }
+
+    if (!progressFlushTimerRef.current) {
+      progressFlushTimerRef.current = setTimeout(() => {
+        flushPendingProgress()
+      }, PROGRESS_FLUSH_INTERVAL_MS)
+    }
+  }, [book, flushPendingProgress])
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode)
@@ -165,11 +278,12 @@ export default function Reader() {
   }
 
   const handleSelectBackgroundImage = async () => {
+    if (!isDesktop) return
     const imagePath = await window.ipcRenderer.invoke('select-background-image')
     if (imagePath) {
       setCustomBgImage(imagePath)
       setThemeMode('custom')
-      localStorage.setItem('reader-theme', 'custom')
+      safeSetItem(READER_THEME_KEY, 'custom')
     }
   }
 
@@ -211,6 +325,7 @@ export default function Reader() {
             <div className="flex gap-3">
               <button
                 onClick={async () => {
+                  if (!isDesktop) return
                   const imported = await window.ipcRenderer.invoke('open-file-dialog')
                   if (imported) navigate(`/reader/${imported.id}`)
                 }}
@@ -220,6 +335,7 @@ export default function Reader() {
               </button>
               <button
                 onClick={async () => {
+                  if (!isDesktop) return
                   await window.ipcRenderer.invoke('delete-book', book.id)
                   navigate('/')
                 }}
@@ -469,53 +585,60 @@ export default function Reader() {
       {/* Content */}
       <div className={`flex-1 overflow-hidden relative ${showQA ? 'flex' : ''}`}>
         <div className={`${showQA ? 'w-2/3' : 'w-full'} h-full overflow-hidden`}>
-          {book.format === 'pdf' && (
-            <PdfReader 
-              filePath={book.path}
-              bookId={book.id}
-              initialProgress={book.progress}
-              onProgressUpdate={handleProgressUpdate}
-              theme={currentTheme}
-              readerSettings={readerSettings}
-            />
-          )}
-          
-          {(book.format === 'md' || book.format === 'txt') && (
-            <MarkdownReader 
-              filePath={book.path}
-              format={book.format}
-              theme={currentTheme}
-              readerSettings={readerSettings}
-            />
-          )}
+          <Suspense fallback={<ReaderFallback label="正在加载阅读器..." />}>
+            {readerEngine === 'pdf' && (
+              <PdfReader 
+                filePath={book.path}
+                bookId={book.id}
+                initialProgress={book.progress}
+                initialLocator={book.progressLocator}
+                onProgressUpdate={handleProgressUpdate}
+                theme={currentTheme}
+                readerSettings={readerSettings}
+              />
+            )}
+            
+            {readerEngine === 'markdown' && (
+              <MarkdownReader 
+                filePath={book.path}
+                format={book.format === 'md' ? 'md' : 'txt'}
+                theme={currentTheme}
+                readerSettings={readerSettings}
+              />
+            )}
 
-          {(book.format === 'epub' || book.format === 'mobi' || book.format === 'azw3') && (
-            <EpubReader 
-              filePath={book.path}
-              bookId={book.id}
-              initialProgress={book.progress}
-              onProgressUpdate={handleProgressUpdate}
-              theme={currentTheme}
-              readerSettings={readerSettings}
-            />
-          )}
+            {readerEngine === 'epub' && (
+              <EpubReader 
+                filePath={book.path}
+                bookId={book.id}
+                format={book.format === 'epub' ? 'epub' : book.format === 'mobi' ? 'mobi' : 'azw3'}
+                initialProgress={book.progress}
+                initialLocator={book.progressLocator}
+                onProgressUpdate={handleProgressUpdate}
+                theme={currentTheme}
+                readerSettings={readerSettings}
+              />
+            )}
 
-          {book.format !== 'pdf' && book.format !== 'md' && book.format !== 'txt' && book.format !== 'epub' && book.format !== 'mobi' && book.format !== 'azw3' && (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              Format .{book.format} viewer not implemented yet
-            </div>
-          )}
+            {readerEngine === 'unsupported' && (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                Format .{book.format} viewer not implemented yet
+              </div>
+            )}
+          </Suspense>
         </div>
         
         {showQA && (
           <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-700">
-            <QAChat
-              bookPath={book.path}
-              bookFormat={book.format}
-              bookTitle={book.title}
-              isOpen={showQA}
-              onToggle={() => setShowQA(false)}
-            />
+            <Suspense fallback={<ReaderFallback label="正在加载问答助手..." />}>
+              <QAChat
+                bookPath={book.path}
+                bookFormat={book.format}
+                bookTitle={book.title}
+                isOpen={showQA}
+                onToggle={() => setShowQA(false)}
+              />
+            </Suspense>
           </div>
         )}
       </div>

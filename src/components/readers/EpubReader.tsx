@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
-import type { ReaderTheme, Annotation, ReaderSettings } from '../../types'
+import type { Annotation, EpubProgressLocator, ReaderProgressLocator, ReaderProgressUpdate, ReaderSettings, ReaderTheme } from '../../types'
 import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
+import { isElectron, OPEN_EXTERNAL_LINKS_KEY } from '../../utils'
 
 interface FoliateView extends HTMLElement {
   open: (book: Blob | File) => Promise<void>
   next: () => Promise<void>
   prev: () => Promise<void>
   goTo: (target: string | number | { fraction: number }) => Promise<void>
-  getCFI?: () => string
+  getCFI?: (index: number, range: Range) => string
+  currentIndex?: number
   renderer?: {
     setStyles?: (styles: Record<string, string>) => void
     setAttribute?: (name: string, value: string) => void
@@ -19,28 +21,61 @@ interface FoliateView extends HTMLElement {
 interface EpubReaderProps {
   filePath: string
   bookId: number
+  format: 'epub' | 'mobi' | 'azw3'
   initialProgress?: number
-  onProgressUpdate?: (progress: number) => void
+  initialLocator?: ReaderProgressLocator
+  onProgressUpdate?: (update: ReaderProgressUpdate) => void
   theme: ReaderTheme
   readerSettings?: ReaderSettings
 }
 
-interface SelectionInfo {
+function withTimeout<T>(promise: Promise<T>, ms: number, stage: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${stage} timed out after ${ms}ms`))
+    }, ms)
+
+    promise
+      .then(value => {
+        clearTimeout(timer)
+        resolve(value)
+      })
+      .catch(err => {
+        clearTimeout(timer)
+        reject(err)
+      })
+  })
+}
+
+export interface SelectionInfo {
   text: string
   position: { x: number; y: number }
   cfi?: string
 }
 
+const MIME_TYPE_BY_FORMAT: Record<'epub' | 'mobi' | 'azw3', string> = {
+  epub: 'application/epub+zip',
+  mobi: 'application/x-mobipocket-ebook',
+  azw3: 'application/vnd.amazon.mobi8-ebook',
+}
+
 export default function EpubReader({ 
   filePath, 
   bookId, 
+  format,
   initialProgress = 0, 
+  initialLocator,
   onProgressUpdate, 
   theme,
   readerSettings = DEFAULT_READER_SETTINGS 
 }: EpubReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<FoliateView | null>(null)
+  const progressCallbackRef = useRef<typeof onProgressUpdate>(onProgressUpdate)
+  const initialProgressRef = useRef(initialProgress)
+  const initialLocatorRef = useRef(initialLocator)
+  const themeRef = useRef(theme)
+  const readerSettingsRef = useRef(readerSettings)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentLabel, setCurrentLabel] = useState('')
@@ -49,6 +84,20 @@ export default function EpubReader({
   const [annotations, setAnnotations] = useState<Annotation[]>([])
   const [showAnnotations, setShowAnnotations] = useState(false)
   const [selection, setSelection] = useState<SelectionInfo | null>(null)
+  const [canNavigate, setCanNavigate] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('Loading eBook...')
+
+  useEffect(() => {
+    progressCallbackRef.current = onProgressUpdate
+  }, [onProgressUpdate])
+
+  useEffect(() => {
+    initialProgressRef.current = initialProgress
+    initialLocatorRef.current = initialLocator
+    themeRef.current = theme
+    readerSettingsRef.current = readerSettings
+  }, [initialLocator, initialProgress, readerSettings, theme])
 
   // Load annotations
   const loadAnnotations = useCallback(async () => {
@@ -86,57 +135,124 @@ export default function EpubReader({
 
   useEffect(() => {
     let mounted = true
+    const containerElement = containerRef.current
+    const themeSnapshot = themeRef.current
+    const readerSettingsSnapshot = readerSettingsRef.current
+    const initialProgressSnapshot = initialProgressRef.current
+    const initialLocatorSnapshot = initialLocatorRef.current
 
     const loadBook = async () => {
       try {
         setLoading(true)
+        setLoadingMessage('Preparing reader...')
         setError(null)
 
         // Dynamically import foliate-js to ensure Web Component is registered
-        await import('foliate-js/view.js')
+        await withTimeout(import('foliate-js/view.js'), 10000, 'Load foliate runtime')
+        if (!mounted) return
 
         // Wait a tick for custom element to be defined
-        await customElements.whenDefined('foliate-view')
+        await withTimeout(customElements.whenDefined('foliate-view'), 10000, 'Initialize foliate-view')
 
-        if (!mounted || !containerRef.current) return
+        if (!mounted || !containerElement) return
 
         // Create the foliate-view element programmatically
         const view = document.createElement('foliate-view') as FoliateView
         view.style.width = '100%'
         view.style.height = '100%'
-        containerRef.current.innerHTML = ''
-        containerRef.current.appendChild(view)
+
+        view.addEventListener('external-link', async (event) => {
+          const customEvent = event as CustomEvent<{ href?: string }>
+          const href = customEvent.detail?.href
+          if (!href) return
+
+          const raw = localStorage.getItem(OPEN_EXTERNAL_LINKS_KEY)
+          const enabled = raw == null ? true : raw === 'true'
+          event.preventDefault()
+          if (!enabled) return
+
+          try {
+            if (isElectron()) {
+              await window.ipcRenderer.invoke('open-external', href)
+            } else {
+              window.open(href, '_blank', 'noopener,noreferrer')
+            }
+          } catch (err) {
+            console.error('Failed to open external link:', err)
+          }
+        })
+
+        containerElement.innerHTML = ''
+        containerElement.appendChild(view)
         viewRef.current = view
 
         // Apply theme styles
-        view.style.setProperty('--foliate-background', theme.customBgImage ? `url(${theme.customBgImage})` : theme.bg)
-        view.style.setProperty('--foliate-color', theme.text)
+        view.style.setProperty('--foliate-background', themeSnapshot.customBgImage ? `url(${themeSnapshot.customBgImage})` : themeSnapshot.bg)
+        view.style.setProperty('--foliate-color', themeSnapshot.text)
         
         // Apply reader settings
-        view.style.setProperty('--foliate-font-size', `${readerSettings.fontSize}px`)
-        view.style.setProperty('--foliate-line-height', `${readerSettings.lineHeight}`)
-        view.style.setProperty('--foliate-font-family', readerSettings.fontFamily)
+        view.style.setProperty('--foliate-font-size', `${readerSettingsSnapshot.fontSize}px`)
+        view.style.setProperty('--foliate-line-height', `${readerSettingsSnapshot.lineHeight}`)
+        view.style.setProperty('--foliate-font-family', readerSettingsSnapshot.fontFamily)
 
+        setLoadingMessage('Reading file...')
         // Read file and create File object (foliate-js needs the name property)
-        const buffer = await window.ipcRenderer.invoke('read-file-buffer', filePath)
+        const buffer = await withTimeout(
+          window.ipcRenderer.invoke('read-file-buffer', filePath),
+          15000,
+          'Read ebook file'
+        )
         const fileName = filePath.split(/[/\\]/).pop() || 'book.epub'
         // Convert buffer to ArrayBuffer properly
         const uint8Array = new Uint8Array(buffer)
-        const file = new File([uint8Array], fileName, { type: 'application/epub+zip' })
+        const primaryFile = new File([uint8Array], fileName, { type: MIME_TYPE_BY_FORMAT[format] })
+        const fallbackFile = new File([uint8Array], fileName, { type: '' })
 
-        // Open the book
-        await view.open(file)
+        setLoadingMessage('Parsing ebook...')
+        try {
+          await withTimeout(view.open(primaryFile), 20000, 'Open ebook')
+        } catch (primaryErr) {
+          // Some files fail with specific MIME hints; retry with generic File type.
+          console.warn('Primary ebook open failed, retrying with generic file type:', primaryErr)
+          await withTimeout(view.open(fallbackFile), 20000, 'Open ebook fallback')
+        }
+        if (!mounted) return
 
-        if (initialProgress > 0) {
-          await view.goTo({ fraction: initialProgress })
+        // Restoring previous position should not fail the whole book loading flow.
+        try {
+          if (initialLocatorSnapshot?.kind === 'epub') {
+            if (initialLocatorSnapshot.cfi) {
+              await view.goTo(initialLocatorSnapshot.cfi)
+            } else if (typeof initialLocatorSnapshot.fraction === 'number') {
+              await view.goTo({ fraction: initialLocatorSnapshot.fraction })
+            }
+          } else if (initialProgressSnapshot > 0) {
+            await view.goTo({ fraction: initialProgressSnapshot })
+          }
+        } catch (restoreErr) {
+          console.warn('Failed to restore EPUB position, fallback to chapter start:', restoreErr)
         }
 
         // Handle relocate events
         const handleRelocate = (e: Event) => {
-          const customEvent = e as CustomEvent
-          const { fraction, tocItem } = customEvent.detail
-          if (onProgressUpdate && typeof fraction === 'number') {
-            onProgressUpdate(fraction)
+          const customEvent = e as CustomEvent<{
+            fraction?: number
+            tocItem?: { label?: string }
+            location?: { start?: { cfi?: string } }
+          }>
+          const { fraction, tocItem, location } = customEvent.detail
+          if (progressCallbackRef.current && typeof fraction === 'number') {
+            const locator: EpubProgressLocator = {
+              kind: 'epub',
+              fraction,
+              cfi: location?.start?.cfi,
+              chapterLabel: tocItem?.label,
+            }
+            progressCallbackRef.current({
+              progress: fraction,
+              locator,
+              updatedAt: Date.now(),
+            })
           }
           if (tocItem?.label) {
             setCurrentLabel(tocItem.label)
@@ -144,23 +260,42 @@ export default function EpubReader({
         }
 
         view.addEventListener('relocate', handleRelocate)
+        setCanNavigate(true)
 
       } catch (err) {
         console.error('Failed to load EPUB:', err)
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load EPUB')
+          const baseMessage = err instanceof Error ? err.message : 'Failed to load EPUB'
+          if (format === 'azw3' || format === 'mobi') {
+            setError(`${baseMessage}\n\n当前格式（.${format}）兼容性较弱，建议先转换为 .epub 后再导入。`)
+          } else {
+            setError(baseMessage)
+          }
+          setCanNavigate(false)
         }
       } finally {
         if (mounted) setLoading(false)
       }
     }
 
-    loadBook()
+    void loadBook()
 
     return () => {
       mounted = false
+      setCanNavigate(false)
+      if (containerElement) {
+        containerElement.innerHTML = ''
+      }
+      viewRef.current = null
     }
-  }, [filePath, initialProgress, onProgressUpdate, theme.bg, theme.text, theme.customBgImage, readerSettings.fontFamily, readerSettings.fontSize, readerSettings.lineHeight])
+  }, [filePath, format])
+
+  useEffect(() => {
+    if (!viewRef.current) return
+    const view = viewRef.current
+    view.style.setProperty('--foliate-background', theme.customBgImage ? `url(${theme.customBgImage})` : theme.bg)
+    view.style.setProperty('--foliate-color', theme.text)
+  }, [theme.bg, theme.customBgImage, theme.text])
 
   // Handle text selection
   const handleMouseUp = useCallback(() => {
@@ -186,8 +321,7 @@ export default function EpubReader({
       const view = viewRef.current
       if (view && typeof view.getCFI === 'function') {
         // Try to get current section index from the view
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const currentIndex = (view as any).currentIndex ?? 0
+        const currentIndex = view.currentIndex ?? 0
         cfi = view.getCFI(currentIndex, range)
       }
     } catch (err) {
@@ -279,8 +413,25 @@ export default function EpubReader({
     }
   }
 
-  const handlePrev = () => viewRef.current?.prev()
-  const handleNext = () => viewRef.current?.next()
+  const navigatePage = useCallback(async (direction: 'prev' | 'next') => {
+    if (!canNavigate || isNavigating || loading || error) return
+    const view = viewRef.current
+    if (!view) return
+
+    setIsNavigating(true)
+    try {
+      if (direction === 'prev') {
+        await view.prev()
+      } else {
+        await view.next()
+      }
+    } catch (err) {
+      // Prevent foliate internal navigation rejects from surfacing as unhandled rejections.
+      console.warn(`Failed to navigate ${direction} page:`, err)
+    } finally {
+      setIsNavigating(false)
+    }
+  }, [canNavigate, error, isNavigating, loading])
 
   // Compute background style
   const backgroundStyle: React.CSSProperties = theme.customBgImage
@@ -304,7 +455,7 @@ export default function EpubReader({
           className="absolute inset-0 flex items-center justify-center z-20"
           style={{ backgroundColor: theme.bg }}
         >
-          <div className="text-gray-600">Loading eBook...</div>
+          <div className="text-gray-600">{loadingMessage}</div>
         </div>
       )}
 
@@ -324,14 +475,18 @@ export default function EpubReader({
         <>
           <div 
             className="absolute left-0 top-0 bottom-0 w-16 z-10 cursor-pointer hover:bg-black/5 transition-colors flex items-center justify-start pl-2"
-            onClick={handlePrev}
+            onClick={() => {
+              void navigatePage('prev')
+            }}
           >
             <ChevronLeft className="opacity-0 group-hover:opacity-50" />
           </div>
           <div 
             className="absolute right-0 top-0 bottom-0 w-16 z-10 cursor-pointer hover:bg-black/5 transition-colors flex items-center justify-end pr-2"
             style={{ right: showAnnotations ? '320px' : '0' }}
-            onClick={handleNext}
+            onClick={() => {
+              void navigatePage('next')
+            }}
           >
             <ChevronRight className="opacity-0 group-hover:opacity-50" />
           </div>

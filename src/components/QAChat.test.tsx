@@ -2,12 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock window.ipcRenderer
 const mockInvoke = vi.fn()
-global.window = {
-  ...window,
-  ipcRenderer: {
+Object.defineProperty(window, 'ipcRenderer', {
+  value: {
     invoke: mockInvoke
-  }
-} as unknown as Window & typeof globalThis
+  },
+  writable: true,
+  configurable: true
+})
 
 // We need to test the component logic without rendering the full component
 // Let's test the helper functions and component logic instead

@@ -179,6 +179,91 @@
       ],
       "passes": true,
       "dependencies": []
+    },
+    {
+      "id": "15",
+      "title": "Reader OS 抽象层 - 文档统一模型",
+      "description": "建立 DocumentKind/Format/ReaderEngine 统一抽象，减少格式分支散落",
+      "steps": [
+        "新增 src/domain/document.ts，定义 flow/paged 模型与格式能力映射",
+        "将导入能力分为 supported/convertible/unsupported",
+        "添加 reader 引擎选择逻辑供 Reader 页面复用"
+      ],
+      "passes": true,
+      "dependencies": []
+    },
+    {
+      "id": "16",
+      "title": "Reader OS 应用层 - ImportService",
+      "description": "新增 ImportService 统一导入策略，支持导入计划与目标格式决策",
+      "steps": [
+        "创建 src/services/importService.ts",
+        "实现 buildImportPlan/getAllowedImportExtensions/toSupportedFormat",
+        "添加 importService 单元测试覆盖 supported/convertible/unsupported"
+      ],
+      "passes": true,
+      "dependencies": ["15"]
+    },
+    {
+      "id": "17",
+      "title": "导入链路升级 - docx 可转换管线",
+      "description": "在桌面导入链路中支持 docx，导入时转换为本地可读 markdown",
+      "steps": [
+        "扩展 open-file-dialog 支持 docx 选择",
+        "实现 DOCX 到 Markdown 的本地转换逻辑（基于 docx XML 文本提取）",
+        "转换后保存为 .md 并入库为 Flow 文档"
+      ],
+      "passes": true,
+      "dependencies": ["16"]
+    },
+    {
+      "id": "18",
+      "title": "持久化升级 - 文档类型与导入状态",
+      "description": "在 SQLite 书库中补充 documentKind/ingestStatus/sourceFormat 以支撑长期维护",
+      "steps": [
+        "books 表新增 documentKind/ingestStatus/sourceFormat 字段并自动迁移",
+        "入库时写入 sourceFormat 与 ingestStatus",
+        "读取时标准化默认值并回填旧数据视图"
+      ],
+      "passes": true,
+      "dependencies": ["15", "17"]
+    },
+    {
+      "id": "19",
+      "title": "阅读器接线 - 统一引擎调度",
+      "description": "Reader 页面改为基于统一引擎映射选择渲染器并延续 Locator 进度策略",
+      "steps": [
+        "Reader.tsx 使用 getReaderEngine 决定 pdf/markdown/epub 渲染器",
+        "保留并强化 Locator 进度更新链路",
+        "避免业务层出现硬编码格式判断扩散"
+      ],
+      "passes": true,
+      "dependencies": ["15", "18"]
+    },
+    {
+      "id": "20",
+      "title": "书库体验增强 - 导入状态可见",
+      "description": "在书库卡片显示文档类型与转换状态，便于本地维护与排错",
+      "steps": [
+        "Library.tsx 接入 ImportService 统一导入格式校验",
+        "卡片显示 Flow/Paged 标识",
+        "对转换导入的书籍显示“已转换”状态标记"
+      ],
+      "passes": true,
+      "dependencies": ["16", "18"]
+    },
+    {
+      "id": "21",
+      "title": "质量闸门 - 全链路验证",
+      "description": "确保本轮 Reader OS 架构改造通过质量检查并可打包",
+      "steps": [
+        "执行 npm run lint",
+        "执行 tsc 类型检查",
+        "执行 npm run test:run（78 项）",
+        "执行 npm run build（含 Electron 打包）"
+      ],
+      "passes": true,
+      "dependencies": ["15", "16", "17", "18", "19", "20"]
     }
   ]
 }

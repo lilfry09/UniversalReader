@@ -11,14 +11,15 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).href
 
 import { isElectron } from '../../utils/platform'
-import type { ReaderTheme, Annotation, ReaderSettings } from '../../types'
+import type { ReaderTheme, Annotation, ReaderSettings, PdfProgressLocator, ReaderProgressLocator, ReaderProgressUpdate } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 
 interface PdfReaderProps {
   filePath: string
   bookId: number
   initialProgress?: number
-  onProgressUpdate?: (progress: number) => void
+  initialLocator?: ReaderProgressLocator
+  onProgressUpdate?: (update: ReaderProgressUpdate) => void
   theme: ReaderTheme
   readerSettings?: ReaderSettings
 }
@@ -33,6 +34,7 @@ export default function PdfReader({
   filePath, 
   bookId, 
   initialProgress = 0, 
+  initialLocator,
   onProgressUpdate, 
   theme
 }: PdfReaderProps) {
@@ -107,6 +109,13 @@ export default function PdfReader({
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
     setError(null)
+    if (initialLocator?.kind === 'pdf') {
+      const savedPage = Math.round(initialLocator.page)
+      if (savedPage > 0) {
+        setPageNumber(Math.min(savedPage, numPages))
+        return
+      }
+    }
     if (initialProgress > 0) {
       setPageNumber(Math.max(1, Math.round(initialProgress * numPages)))
     }
@@ -122,7 +131,16 @@ export default function PdfReader({
     setPageNumber(newPage)
     
     if (onProgressUpdate && numPages > 0) {
-      onProgressUpdate(newPage / numPages)
+      const locator: PdfProgressLocator = {
+        kind: 'pdf',
+        page: newPage,
+        totalPages: numPages,
+      }
+      onProgressUpdate({
+        progress: newPage / numPages,
+        locator,
+        updatedAt: Date.now(),
+      })
     }
   }
 

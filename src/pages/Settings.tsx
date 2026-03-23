@@ -3,6 +3,13 @@ import { FolderOpen, ExternalLink, Type, Minus, Plus, Image } from 'lucide-react
 import { clsx } from 'clsx'
 import type { ThemeMode, ReaderSettings } from '../types'
 import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
+import {
+  isElectron,
+  OPEN_EXTERNAL_LINKS_KEY,
+  READER_CUSTOM_BG_KEY,
+  READER_SETTINGS_KEY,
+  READER_THEME_KEY
+} from '../utils'
 
 function readBool(key: string, defaultValue: boolean) {
   const raw = localStorage.getItem(key)
@@ -11,21 +18,22 @@ function readBool(key: string, defaultValue: boolean) {
 }
 
 export default function Settings() {
+  const isDesktop = isElectron()
   const [openExternalLinks, setOpenExternalLinks] = useState<boolean>(() =>
-    readBool('open-external-links', true)
+    readBool(OPEN_EXTERNAL_LINKS_KEY, true)
   )
 
   const [defaultTheme, setDefaultTheme] = useState<ThemeMode>(() => {
-    return (localStorage.getItem('reader-theme') as ThemeMode) || 'light'
+    return (localStorage.getItem(READER_THEME_KEY) as ThemeMode) || 'light'
   })
 
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
-    const saved = localStorage.getItem('reader-settings')
+    const saved = localStorage.getItem(READER_SETTINGS_KEY)
     return saved ? { ...DEFAULT_READER_SETTINGS, ...JSON.parse(saved) } : DEFAULT_READER_SETTINGS
   })
 
   const [customBgImage, setCustomBgImage] = useState<string | null>(() => {
-    return localStorage.getItem('reader-custom-bg') || null
+    return localStorage.getItem(READER_CUSTOM_BG_KEY) || null
   })
 
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
@@ -33,41 +41,48 @@ export default function Settings() {
   // Load custom background URL
   useEffect(() => {
     const loadBgUrl = async () => {
-      if (customBgImage) {
+      if (!customBgImage || !isDesktop) {
+        setCustomBgUrl(null)
+        return
+      }
+
+      try {
         const url = await window.ipcRenderer.invoke('get-background-image-url', customBgImage)
         setCustomBgUrl(url)
-      } else {
+      } catch (err) {
+        console.error('Failed to load custom background URL:', err)
         setCustomBgUrl(null)
       }
     }
-    loadBgUrl()
-  }, [customBgImage])
+    void loadBgUrl()
+  }, [customBgImage, isDesktop])
 
   useEffect(() => {
-    localStorage.setItem('open-external-links', String(openExternalLinks))
+    localStorage.setItem(OPEN_EXTERNAL_LINKS_KEY, String(openExternalLinks))
   }, [openExternalLinks])
 
   useEffect(() => {
-    localStorage.setItem('reader-theme', defaultTheme)
+    localStorage.setItem(READER_THEME_KEY, defaultTheme)
   }, [defaultTheme])
 
   useEffect(() => {
-    localStorage.setItem('reader-settings', JSON.stringify(readerSettings))
+    localStorage.setItem(READER_SETTINGS_KEY, JSON.stringify(readerSettings))
   }, [readerSettings])
 
   const themeModes = useMemo(() => (Object.keys(THEMES) as ThemeMode[]).filter(m => m !== 'custom'), [])
 
   const handleSelectBackgroundImage = async () => {
+    if (!isDesktop) return
     const imagePath = await window.ipcRenderer.invoke('select-background-image')
     if (imagePath) {
       setCustomBgImage(imagePath)
-      localStorage.setItem('reader-custom-bg', imagePath)
+      localStorage.setItem(READER_CUSTOM_BG_KEY, imagePath)
     }
   }
 
   const handleClearBackgroundImage = () => {
     setCustomBgImage(null)
-    localStorage.removeItem('reader-custom-bg')
+    localStorage.removeItem(READER_CUSTOM_BG_KEY)
     if (defaultTheme === 'custom') {
       setDefaultTheme('light')
     }
@@ -231,7 +246,11 @@ export default function Settings() {
             自定义背景
           </h2>
 
-          {customBgUrl ? (
+          {!isDesktop ? (
+            <div className="text-sm text-gray-500">
+              当前为 Web 模式，暂不支持本地背景图片选择。
+            </div>
+          ) : customBgUrl ? (
             <div className="space-y-3">
               <div 
                 className="w-full h-32 rounded-lg border bg-cover bg-center"
@@ -271,13 +290,15 @@ export default function Settings() {
 
           <button
             onClick={async () => {
+              if (!isDesktop) return
               try {
                 await window.ipcRenderer.invoke('open-user-data-folder')
               } catch (err) {
                 console.error('Failed to open user data folder:', err)
               }
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!isDesktop}
           >
             <FolderOpen className="w-4 h-4" />
             打开应用数据文件夹

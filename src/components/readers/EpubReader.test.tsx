@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import type { SelectionInfo } from './readers/EpubReader'
+import type { SelectionInfo } from './EpubReader'
 
 describe('EpubReader Component Logic', () => {
+  const canUseSelectionCfi = (selection: SelectionInfo | null) =>
+    selection !== null && selection.cfi !== undefined
+
   describe('Selection handling', () => {
     it('should create valid SelectionInfo', () => {
       const selection: SelectionInfo = {
         text: 'Selected text content',
         cfi: 'epubcfi(/6/4[chap1]!/4/2[para1]/16)',
-        position: { x: 100, y: 200 },
-        chapterIndex: 0
+        position: { x: 100, y: 200 }
       }
       expect(selection.text).toBe('Selected text content')
       expect(selection.cfi).toContain('epubcfi')
@@ -32,7 +34,7 @@ describe('EpubReader Component Logic', () => {
   describe('Highlight handling', () => {
     it('should require selection for highlighting', () => {
       const selection: SelectionInfo | null = null
-      const canHighlight = selection !== null && selection.cfi !== undefined
+      const canHighlight = canUseSelectionCfi(selection)
       expect(canHighlight).toBe(false)
     })
 
@@ -40,16 +42,15 @@ describe('EpubReader Component Logic', () => {
       const selection: SelectionInfo = {
         text: 'Some text',
         cfi: 'epubcfi(/6/4)',
-        position: { x: 10, y: 10 },
-        chapterIndex: 1
+        position: { x: 10, y: 10 }
       }
-      const canHighlight = selection !== null && selection.cfi !== undefined
+      const canHighlight = canUseSelectionCfi(selection)
       expect(canHighlight).toBe(true)
     })
 
     it('should require CFI for adding notes', () => {
       const selection: SelectionInfo | null = null
-      const canAddNote = selection !== null && selection.cfi !== undefined
+      const canAddNote = canUseSelectionCfi(selection)
       expect(canAddNote).toBe(false)
     })
   })

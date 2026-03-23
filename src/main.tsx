@@ -40,13 +40,14 @@ if (!rootEl) {
   showCriticalError('Root element #root not found', 'main.tsx', 0, 0)
   throw new Error('Root element #root not found')
 }
+const rootElement: HTMLElement = rootEl
 
-const renderRoot = createRoot(rootEl)
+const renderRoot = createRoot(rootElement)
 
 async function bootstrap() {
   try {
     if (import.meta.env.DEV) {
-      rootEl.textContent = 'Booting…'
+      rootElement.textContent = 'Booting…'
       console.info('[renderer] boot')
     }
 

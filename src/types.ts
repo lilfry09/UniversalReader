@@ -1,3 +1,6 @@
+import type { DocumentFormat, DocumentKind, ImportExtension } from './domain/document'
+import type { IngestStatus } from './services/importService'
+
 export type ThemeMode = "light" | "sepia" | "dark" | "gray" | "custom";
 export type PageMode = "scroll" | "paginated" | "single";
 
@@ -15,6 +18,37 @@ export interface ReaderSettings {
   lineHeight: number;
   pageMode: PageMode;
   customBgImage?: string;
+}
+
+export interface PdfProgressLocator {
+  kind: 'pdf';
+  page: number;
+  totalPages?: number;
+}
+
+export interface EpubProgressLocator {
+  kind: 'epub';
+  cfi?: string;
+  fraction?: number;
+  chapterLabel?: string;
+}
+
+export interface TextProgressLocator {
+  kind: 'text';
+  elementId?: string;
+  offsetTop?: number;
+  scrollRatio?: number;
+}
+
+export type ReaderProgressLocator =
+  | PdfProgressLocator
+  | EpubProgressLocator
+  | TextProgressLocator;
+
+export interface ReaderProgressUpdate {
+  progress: number;
+  locator?: ReaderProgressLocator;
+  updatedAt?: number;
 }
 
 export const THEMES: Record<ThemeMode, ReaderTheme> = {
@@ -71,11 +105,16 @@ export interface Book {
   title: string;
   author?: string;
   path: string;
-  format: "pdf" | "epub" | "mobi" | "azw3" | "txt" | "md";
+  format: DocumentFormat;
   coverPath?: string;
   addedAt?: string;
   lastReadAt?: string;
   progress: number;
+  progressLocator?: ReaderProgressLocator;
+  progressUpdatedAt?: number;
+  documentKind?: DocumentKind;
+  ingestStatus?: IngestStatus;
+  sourceFormat?: ImportExtension | string;
   // Web-specific fields
   totalPages?: number;
   createdAt?: string;
@@ -110,6 +149,8 @@ export interface IpcRenderer {
     channel: "update-progress",
     bookId: number,
     progress: number,
+    locator?: ReaderProgressLocator,
+    updatedAt?: number,
   ): Promise<void>;
   invoke(channel: "delete-book", bookId: number): Promise<boolean>;
   // Annotation handlers
