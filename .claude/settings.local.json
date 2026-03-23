@@ -7,7 +7,8 @@
       "Bash(cd /d/SJTUlearning/25Winter/UniversalReader && npm run lint 2>&1 && npx tsc --noEmit 2>&1)",
       "Bash(tail:*)",
       "Bash(cd /d/SJTUlearning/25Winter/UniversalReader && npm run test:run 2>&1)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(wc:*)"
     ]
   }
 }
