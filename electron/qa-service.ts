@@ -160,22 +160,22 @@ async function chatOpenAICompatible(
   if (baseUrl.includes('/chat/completions')) {
     // Already a complete endpoint
     endpoint = baseUrl;
+  } else if (baseUrl.includes('/api/v1')) {
+    // Has /api/v1, just add /chat/completions
+    endpoint = `${baseUrl}/chat/completions`;
   } else if (baseUrl.includes('/v1')) {
     // Has /v1, just add /chat/completions
     endpoint = `${baseUrl}/chat/completions`;
   } else {
-    // No /v1, add both
-    endpoint = `${baseUrl}/v1/chat/completions`;
+    // No path, try /api/v1/chat/completions first (common for SharedChat-like services)
+    endpoint = `${baseUrl}/api/v1/chat/completions`;
   }
+
+  console.log('[QA] API endpoint:', endpoint);
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${getApiKey()}`,
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json",
-    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
-    "Origin": baseUrl,
-    "Referer": baseUrl
+    "Authorization": `Bearer ${getApiKey()}`
   };
 
   // These headers are OpenRouter specific and harmless when omitted for other providers.
@@ -189,7 +189,7 @@ async function chatOpenAICompatible(
     headers,
     signal,
     body: JSON.stringify({
-      model: getChatModel(),
+      model: getChatModel() || 'gpt-3.5-turbo',
       messages,
       temperature: 0.7
     })
