@@ -637,7 +637,3 @@ ipcMain.handle('credentials-clear', async () => {
 ipcMain.handle('credentials-has', async () => {
   return secureStore.hasCredentials()
 })
-
-ipcMain.handle('qa-get-status', async () => {
-  return qaService.getStatus()
-})
