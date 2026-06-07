@@ -250,9 +250,9 @@ async function chat(
 ): Promise<string> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      // Create abort controller with 30s timeout
+      // Create abort controller with 60s timeout (increased from 30s)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const result = getApiStyle() === "anthropic"
         ? await chatAnthropicCompatible(messages, controller.signal)
@@ -545,11 +545,13 @@ async function askQuestion(
 
   console.log(`[QA] Question: ${trimmedQuestion}`);
 
-  // Get relevant documents using TF-IDF
-  const relevantDocs = await similaritySearch(trimmedQuestion, 4);
+  // Get relevant documents using TF-IDF (reduced from 4 to 3)
+  const relevantDocs = await similaritySearch(trimmedQuestion, 3);
 
-  // Build context from relevant docs
-  const context = relevantDocs.map(d => d.pageContent.slice(0, 2000)).join("\n\n");
+  // Build context from relevant docs (reduced from 2000 to 1500 chars per doc)
+  const context = relevantDocs.map(d => d.pageContent.slice(0, 1500)).join("\n\n");
+
+  console.log(`[QA] Context length: ${context.length} chars, ${relevantDocs.length} docs`);
 
   // Create a prompt with context
   const prompt = `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
