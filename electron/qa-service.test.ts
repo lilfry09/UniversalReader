@@ -107,6 +107,11 @@ describe('QA Service', () => {
   })
 
   describe('askQuestion', () => {
+    it('should fail when question is empty', async () => {
+      await expect(qaService.askQuestion('   '))
+        .rejects.toThrow('Question cannot be empty')
+    })
+
     it('should fail when no book is loaded', async () => {
       await expect(qaService.askQuestion('test question'))
         .rejects.toThrow('No book loaded')
@@ -118,10 +123,171 @@ describe('QA Service', () => {
         .rejects.toThrow('No book loaded')
     })
   })
+
+  describe('chat API configuration', () => {
+    it('should send OpenAI-compatible requests with QA overrides', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue(
+        'A careful reader can use UniversalReader to study notes and ask questions about the current book.'
+      )
+      process.env.QA_API_KEY = 'qa-key'
+      process.env.QA_BASE_URL = 'https://example.test/openai/'
+      process.env.QA_MODEL = 'custom-openai-model'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'Configured OpenAI-compatible answer' } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const loadResult = await qaService.loadBookForQA('/test/book.md', 'md')
+      const answerResult = await qaService.askQuestion('What can the reader do?')
+
+      expect(loadResult.success).toBe(true)
+      expect(answerResult.answer).toBe('Configured OpenAI-compatible answer')
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.test/openai/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer qa-key',
+          }),
+        })
+      )
+
+      const request = fetchMock.mock.calls[0][1] as { body: string }
+      expect(JSON.parse(request.body)).toMatchObject({
+        model: 'custom-openai-model',
+        temperature: 0.7,
+      })
+    })
+
+    it('should send Anthropic-compatible requests when configured', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue(
+        'This book explains annotations, library organization, and reading progress in detail.'
+      )
+      process.env.QA_API_KEY = 'anthropic-key'
+      process.env.QA_BASE_URL = 'https://example.test/anthropic/'
+      process.env.QA_MODEL = 'custom-anthropic-model'
+      process.env.QA_API_STYLE = 'anthropic'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          content: [
+            { type: 'text', text: 'Configured Anthropic-compatible answer' },
+            { type: 'tool_use', text: 'ignored' },
+          ],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const loadResult = await qaService.loadBookForQA('/test/book.txt', 'txt')
+      const answerResult = await qaService.askQuestion('What does this book explain?')
+
+      expect(loadResult.success).toBe(true)
+      expect(answerResult.answer).toBe('Configured Anthropic-compatible answer')
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.test/anthropic/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'x-api-key': 'anthropic-key',
+            'anthropic-version': '2023-06-01',
+          }),
+        })
+      )
+
+      const request = fetchMock.mock.calls[0][1] as { body: string }
+      expect(JSON.parse(request.body)).toMatchObject({
+        model: 'custom-anthropic-model',
+        max_tokens: 1024,
+      })
+    })
+
+    it('should retry on API failures', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue(
+        'Test book content for retry testing.'
+      )
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn()
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'Success after retry' } }],
+          }),
+        })
+
+      vi.stubGlobal('fetch', fetchMock)
+
+      await qaService.loadBookForQA('/test/book.txt', 'txt')
+      const result = await qaService.askQuestion('Test question')
+
+      expect(result.answer).toBe('Success after retry')
+      expect(fetchMock).toHaveBeenCalledTimes(2) // Initial + 1 retry
+    })
+
+    it('should handle rate limit errors with longer retry delay', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue('Test content')
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn()
+        .mockRejectedValueOnce(new Error('OpenAI-compatible API error: 429 - Rate limit exceeded'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: 'Success after rate limit' } }],
+          }),
+        })
+
+      vi.stubGlobal('fetch', fetchMock)
+
+      await qaService.loadBookForQA('/test/book.txt', 'txt')
+      const result = await qaService.askQuestion('Test question')
+
+      expect(result.answer).toBe('Success after rate limit')
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+
+    it('should fail after max retries', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue('Test content')
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockRejectedValue(new Error('Persistent network error'))
+      vi.stubGlobal('fetch', fetchMock)
+
+      await qaService.loadBookForQA('/test/book.txt', 'txt')
+
+      await expect(qaService.askQuestion('Test question'))
+        .rejects.toThrow('Chat API failed after 3 attempts')
+
+      expect(fetchMock).toHaveBeenCalledTimes(3) // 3 attempts
+    })
+  })
 })
 
 describe('Service State Transitions', () => {
   beforeEach(() => {
+    qaService.clearQA()
     vi.clearAllMocks()
   })
 

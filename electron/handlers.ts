@@ -5,6 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import { createCanvas } from 'canvas'
 import { qaService } from './qa-service'
+import * as secureStore from './secure-store'
 import type { ReaderProgressLocator } from '../src/types'
 import { getDocumentKind, normalizeExtension } from '../src/domain/document'
 import type { DocumentFormat } from '../src/domain/document'
@@ -596,6 +597,45 @@ ipcMain.handle('qa-ask', async (_, question: string) => {
 
 ipcMain.handle('qa-clear', async () => {
   qaService.clearQA()
+})
+
+ipcMain.handle('qa-get-status', async () => {
+  return qaService.getStatus()
+})
+
+// ============ Secure Credentials Handlers ============
+
+ipcMain.handle('credentials-save', async (_, credentials: {
+  qaApiKey?: string
+  qaBaseUrl?: string
+  qaModel?: string
+  qaApiStyle?: 'openai' | 'anthropic'
+}) => {
+  try {
+    await secureStore.saveCredentials(credentials)
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { success: false, error: message }
+  }
+})
+
+ipcMain.handle('credentials-load', async () => {
+  return secureStore.loadCredentials()
+})
+
+ipcMain.handle('credentials-clear', async () => {
+  try {
+    secureStore.clearCredentials()
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { success: false, error: message }
+  }
+})
+
+ipcMain.handle('credentials-has', async () => {
+  return secureStore.hasCredentials()
 })
 
 ipcMain.handle('qa-get-status', async () => {

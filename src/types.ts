@@ -180,6 +180,21 @@ export interface IpcRenderer {
   invoke(channel: "qa-ask", question: string): Promise<{ answer: string; sources: SourceChunk[] }>;
   invoke(channel: "qa-clear"): Promise<void>;
   invoke(channel: "qa-get-status"): Promise<QAServiceStatus>;
+  // Secure credentials handlers
+  invoke(channel: "credentials-save", credentials: {
+    qaApiKey?: string;
+    qaBaseUrl?: string;
+    qaModel?: string;
+    qaApiStyle?: 'openai' | 'anthropic';
+  }): Promise<{ success: boolean; error?: string }>;
+  invoke(channel: "credentials-load"): Promise<{
+    qaApiKey?: string;
+    qaBaseUrl?: string;
+    qaModel?: string;
+    qaApiStyle?: 'openai' | 'anthropic';
+  } | null>;
+  invoke(channel: "credentials-clear"): Promise<{ success: boolean; error?: string }>;
+  invoke(channel: "credentials-has"): Promise<boolean>;
 }
 
 // ============ QA Types ============
