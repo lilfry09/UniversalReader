@@ -84,18 +84,36 @@ export default function MarkdownReader({
     : { backgroundColor: theme.bg, color: theme.text }
 
   // Compute content styles based on reader settings
+  const isPaged = readerSettings.pageMode !== 'scroll'
   const contentStyle: React.CSSProperties = {
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: readerSettings.lineHeight,
     fontFamily: readerSettings.fontFamily,
+    ...(isPaged
+      ? {
+          height: '100%',
+          columnWidth: readerSettings.pageMode === 'single' ? '760px' : '620px',
+          columnGap: '48px',
+          columnFill: 'auto',
+        }
+      : {}),
   }
 
   return (
     <div 
-      className="h-full overflow-auto transition-colors duration-200" 
+      className={clsx(
+        'h-full transition-colors duration-200',
+        isPaged ? 'overflow-x-auto overflow-y-hidden' : 'overflow-auto'
+      )}
       style={backgroundStyle}
     >
-      <div className="max-w-3xl mx-auto px-8 py-12" style={contentStyle}>
+      <div
+        className={clsx(
+          'px-8 py-12',
+          isPaged ? 'h-full max-w-none' : 'mx-auto max-w-3xl'
+        )}
+        style={contentStyle}
+      >
         {format === 'md' ? (
           <article className={clsx(
             "prose lg:prose-lg max-w-none transition-colors duration-200",
@@ -145,7 +163,7 @@ export default function MarkdownReader({
             </Markdown>
           </article>
         ) : (
-          <pre 
+          <div
             className="whitespace-pre-wrap font-mono leading-relaxed p-4 rounded-lg border transition-colors duration-200"
             style={{ 
               backgroundColor: theme.customBgImage ? 'rgba(255,255,255,0.85)' : theme.ui, 
@@ -156,7 +174,7 @@ export default function MarkdownReader({
             }}
           >
             {content}
-          </pre>
+          </div>
         )}
       </div>
     </div>

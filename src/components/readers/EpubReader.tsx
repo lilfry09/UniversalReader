@@ -12,6 +12,7 @@ export interface FoliateView extends HTMLElement {
   prev: () => Promise<void>
   goTo: (target: string | number | { fraction: number }) => Promise<void>
   getCFI?: (index: number, range: Range) => string
+  getContents?: () => Array<{ doc?: Document }>
   currentIndex?: number
   renderer?: {
     setStyles?: (styles: string | [string, string]) => void
@@ -128,8 +129,7 @@ export default function EpubReader({
     view.style.setProperty('--foliate-font-family', settings.fontFamily)
 
     view.renderer?.setStyles?.(buildReaderCss(settings))
-    applyPageMode(view, settings)
-  }, [applyPageMode])
+  }, [])
 
   useEffect(() => {
     progressCallbackRef.current = onProgressUpdate
@@ -218,6 +218,11 @@ export default function EpubReader({
         })
 
         view.addEventListener('load', (event) => {
+          requestAnimationFrame(() => {
+            if (mounted) {
+              applyReaderSettings(view, readerSettingsRef.current)
+            }
+          })
           if (!shouldSkipEmptyOpeningSection || skippedOpeningSections >= 5) return
 
           const customEvent = event as CustomEvent<{ doc?: Document }>
@@ -268,16 +273,16 @@ export default function EpubReader({
           await withTimeout(view.open(fallbackFile), 20000, 'Open ebook fallback')
         }
         if (!mounted) return
-        requestAnimationFrame(() => {
-          if (mounted) {
-            applyReaderSettings(view, readerSettingsRef.current)
-          }
-        })
+        applyPageMode(view, readerSettingsRef.current)
 
         // Restoring previous position should not fail the whole book loading flow.
         try {
           if (initialLocatorSnapshot?.kind === 'epub') {
-            if (initialLocatorSnapshot.cfi) {
+            if (readerSettingsRef.current.pageMode === 'scroll' && typeof initialLocatorSnapshot.fraction === 'number') {
+              await view.goTo({ fraction: initialLocatorSnapshot.fraction })
+            } else if (readerSettingsRef.current.pageMode === 'scroll' && initialProgressSnapshot > 0) {
+              await view.goTo({ fraction: initialProgressSnapshot })
+            } else if (initialLocatorSnapshot.cfi) {
               await view.goTo(initialLocatorSnapshot.cfi)
             } else if (typeof initialLocatorSnapshot.fraction === 'number') {
               await view.goTo({ fraction: initialLocatorSnapshot.fraction })
@@ -358,7 +363,7 @@ export default function EpubReader({
       }
       viewRef.current = null
     }
-  }, [applyReaderSettings, filePath, format])
+  }, [applyPageMode, applyReaderSettings, filePath, format, readerSettings.pageMode])
 
   useEffect(() => {
     if (!viewRef.current) return

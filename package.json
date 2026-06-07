@@ -2,6 +2,8 @@
   "name": "universal-reader",
   "private": true,
   "version": "0.0.0",
+  "description": "Local multi-format desktop reader with library management and AI Q&A.",
+  "author": "lilfry09",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
@@ -48,6 +50,8 @@
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^17.0.0",
     "jsdom": "^29.0.1",
+    "playwright": "^1.60.0",
+    "pngjs": "^7.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.5.3",

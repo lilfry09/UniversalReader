@@ -1,17 +1,17 @@
-import { app as Z, ipcMain as B, shell as Oe, dialog as Ae, BrowserWindow as Re } from "electron";
-import K from "node:path";
-import { fileURLToPath as Fe } from "node:url";
-import Ve from "better-sqlite3";
-import xe from "node:crypto";
-import R from "fs";
-import w from "path";
-import { createCanvas as Ke } from "canvas";
-import ve from "zlib";
-import We from "crypto";
-function Ye(e) {
+import { safeStorage as ae, app as z, ipcMain as v, shell as Pe, dialog as Be, BrowserWindow as Me } from "electron";
+import V from "node:path";
+import { fileURLToPath as Ne } from "node:url";
+import nt from "better-sqlite3";
+import be from "node:crypto";
+import _ from "fs";
+import T from "path";
+import { createCanvas as rt } from "canvas";
+import je from "zlib";
+import ot from "crypto";
+function st(e) {
   return e && e.__esModule && Object.prototype.hasOwnProperty.call(e, "default") ? e.default : e;
 }
-var W = { exports: {} }, Ue = {
+var Q = { exports: {} }, He = {
   /* The local file header */
   LOCHDR: 30,
   // LOC header size
@@ -223,7 +223,7 @@ var W = { exports: {} }, Ue = {
   EF_ZIP64_SCOMP: 8,
   EF_ZIP64_RHO: 16,
   EF_ZIP64_DSN: 24
-}, ie = {};
+}, le = {};
 (function(e) {
   const t = {
     /* Header error messages */
@@ -269,198 +269,198 @@ var W = { exports: {} }, Ue = {
     EXTRA_FIELD_PARSE_ERROR: "Extra field parsing error"
   };
   function n(r) {
-    return function(...o) {
-      return o.length && (r = r.replace(/\{(\d)\}/g, (s, d) => o[d] || "")), new Error("ADM-ZIP: " + r);
+    return function(...s) {
+      return s.length && (r = r.replace(/\{(\d)\}/g, (o, l) => s[l] || "")), new Error("ADM-ZIP: " + r);
     };
   }
   for (const r of Object.keys(t))
     e[r] = n(t[r]);
-})(ie);
-const qe = R, b = w, ye = Ue, Je = ie, Qe = typeof process == "object" && process.platform === "win32", De = (e) => typeof e == "object" && e !== null, Pe = new Uint32Array(256).map((e, t) => {
+})(le);
+const it = _, M = T, Ae = He, at = le, ct = typeof process == "object" && process.platform === "win32", we = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
   for (let n = 0; n < 8; n++)
     t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
   return t >>> 0;
 });
-function P(e) {
-  this.sep = b.sep, this.fs = qe, De(e) && De(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
+function B(e) {
+  this.sep = M.sep, this.fs = it, we(e) && we(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
 }
-var et = P;
-P.prototype.makeDir = function(e) {
+var ft = B;
+B.prototype.makeDir = function(e) {
   const t = this;
   function n(r) {
-    let o = r.split(t.sep)[0];
-    r.split(t.sep).forEach(function(s) {
-      if (!(!s || s.substr(-1, 1) === ":")) {
-        o += t.sep + s;
-        var d;
+    let s = r.split(t.sep)[0];
+    r.split(t.sep).forEach(function(o) {
+      if (!(!o || o.substr(-1, 1) === ":")) {
+        s += t.sep + o;
+        var l;
         try {
-          d = t.fs.statSync(o);
+          l = t.fs.statSync(s);
         } catch {
-          t.fs.mkdirSync(o);
+          t.fs.mkdirSync(s);
         }
-        if (d && d.isFile()) throw Je.FILE_IN_THE_WAY(`"${o}"`);
+        if (l && l.isFile()) throw at.FILE_IN_THE_WAY(`"${s}"`);
       }
     });
   }
   n(e);
 };
-P.prototype.writeFileTo = function(e, t, n, r) {
-  const o = this;
-  if (o.fs.existsSync(e)) {
+B.prototype.writeFileTo = function(e, t, n, r) {
+  const s = this;
+  if (s.fs.existsSync(e)) {
     if (!n) return !1;
-    var s = o.fs.statSync(e);
-    if (s.isDirectory())
+    var o = s.fs.statSync(e);
+    if (o.isDirectory())
       return !1;
   }
-  var d = b.dirname(e);
-  o.fs.existsSync(d) || o.makeDir(d);
-  var g;
+  var l = M.dirname(e);
+  s.fs.existsSync(l) || s.makeDir(l);
+  var p;
   try {
-    g = o.fs.openSync(e, "w", 438);
+    p = s.fs.openSync(e, "w", 438);
   } catch {
-    o.fs.chmodSync(e, 438), g = o.fs.openSync(e, "w", 438);
+    s.fs.chmodSync(e, 438), p = s.fs.openSync(e, "w", 438);
   }
-  if (g)
+  if (p)
     try {
-      o.fs.writeSync(g, t, 0, t.length, 0);
+      s.fs.writeSync(p, t, 0, t.length, 0);
     } finally {
-      o.fs.closeSync(g);
+      s.fs.closeSync(p);
     }
-  return o.fs.chmodSync(e, r || 438), !0;
+  return s.fs.chmodSync(e, r || 438), !0;
 };
-P.prototype.writeFileToAsync = function(e, t, n, r, o) {
-  typeof r == "function" && (o = r, r = void 0);
-  const s = this;
-  s.fs.exists(e, function(d) {
-    if (d && !n) return o(!1);
-    s.fs.stat(e, function(g, h) {
-      if (d && h.isDirectory())
-        return o(!1);
-      var I = b.dirname(e);
-      s.fs.exists(I, function(D) {
-        D || s.makeDir(I), s.fs.open(e, "w", 438, function(C, T) {
-          C ? s.fs.chmod(e, 438, function() {
-            s.fs.open(e, "w", 438, function(a, l) {
-              s.fs.write(l, t, 0, t.length, 0, function() {
-                s.fs.close(l, function() {
-                  s.fs.chmod(e, r || 438, function() {
-                    o(!0);
+B.prototype.writeFileToAsync = function(e, t, n, r, s) {
+  typeof r == "function" && (s = r, r = void 0);
+  const o = this;
+  o.fs.exists(e, function(l) {
+    if (l && !n) return s(!1);
+    o.fs.stat(e, function(p, h) {
+      if (l && h.isDirectory())
+        return s(!1);
+      var y = M.dirname(e);
+      o.fs.exists(y, function(S) {
+        S || o.makeDir(y), o.fs.open(e, "w", 438, function(D, C) {
+          D ? o.fs.chmod(e, 438, function() {
+            o.fs.open(e, "w", 438, function(a, u) {
+              o.fs.write(u, t, 0, t.length, 0, function() {
+                o.fs.close(u, function() {
+                  o.fs.chmod(e, r || 438, function() {
+                    s(!0);
                   });
                 });
               });
             });
-          }) : T ? s.fs.write(T, t, 0, t.length, 0, function() {
-            s.fs.close(T, function() {
-              s.fs.chmod(e, r || 438, function() {
-                o(!0);
+          }) : C ? o.fs.write(C, t, 0, t.length, 0, function() {
+            o.fs.close(C, function() {
+              o.fs.chmod(e, r || 438, function() {
+                s(!0);
               });
             });
-          }) : s.fs.chmod(e, r || 438, function() {
-            o(!0);
+          }) : o.fs.chmod(e, r || 438, function() {
+            s(!0);
           });
         });
       });
     });
   });
 };
-P.prototype.findFiles = function(e) {
+B.prototype.findFiles = function(e) {
   const t = this;
-  function n(r, o, s) {
-    let d = [];
-    return t.fs.readdirSync(r).forEach(function(g) {
-      const h = b.join(r, g), I = t.fs.statSync(h);
-      d.push(b.normalize(h) + (I.isDirectory() ? t.sep : "")), I.isDirectory() && s && (d = d.concat(n(h, o, s)));
-    }), d;
+  function n(r, s, o) {
+    let l = [];
+    return t.fs.readdirSync(r).forEach(function(p) {
+      const h = M.join(r, p), y = t.fs.statSync(h);
+      l.push(M.normalize(h) + (y.isDirectory() ? t.sep : "")), y.isDirectory() && o && (l = l.concat(n(h, s, o)));
+    }), l;
   }
   return n(e, void 0, !0);
 };
-P.prototype.findFilesAsync = function(e, t) {
+B.prototype.findFilesAsync = function(e, t) {
   const n = this;
   let r = [];
-  n.fs.readdir(e, function(o, s) {
-    if (o) return t(o);
-    let d = s.length;
-    if (!d) return t(null, r);
-    s.forEach(function(g) {
-      g = b.join(e, g), n.fs.stat(g, function(h, I) {
+  n.fs.readdir(e, function(s, o) {
+    if (s) return t(s);
+    let l = o.length;
+    if (!l) return t(null, r);
+    o.forEach(function(p) {
+      p = M.join(e, p), n.fs.stat(p, function(h, y) {
         if (h) return t(h);
-        I && (r.push(b.normalize(g) + (I.isDirectory() ? n.sep : "")), I.isDirectory() ? n.findFilesAsync(g, function(D, C) {
-          if (D) return t(D);
-          r = r.concat(C), --d || t(null, r);
-        }) : --d || t(null, r));
+        y && (r.push(M.normalize(p) + (y.isDirectory() ? n.sep : "")), y.isDirectory() ? n.findFilesAsync(p, function(S, D) {
+          if (S) return t(S);
+          r = r.concat(D), --l || t(null, r);
+        }) : --l || t(null, r));
       });
     });
   });
 };
-P.prototype.getAttributes = function() {
+B.prototype.getAttributes = function() {
 };
-P.prototype.setAttributes = function() {
+B.prototype.setAttributes = function() {
 };
-P.crc32update = function(e, t) {
-  return Pe[(e ^ t) & 255] ^ e >>> 8;
+B.crc32update = function(e, t) {
+  return $e[(e ^ t) & 255] ^ e >>> 8;
 };
-P.crc32 = function(e) {
+B.crc32 = function(e) {
   typeof e == "string" && (e = Buffer.from(e, "utf8"));
   let t = e.length, n = -1;
-  for (let r = 0; r < t; ) n = P.crc32update(n, e[r++]);
+  for (let r = 0; r < t; ) n = B.crc32update(n, e[r++]);
   return ~n >>> 0;
 };
-P.methodToString = function(e) {
+B.methodToString = function(e) {
   switch (e) {
-    case ye.STORED:
+    case Ae.STORED:
       return "STORED (" + e + ")";
-    case ye.DEFLATED:
+    case Ae.DEFLATED:
       return "DEFLATED (" + e + ")";
     default:
       return "UNSUPPORTED (" + e + ")";
   }
 };
-P.canonical = function(e) {
+B.canonical = function(e) {
   if (!e) return "";
-  const t = b.posix.normalize("/" + e.split("\\").join("/"));
-  return b.join(".", t);
+  const t = M.posix.normalize("/" + e.split("\\").join("/"));
+  return M.join(".", t);
 };
-P.zipnamefix = function(e) {
+B.zipnamefix = function(e) {
   if (!e) return "";
-  const t = b.posix.normalize("/" + e.split("\\").join("/"));
-  return b.posix.join(".", t);
+  const t = M.posix.normalize("/" + e.split("\\").join("/"));
+  return M.posix.join(".", t);
 };
-P.findLast = function(e, t) {
+B.findLast = function(e, t) {
   if (!Array.isArray(e)) throw new TypeError("arr is not array");
   const n = e.length >>> 0;
   for (let r = n - 1; r >= 0; r--)
     if (t(e[r], r, e))
       return e[r];
 };
-P.sanitize = function(e, t) {
-  e = b.resolve(b.normalize(e));
-  for (var n = t.split("/"), r = 0, o = n.length; r < o; r++) {
-    var s = b.normalize(b.join(e, n.slice(r, o).join(b.sep)));
-    if (s.indexOf(e) === 0)
-      return s;
+B.sanitize = function(e, t) {
+  e = M.resolve(M.normalize(e));
+  for (var n = t.split("/"), r = 0, s = n.length; r < s; r++) {
+    var o = M.normalize(M.join(e, n.slice(r, s).join(M.sep)));
+    if (o.indexOf(e) === 0)
+      return o;
   }
-  return b.normalize(b.join(e, b.basename(t)));
+  return M.normalize(M.join(e, M.basename(t)));
 };
-P.toBuffer = function(t, n) {
+B.toBuffer = function(t, n) {
   return Buffer.isBuffer(t) ? t : t instanceof Uint8Array ? Buffer.from(t) : typeof t == "string" ? n(t) : Buffer.alloc(0);
 };
-P.readBigUInt64LE = function(e, t) {
+B.readBigUInt64LE = function(e, t) {
   var n = Buffer.from(e.slice(t, t + 8));
   return n.swap64(), parseInt(`0x${n.toString("hex")}`);
 };
-P.fromDOS2Date = function(e) {
+B.fromDOS2Date = function(e) {
   return new Date((e >> 25 & 127) + 1980, Math.max((e >> 21 & 15) - 1, 0), Math.max(e >> 16 & 31, 1), e >> 11 & 31, e >> 5 & 63, (e & 31) << 1);
 };
-P.fromDate2DOS = function(e) {
+B.fromDate2DOS = function(e) {
   let t = 0, n = 0;
   return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
 };
-P.isWin = Qe;
-P.crcTable = Pe;
-const tt = w;
-var nt = function(e, { fs: t }) {
-  var n = e || "", r = s(), o = null;
-  function s() {
+B.isWin = ct;
+B.crcTable = $e;
+const lt = T;
+var ut = function(e, { fs: t }) {
+  var n = e || "", r = o(), s = null;
+  function o() {
     return {
       directory: !1,
       readonly: !1,
@@ -470,7 +470,7 @@ var nt = function(e, { fs: t }) {
       atime: 0
     };
   }
-  return n && t.existsSync(n) ? (o = t.statSync(n), r.directory = o.isDirectory(), r.mtime = o.mtime, r.atime = o.atime, r.executable = (73 & o.mode) !== 0, r.readonly = (128 & o.mode) === 0, r.hidden = tt.basename(n)[0] === ".") : console.warn("Invalid path: " + n), {
+  return n && t.existsSync(n) ? (s = t.statSync(n), r.directory = s.isDirectory(), r.mtime = s.mtime, r.atime = s.atime, r.executable = (73 & s.mode) !== 0, r.readonly = (128 & s.mode) === 0, r.hidden = lt.basename(n)[0] === ".") : console.warn("Invalid path: " + n), {
     get directory() {
       return r.directory;
     },
@@ -508,23 +508,23 @@ var nt = function(e, { fs: t }) {
       return JSON.stringify(this.toJSON(), null, "	");
     }
   };
-}, rt = {
+}, dt = {
   efs: !0,
   encode: (e) => Buffer.from(e, "utf8"),
   decode: (e) => e.toString("utf8")
 };
-W.exports = et;
-W.exports.Constants = Ue;
-W.exports.Errors = ie;
-W.exports.FileAttr = nt;
-W.exports.decoder = rt;
-var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
-  var e = 20, t = 10, n = 0, r = 0, o = 0, s = 0, d = 0, g = 0, h = 0, I = 0, D = 0, C = 0, T = 0, a = 0, l = 0;
-  e |= $.isWin ? 2560 : 768, n |= N.FLG_EFS;
+Q.exports = ft;
+Q.exports.Constants = He;
+Q.exports.Errors = le;
+Q.exports.FileAttr = ut;
+Q.exports.decoder = dt;
+var te = Q.exports, ue = {}, Z = te, I = Z.Constants, Et = function() {
+  var e = 20, t = 10, n = 0, r = 0, s = 0, o = 0, l = 0, p = 0, h = 0, y = 0, S = 0, D = 0, C = 0, a = 0, u = 0;
+  e |= Z.isWin ? 2560 : 768, n |= I.FLG_EFS;
   const c = {
     extraLen: 0
-  }, u = (i) => Math.max(0, i) >>> 0, m = (i) => Math.max(0, i) & 255;
-  return o = $.fromDate2DOS(/* @__PURE__ */ new Date()), {
+  }, d = (i) => Math.max(0, i) >>> 0, m = (i) => Math.max(0, i) & 255;
+  return s = Z.fromDate2DOS(/* @__PURE__ */ new Date()), {
     get made() {
       return e;
     },
@@ -544,62 +544,62 @@ var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
       n = i;
     },
     get flags_efs() {
-      return (n & N.FLG_EFS) > 0;
+      return (n & I.FLG_EFS) > 0;
     },
     set flags_efs(i) {
-      i ? n |= N.FLG_EFS : n &= ~N.FLG_EFS;
+      i ? n |= I.FLG_EFS : n &= ~I.FLG_EFS;
     },
     get flags_desc() {
-      return (n & N.FLG_DESC) > 0;
+      return (n & I.FLG_DESC) > 0;
     },
     set flags_desc(i) {
-      i ? n |= N.FLG_DESC : n &= ~N.FLG_DESC;
+      i ? n |= I.FLG_DESC : n &= ~I.FLG_DESC;
     },
     get method() {
       return r;
     },
     set method(i) {
       switch (i) {
-        case N.STORED:
+        case I.STORED:
           this.version = 10;
-        case N.DEFLATED:
+        case I.DEFLATED:
         default:
           this.version = 20;
       }
       r = i;
     },
     get time() {
-      return $.fromDOS2Date(this.timeval);
+      return Z.fromDOS2Date(this.timeval);
     },
     set time(i) {
-      this.timeval = $.fromDate2DOS(i);
+      this.timeval = Z.fromDate2DOS(i);
     },
     get timeval() {
-      return o;
-    },
-    set timeval(i) {
-      o = u(i);
-    },
-    get timeHighByte() {
-      return m(o >>> 8);
-    },
-    get crc() {
       return s;
     },
+    set timeval(i) {
+      s = d(i);
+    },
+    get timeHighByte() {
+      return m(s >>> 8);
+    },
+    get crc() {
+      return o;
+    },
     set crc(i) {
-      s = u(i);
+      o = d(i);
     },
     get compressedSize() {
-      return d;
+      return l;
     },
     set compressedSize(i) {
-      d = u(i);
+      l = d(i);
     },
     get size() {
-      return g;
+      return p;
     },
     set size(i) {
-      g = u(i);
+      p = d(i);
     },
     get fileNameLength() {
       return h;
@@ -608,10 +608,10 @@ var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
       h = i;
     },
     get extraLength() {
-      return I;
+      return y;
     },
     set extraLength(i) {
-      I = i;
+      y = i;
     },
     get extraLocalLength() {
       return c.extraLen;
@@ -620,71 +620,71 @@ var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
       c.extraLen = i;
     },
     get commentLength() {
-      return D;
+      return S;
     },
     set commentLength(i) {
-      D = i;
+      S = i;
     },
     get diskNumStart() {
-      return C;
+      return D;
     },
     set diskNumStart(i) {
-      C = u(i);
+      D = d(i);
     },
     get inAttr() {
-      return T;
+      return C;
     },
     set inAttr(i) {
-      T = u(i);
+      C = d(i);
     },
     get attr() {
       return a;
     },
     set attr(i) {
-      a = u(i);
+      a = d(i);
     },
     // get Unix file permissions
     get fileAttr() {
       return (a || 0) >> 16 & 4095;
     },
     get offset() {
-      return l;
+      return u;
     },
     set offset(i) {
-      l = u(i);
+      u = d(i);
     },
     get encrypted() {
-      return (n & N.FLG_ENC) === N.FLG_ENC;
+      return (n & I.FLG_ENC) === I.FLG_ENC;
     },
     get centralHeaderSize() {
-      return N.CENHDR + h + I + D;
+      return I.CENHDR + h + y + S;
     },
     get realDataOffset() {
-      return l + N.LOCHDR + c.fnameLen + c.extraLen;
+      return u + I.LOCHDR + c.fnameLen + c.extraLen;
     },
     get localHeader() {
       return c;
     },
     loadLocalHeaderFromBinary: function(i) {
-      var f = i.slice(l, l + N.LOCHDR);
-      if (f.readUInt32LE(0) !== N.LOCSIG)
-        throw $.Errors.INVALID_LOC();
-      c.version = f.readUInt16LE(N.LOCVER), c.flags = f.readUInt16LE(N.LOCFLG), c.method = f.readUInt16LE(N.LOCHOW), c.time = f.readUInt32LE(N.LOCTIM), c.crc = f.readUInt32LE(N.LOCCRC), c.compressedSize = f.readUInt32LE(N.LOCSIZ), c.size = f.readUInt32LE(N.LOCLEN), c.fnameLen = f.readUInt16LE(N.LOCNAM), c.extraLen = f.readUInt16LE(N.LOCEXT);
-      const E = l + N.LOCHDR + c.fnameLen, p = E + c.extraLen;
-      return i.slice(E, p);
+      var f = i.slice(u, u + I.LOCHDR);
+      if (f.readUInt32LE(0) !== I.LOCSIG)
+        throw Z.Errors.INVALID_LOC();
+      c.version = f.readUInt16LE(I.LOCVER), c.flags = f.readUInt16LE(I.LOCFLG), c.method = f.readUInt16LE(I.LOCHOW), c.time = f.readUInt32LE(I.LOCTIM), c.crc = f.readUInt32LE(I.LOCCRC), c.compressedSize = f.readUInt32LE(I.LOCSIZ), c.size = f.readUInt32LE(I.LOCLEN), c.fnameLen = f.readUInt16LE(I.LOCNAM), c.extraLen = f.readUInt16LE(I.LOCEXT);
+      const E = u + I.LOCHDR + c.fnameLen, g = E + c.extraLen;
+      return i.slice(E, g);
     },
     loadFromBinary: function(i) {
-      if (i.length !== N.CENHDR || i.readUInt32LE(0) !== N.CENSIG)
-        throw $.Errors.INVALID_CEN();
-      e = i.readUInt16LE(N.CENVEM), t = i.readUInt16LE(N.CENVER), n = i.readUInt16LE(N.CENFLG), r = i.readUInt16LE(N.CENHOW), o = i.readUInt32LE(N.CENTIM), s = i.readUInt32LE(N.CENCRC), d = i.readUInt32LE(N.CENSIZ), g = i.readUInt32LE(N.CENLEN), h = i.readUInt16LE(N.CENNAM), I = i.readUInt16LE(N.CENEXT), D = i.readUInt16LE(N.CENCOM), C = i.readUInt16LE(N.CENDSK), T = i.readUInt16LE(N.CENATT), a = i.readUInt32LE(N.CENATX), l = i.readUInt32LE(N.CENOFF);
+      if (i.length !== I.CENHDR || i.readUInt32LE(0) !== I.CENSIG)
+        throw Z.Errors.INVALID_CEN();
+      e = i.readUInt16LE(I.CENVEM), t = i.readUInt16LE(I.CENVER), n = i.readUInt16LE(I.CENFLG), r = i.readUInt16LE(I.CENHOW), s = i.readUInt32LE(I.CENTIM), o = i.readUInt32LE(I.CENCRC), l = i.readUInt32LE(I.CENSIZ), p = i.readUInt32LE(I.CENLEN), h = i.readUInt16LE(I.CENNAM), y = i.readUInt16LE(I.CENEXT), S = i.readUInt16LE(I.CENCOM), D = i.readUInt16LE(I.CENDSK), C = i.readUInt16LE(I.CENATT), a = i.readUInt32LE(I.CENATX), u = i.readUInt32LE(I.CENOFF);
     },
     localHeaderToBinary: function() {
-      var i = Buffer.alloc(N.LOCHDR);
-      return i.writeUInt32LE(N.LOCSIG, 0), i.writeUInt16LE(t, N.LOCVER), i.writeUInt16LE(n, N.LOCFLG), i.writeUInt16LE(r, N.LOCHOW), i.writeUInt32LE(o, N.LOCTIM), i.writeUInt32LE(s, N.LOCCRC), i.writeUInt32LE(d, N.LOCSIZ), i.writeUInt32LE(g, N.LOCLEN), i.writeUInt16LE(h, N.LOCNAM), i.writeUInt16LE(c.extraLen, N.LOCEXT), i;
+      var i = Buffer.alloc(I.LOCHDR);
+      return i.writeUInt32LE(I.LOCSIG, 0), i.writeUInt16LE(t, I.LOCVER), i.writeUInt16LE(n, I.LOCFLG), i.writeUInt16LE(r, I.LOCHOW), i.writeUInt32LE(s, I.LOCTIM), i.writeUInt32LE(o, I.LOCCRC), i.writeUInt32LE(l, I.LOCSIZ), i.writeUInt32LE(p, I.LOCLEN), i.writeUInt16LE(h, I.LOCNAM), i.writeUInt16LE(c.extraLen, I.LOCEXT), i;
     },
     centralHeaderToBinary: function() {
-      var i = Buffer.alloc(N.CENHDR + h + I + D);
-      return i.writeUInt32LE(N.CENSIG, 0), i.writeUInt16LE(e, N.CENVEM), i.writeUInt16LE(t, N.CENVER), i.writeUInt16LE(n, N.CENFLG), i.writeUInt16LE(r, N.CENHOW), i.writeUInt32LE(o, N.CENTIM), i.writeUInt32LE(s, N.CENCRC), i.writeUInt32LE(d, N.CENSIZ), i.writeUInt32LE(g, N.CENLEN), i.writeUInt16LE(h, N.CENNAM), i.writeUInt16LE(I, N.CENEXT), i.writeUInt16LE(D, N.CENCOM), i.writeUInt16LE(C, N.CENDSK), i.writeUInt16LE(T, N.CENATT), i.writeUInt32LE(a, N.CENATX), i.writeUInt32LE(l, N.CENOFF), i;
+      var i = Buffer.alloc(I.CENHDR + h + y + S);
+      return i.writeUInt32LE(I.CENSIG, 0), i.writeUInt16LE(e, I.CENVEM), i.writeUInt16LE(t, I.CENVER), i.writeUInt16LE(n, I.CENFLG), i.writeUInt16LE(r, I.CENHOW), i.writeUInt32LE(s, I.CENTIM), i.writeUInt32LE(o, I.CENCRC), i.writeUInt32LE(l, I.CENSIZ), i.writeUInt32LE(p, I.CENLEN), i.writeUInt16LE(h, I.CENNAM), i.writeUInt16LE(y, I.CENEXT), i.writeUInt16LE(S, I.CENCOM), i.writeUInt16LE(D, I.CENDSK), i.writeUInt16LE(C, I.CENATT), i.writeUInt32LE(a, I.CENATX), i.writeUInt32LE(u, I.CENOFF), i;
     },
     toJSON: function() {
       const i = function(f) {
@@ -694,82 +694,82 @@ var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
         made: e,
         version: t,
         flags: n,
-        method: $.methodToString(r),
+        method: Z.methodToString(r),
         time: this.time,
-        crc: "0x" + s.toString(16).toUpperCase(),
-        compressedSize: i(d),
-        size: i(g),
+        crc: "0x" + o.toString(16).toUpperCase(),
+        compressedSize: i(l),
+        size: i(p),
         fileNameLength: i(h),
-        extraLength: i(I),
-        commentLength: i(D),
-        diskNumStart: C,
-        inAttr: T,
+        extraLength: i(y),
+        commentLength: i(S),
+        diskNumStart: D,
+        inAttr: C,
         attr: a,
-        offset: l,
-        centralHeaderSize: i(N.CENHDR + h + I + D)
+        offset: u,
+        centralHeaderSize: i(I.CENHDR + h + y + S)
       };
     },
     toString: function() {
       return JSON.stringify(this.toJSON(), null, "	");
     }
   };
-}, V = Q, F = V.Constants, st = function() {
-  var e = 0, t = 0, n = 0, r = 0, o = 0;
+}, K = te, x = K.Constants, mt = function() {
+  var e = 0, t = 0, n = 0, r = 0, s = 0;
   return {
     get diskEntries() {
       return e;
     },
-    set diskEntries(s) {
-      e = t = s;
+    set diskEntries(o) {
+      e = t = o;
     },
     get totalEntries() {
       return t;
     },
-    set totalEntries(s) {
-      t = e = s;
+    set totalEntries(o) {
+      t = e = o;
     },
     get size() {
       return n;
     },
-    set size(s) {
-      n = s;
+    set size(o) {
+      n = o;
     },
     get offset() {
       return r;
     },
-    set offset(s) {
-      r = s;
+    set offset(o) {
+      r = o;
     },
     get commentLength() {
-      return o;
+      return s;
     },
-    set commentLength(s) {
-      o = s;
+    set commentLength(o) {
+      s = o;
     },
     get mainHeaderSize() {
-      return F.ENDHDR + o;
+      return x.ENDHDR + s;
     },
-    loadFromBinary: function(s) {
-      if ((s.length !== F.ENDHDR || s.readUInt32LE(0) !== F.ENDSIG) && (s.length < F.ZIP64HDR || s.readUInt32LE(0) !== F.ZIP64SIG))
-        throw V.Errors.INVALID_END();
-      s.readUInt32LE(0) === F.ENDSIG ? (e = s.readUInt16LE(F.ENDSUB), t = s.readUInt16LE(F.ENDTOT), n = s.readUInt32LE(F.ENDSIZ), r = s.readUInt32LE(F.ENDOFF), o = s.readUInt16LE(F.ENDCOM)) : (e = V.readBigUInt64LE(s, F.ZIP64SUB), t = V.readBigUInt64LE(s, F.ZIP64TOT), n = V.readBigUInt64LE(s, F.ZIP64SIZE), r = V.readBigUInt64LE(s, F.ZIP64OFF), o = 0);
+    loadFromBinary: function(o) {
+      if ((o.length !== x.ENDHDR || o.readUInt32LE(0) !== x.ENDSIG) && (o.length < x.ZIP64HDR || o.readUInt32LE(0) !== x.ZIP64SIG))
+        throw K.Errors.INVALID_END();
+      o.readUInt32LE(0) === x.ENDSIG ? (e = o.readUInt16LE(x.ENDSUB), t = o.readUInt16LE(x.ENDTOT), n = o.readUInt32LE(x.ENDSIZ), r = o.readUInt32LE(x.ENDOFF), s = o.readUInt16LE(x.ENDCOM)) : (e = K.readBigUInt64LE(o, x.ZIP64SUB), t = K.readBigUInt64LE(o, x.ZIP64TOT), n = K.readBigUInt64LE(o, x.ZIP64SIZE), r = K.readBigUInt64LE(o, x.ZIP64OFF), s = 0);
     },
     toBinary: function() {
-      var s = Buffer.alloc(F.ENDHDR + o);
-      return s.writeUInt32LE(F.ENDSIG, 0), s.writeUInt32LE(0, 4), s.writeUInt16LE(e, F.ENDSUB), s.writeUInt16LE(t, F.ENDTOT), s.writeUInt32LE(n, F.ENDSIZ), s.writeUInt32LE(r, F.ENDOFF), s.writeUInt16LE(o, F.ENDCOM), s.fill(" ", F.ENDHDR), s;
+      var o = Buffer.alloc(x.ENDHDR + s);
+      return o.writeUInt32LE(x.ENDSIG, 0), o.writeUInt32LE(0, 4), o.writeUInt16LE(e, x.ENDSUB), o.writeUInt16LE(t, x.ENDTOT), o.writeUInt32LE(n, x.ENDSIZ), o.writeUInt32LE(r, x.ENDOFF), o.writeUInt16LE(s, x.ENDCOM), o.fill(" ", x.ENDHDR), o;
     },
     toJSON: function() {
-      const s = function(d, g) {
-        let h = d.toString(16).toUpperCase();
-        for (; h.length < g; ) h = "0" + h;
+      const o = function(l, p) {
+        let h = l.toString(16).toUpperCase();
+        for (; h.length < p; ) h = "0" + h;
         return "0x" + h;
       };
       return {
         diskEntries: e,
         totalEntries: t,
         size: n + " bytes",
-        offset: s(r, 4),
-        commentLength: o
+        offset: o(r, 4),
+        commentLength: s
       };
     },
     toString: function() {
@@ -777,205 +777,205 @@ var Q = W.exports, ae = {}, $ = Q, N = $.Constants, ot = function() {
     }
   };
 };
-ae.EntryHeader = ot;
-ae.MainHeader = st;
-var ce = {}, it = function(e) {
-  var t = ve, n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
+ue.EntryHeader = Et;
+ue.MainHeader = mt;
+var de = {}, pt = function(e) {
+  var t = je, n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
   return {
     deflate: function() {
       return t.deflateRawSync(e, n);
     },
     deflateAsync: function(r) {
-      var o = t.createDeflateRaw(n), s = [], d = 0;
-      o.on("data", function(g) {
-        s.push(g), d += g.length;
-      }), o.on("end", function() {
-        var g = Buffer.alloc(d), h = 0;
-        g.fill(0);
-        for (var I = 0; I < s.length; I++) {
-          var D = s[I];
-          D.copy(g, h), h += D.length;
-        }
-        r && r(g);
-      }), o.end(e);
-    }
-  };
-};
-const at = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
-var ct = function(e, t) {
-  var n = ve;
-  const r = at >= 15 && t > 0 ? { maxOutputLength: t } : {};
-  return {
-    inflate: function() {
-      return n.inflateRawSync(e, r);
-    },
-    inflateAsync: function(o) {
-      var s = n.createInflateRaw(r), d = [], g = 0;
-      s.on("data", function(h) {
-        d.push(h), g += h.length;
+      var s = t.createDeflateRaw(n), o = [], l = 0;
+      s.on("data", function(p) {
+        o.push(p), l += p.length;
       }), s.on("end", function() {
-        var h = Buffer.alloc(g), I = 0;
-        h.fill(0);
-        for (var D = 0; D < d.length; D++) {
-          var C = d[D];
-          C.copy(h, I), I += C.length;
+        var p = Buffer.alloc(l), h = 0;
+        p.fill(0);
+        for (var y = 0; y < o.length; y++) {
+          var S = o[y];
+          S.copy(p, h), h += S.length;
         }
-        o && o(h);
+        r && r(p);
       }), s.end(e);
     }
   };
 };
-const { randomFillSync: Le } = We, ft = ie, lt = new Uint32Array(256).map((e, t) => {
+const gt = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
+var ht = function(e, t) {
+  var n = je;
+  const r = gt >= 15 && t > 0 ? { maxOutputLength: t } : {};
+  return {
+    inflate: function() {
+      return n.inflateRawSync(e, r);
+    },
+    inflateAsync: function(s) {
+      var o = n.createInflateRaw(r), l = [], p = 0;
+      o.on("data", function(h) {
+        l.push(h), p += h.length;
+      }), o.on("end", function() {
+        var h = Buffer.alloc(p), y = 0;
+        h.fill(0);
+        for (var S = 0; S < l.length; S++) {
+          var D = l[S];
+          D.copy(h, y), y += D.length;
+        }
+        s && s(h);
+      }), o.end(e);
+    }
+  };
+};
+const { randomFillSync: Oe } = ot, yt = le, It = new Uint32Array(256).map((e, t) => {
   for (let n = 0; n < 8; n++)
     t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
   return t >>> 0;
-}), Be = (e, t) => Math.imul(e, t) >>> 0, Te = (e, t) => lt[(e ^ t) & 255] ^ e >>> 8, q = () => typeof Le == "function" ? Le(Buffer.alloc(12)) : q.node();
-q.node = () => {
+}), ze = (e, t) => Math.imul(e, t) >>> 0, Re = (e, t) => It[(e ^ t) & 255] ^ e >>> 8, J = () => typeof Oe == "function" ? Oe(Buffer.alloc(12)) : J.node();
+J.node = () => {
   const e = Buffer.alloc(12), t = e.length;
   for (let n = 0; n < t; n++) e[n] = Math.random() * 256 & 255;
   return e;
 };
-const ne = {
-  genSalt: q
+const se = {
+  genSalt: J
 };
-function fe(e) {
+function Ee(e) {
   const t = Buffer.isBuffer(e) ? e : Buffer.from(e);
   this.keys = new Uint32Array([305419896, 591751049, 878082192]);
   for (let n = 0; n < t.length; n++)
     this.updateKeys(t[n]);
 }
-fe.prototype.updateKeys = function(e) {
+Ee.prototype.updateKeys = function(e) {
   const t = this.keys;
-  return t[0] = Te(t[0], e), t[1] += t[0] & 255, t[1] = Be(t[1], 134775813) + 1, t[2] = Te(t[2], t[1] >>> 24), e;
+  return t[0] = Re(t[0], e), t[1] += t[0] & 255, t[1] = ze(t[1], 134775813) + 1, t[2] = Re(t[2], t[1] >>> 24), e;
 };
-fe.prototype.next = function() {
+Ee.prototype.next = function() {
   const e = (this.keys[2] | 2) >>> 0;
-  return Be(e, e ^ 1) >> 8 & 255;
+  return ze(e, e ^ 1) >> 8 & 255;
 };
-function ut(e) {
-  const t = new fe(e);
+function Nt(e) {
+  const t = new Ee(e);
   return function(n) {
     const r = Buffer.alloc(n.length);
-    let o = 0;
-    for (let s of n)
-      r[o++] = t.updateKeys(s ^ t.next());
+    let s = 0;
+    for (let o of n)
+      r[s++] = t.updateKeys(o ^ t.next());
     return r;
   };
 }
-function dt(e) {
-  const t = new fe(e);
-  return function(n, r, o = 0) {
+function St(e) {
+  const t = new Ee(e);
+  return function(n, r, s = 0) {
     r || (r = Buffer.alloc(n.length));
-    for (let s of n) {
-      const d = t.next();
-      r[o++] = s ^ d, t.updateKeys(s);
+    for (let o of n) {
+      const l = t.next();
+      r[s++] = o ^ l, t.updateKeys(o);
     }
     return r;
   };
 }
-function Et(e, t, n) {
+function Dt(e, t, n) {
   if (!e || !Buffer.isBuffer(e) || e.length < 12)
     return Buffer.alloc(0);
-  const r = ut(n), o = r(e.slice(0, 12)), s = (t.flags & 8) === 8 ? t.timeHighByte : t.crc >>> 24;
-  if (o[11] !== s)
-    throw ft.WRONG_PASSWORD();
+  const r = Nt(n), s = r(e.slice(0, 12)), o = (t.flags & 8) === 8 ? t.timeHighByte : t.crc >>> 24;
+  if (s[11] !== o)
+    throw yt.WRONG_PASSWORD();
   return r(e.slice(12));
 }
-function mt(e) {
-  Buffer.isBuffer(e) && e.length >= 12 ? ne.genSalt = function() {
+function Lt(e) {
+  Buffer.isBuffer(e) && e.length >= 12 ? se.genSalt = function() {
     return e.slice(0, 12);
-  } : e === "node" ? ne.genSalt = q.node : ne.genSalt = q;
+  } : e === "node" ? se.genSalt = J.node : se.genSalt = J;
 }
-function pt(e, t, n, r = !1) {
+function Ct(e, t, n, r = !1) {
   e == null && (e = Buffer.alloc(0)), Buffer.isBuffer(e) || (e = Buffer.from(e.toString()));
-  const o = dt(n), s = ne.genSalt();
-  s[11] = t.crc >>> 24 & 255, r && (s[10] = t.crc >>> 16 & 255);
-  const d = Buffer.alloc(e.length + 12);
-  return o(s, d), o(e, d, 12);
+  const s = St(n), o = se.genSalt();
+  o[11] = t.crc >>> 24 & 255, r && (o[10] = t.crc >>> 16 & 255);
+  const l = Buffer.alloc(e.length + 12);
+  return s(o, l), s(e, l, 12);
 }
-var gt = { decrypt: Et, encrypt: pt, _salter: mt };
-ce.Deflater = it;
-ce.Inflater = ct;
-ce.ZipCrypto = gt;
-var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
-  var n = new ht.EntryHeader(), r = Buffer.alloc(0), o = Buffer.alloc(0), s = !1, d = null, g = Buffer.alloc(0), h = Buffer.alloc(0), I = !0;
-  const D = e, C = typeof D.decoder == "object" ? D.decoder : _.decoder;
-  I = C.hasOwnProperty("efs") ? C.efs : !1;
-  function T() {
+var _t = { decrypt: Dt, encrypt: Ct, _salter: Lt };
+de.Deflater = pt;
+de.Inflater = ht;
+de.ZipCrypto = _t;
+var w = te, Tt = ue, U = w.Constants, he = de, ke = function(e, t) {
+  var n = new Tt.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
+  const S = e, D = typeof S.decoder == "object" ? S.decoder : w.decoder;
+  y = D.hasOwnProperty("efs") ? D.efs : !1;
+  function C() {
     return !t || !(t instanceof Uint8Array) ? Buffer.alloc(0) : (h = n.loadLocalHeaderFromBinary(t), t.slice(n.realDataOffset, n.realDataOffset + n.compressedSize));
   }
   function a(f) {
     if (n.flags_desc) {
-      const E = {}, p = n.realDataOffset + n.compressedSize;
-      if (t.readUInt32LE(p) == v.LOCSIG || t.readUInt32LE(p) == v.CENSIG)
-        throw _.Errors.DESCRIPTOR_NOT_EXIST();
-      if (t.readUInt32LE(p) == v.EXTSIG)
-        E.crc = t.readUInt32LE(p + v.EXTCRC), E.compressedSize = t.readUInt32LE(p + v.EXTSIZ), E.size = t.readUInt32LE(p + v.EXTLEN);
-      else if (t.readUInt16LE(p + 12) === 19280)
-        E.crc = t.readUInt32LE(p + v.EXTCRC - 4), E.compressedSize = t.readUInt32LE(p + v.EXTSIZ - 4), E.size = t.readUInt32LE(p + v.EXTLEN - 4);
+      const E = {}, g = n.realDataOffset + n.compressedSize;
+      if (t.readUInt32LE(g) == U.LOCSIG || t.readUInt32LE(g) == U.CENSIG)
+        throw w.Errors.DESCRIPTOR_NOT_EXIST();
+      if (t.readUInt32LE(g) == U.EXTSIG)
+        E.crc = t.readUInt32LE(g + U.EXTCRC), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ), E.size = t.readUInt32LE(g + U.EXTLEN);
+      else if (t.readUInt16LE(g + 12) === 19280)
+        E.crc = t.readUInt32LE(g + U.EXTCRC - 4), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ - 4), E.size = t.readUInt32LE(g + U.EXTLEN - 4);
       else
-        throw _.Errors.DESCRIPTOR_UNKNOWN();
+        throw w.Errors.DESCRIPTOR_UNKNOWN();
       if (E.compressedSize !== n.compressedSize || E.size !== n.size || E.crc !== n.crc)
-        throw _.Errors.DESCRIPTOR_FAULTY();
-      if (_.crc32(f) !== E.crc)
+        throw w.Errors.DESCRIPTOR_FAULTY();
+      if (w.crc32(f) !== E.crc)
         return !1;
-    } else if (_.crc32(f) !== n.localHeader.crc)
+    } else if (w.crc32(f) !== n.localHeader.crc)
       return !1;
     return !0;
   }
-  function l(f, E, p) {
-    if (typeof E > "u" && typeof f == "string" && (p = f, f = void 0), s)
-      return f && E && E(Buffer.alloc(0), _.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
-    var y = T();
-    if (y.length === 0)
-      return f && E && E(y), y;
+  function u(f, E, g) {
+    if (typeof E > "u" && typeof f == "string" && (g = f, f = void 0), o)
+      return f && E && E(Buffer.alloc(0), w.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
+    var N = C();
+    if (N.length === 0)
+      return f && E && E(N), N;
     if (n.encrypted) {
-      if (typeof p != "string" && !Buffer.isBuffer(p))
-        throw _.Errors.INVALID_PASS_PARAM();
-      y = Ee.ZipCrypto.decrypt(y, n, p);
+      if (typeof g != "string" && !Buffer.isBuffer(g))
+        throw w.Errors.INVALID_PASS_PARAM();
+      N = he.ZipCrypto.decrypt(N, n, g);
     }
     var L = Buffer.alloc(n.size);
     switch (n.method) {
-      case _.Constants.STORED:
-        if (y.copy(L), a(L))
+      case w.Constants.STORED:
+        if (N.copy(L), a(L))
           return f && E && E(L), L;
-        throw f && E && E(L, _.Errors.BAD_CRC()), _.Errors.BAD_CRC();
-      case _.Constants.DEFLATED:
-        var O = new Ee.Inflater(y, n.size);
+        throw f && E && E(L, w.Errors.BAD_CRC()), w.Errors.BAD_CRC();
+      case w.Constants.DEFLATED:
+        var O = new he.Inflater(N, n.size);
         if (f)
-          O.inflateAsync(function(S) {
-            S.copy(S, 0), E && (a(S) ? E(S) : E(S, _.Errors.BAD_CRC()));
+          O.inflateAsync(function(A) {
+            A.copy(A, 0), E && (a(A) ? E(A) : E(A, w.Errors.BAD_CRC()));
           });
         else {
           if (O.inflate(L).copy(L, 0), !a(L))
-            throw _.Errors.BAD_CRC(`"${C.decode(r)}"`);
+            throw w.Errors.BAD_CRC(`"${D.decode(r)}"`);
           return L;
         }
         break;
       default:
-        throw f && E && E(Buffer.alloc(0), _.Errors.UNKNOWN_METHOD()), _.Errors.UNKNOWN_METHOD();
+        throw f && E && E(Buffer.alloc(0), w.Errors.UNKNOWN_METHOD()), w.Errors.UNKNOWN_METHOD();
     }
   }
   function c(f, E) {
-    if ((!d || !d.length) && Buffer.isBuffer(t))
-      return f && E && E(T()), T();
-    if (d.length && !s) {
-      var p;
+    if ((!l || !l.length) && Buffer.isBuffer(t))
+      return f && E && E(C()), C();
+    if (l.length && !o) {
+      var g;
       switch (n.method) {
-        case _.Constants.STORED:
-          return n.compressedSize = n.size, p = Buffer.alloc(d.length), d.copy(p), f && E && E(p), p;
+        case w.Constants.STORED:
+          return n.compressedSize = n.size, g = Buffer.alloc(l.length), l.copy(g), f && E && E(g), g;
         default:
-        case _.Constants.DEFLATED:
-          var y = new Ee.Deflater(d);
+        case w.Constants.DEFLATED:
+          var N = new he.Deflater(l);
           if (f)
-            y.deflateAsync(function(O) {
-              p = Buffer.alloc(O.length), n.compressedSize = O.length, O.copy(p), E && E(p);
+            N.deflateAsync(function(O) {
+              g = Buffer.alloc(O.length), n.compressedSize = O.length, O.copy(g), E && E(g);
             });
           else {
-            var L = y.deflate();
+            var L = N.deflate();
             return n.compressedSize = L.length, L;
           }
-          y = null;
+          N = null;
           break;
       }
     } else if (f && E)
@@ -983,54 +983,54 @@ var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
     else
       return Buffer.alloc(0);
   }
-  function u(f, E) {
+  function d(f, E) {
     return (f.readUInt32LE(E + 4) << 4) + f.readUInt32LE(E);
   }
   function m(f) {
     try {
-      for (var E = 0, p, y, L; E + 4 < f.length; )
-        p = f.readUInt16LE(E), E += 2, y = f.readUInt16LE(E), E += 2, L = f.slice(E, E + y), E += y, v.ID_ZIP64 === p && i(L);
+      for (var E = 0, g, N, L; E + 4 < f.length; )
+        g = f.readUInt16LE(E), E += 2, N = f.readUInt16LE(E), E += 2, L = f.slice(E, E + N), E += N, U.ID_ZIP64 === g && i(L);
     } catch {
-      throw _.Errors.EXTRA_FIELD_PARSE_ERROR();
+      throw w.Errors.EXTRA_FIELD_PARSE_ERROR();
     }
   }
   function i(f) {
-    var E, p, y, L;
-    f.length >= v.EF_ZIP64_SCOMP && (E = u(f, v.EF_ZIP64_SUNCOMP), n.size === v.EF_ZIP64_OR_32 && (n.size = E)), f.length >= v.EF_ZIP64_RHO && (p = u(f, v.EF_ZIP64_SCOMP), n.compressedSize === v.EF_ZIP64_OR_32 && (n.compressedSize = p)), f.length >= v.EF_ZIP64_DSN && (y = u(f, v.EF_ZIP64_RHO), n.offset === v.EF_ZIP64_OR_32 && (n.offset = y)), f.length >= v.EF_ZIP64_DSN + 4 && (L = f.readUInt32LE(v.EF_ZIP64_DSN), n.diskNumStart === v.EF_ZIP64_OR_16 && (n.diskNumStart = L));
+    var E, g, N, L;
+    f.length >= U.EF_ZIP64_SCOMP && (E = d(f, U.EF_ZIP64_SUNCOMP), n.size === U.EF_ZIP64_OR_32 && (n.size = E)), f.length >= U.EF_ZIP64_RHO && (g = d(f, U.EF_ZIP64_SCOMP), n.compressedSize === U.EF_ZIP64_OR_32 && (n.compressedSize = g)), f.length >= U.EF_ZIP64_DSN && (N = d(f, U.EF_ZIP64_RHO), n.offset === U.EF_ZIP64_OR_32 && (n.offset = N)), f.length >= U.EF_ZIP64_DSN + 4 && (L = f.readUInt32LE(U.EF_ZIP64_DSN), n.diskNumStart === U.EF_ZIP64_OR_16 && (n.diskNumStart = L));
   }
   return {
     get entryName() {
-      return C.decode(r);
+      return D.decode(r);
     },
     get rawEntryName() {
       return r;
     },
     set entryName(f) {
-      r = _.toBuffer(f, C.encode);
+      r = w.toBuffer(f, D.encode);
       var E = r[r.length - 1];
-      s = E === 47 || E === 92, n.fileNameLength = r.length;
+      o = E === 47 || E === 92, n.fileNameLength = r.length;
     },
     get efs() {
-      return typeof I == "function" ? I(this.entryName) : I;
+      return typeof y == "function" ? y(this.entryName) : y;
     },
     get extra() {
-      return g;
+      return p;
     },
     set extra(f) {
-      g = f, n.extraLength = f.length, m(f);
+      p = f, n.extraLength = f.length, m(f);
     },
     get comment() {
-      return C.decode(o);
+      return D.decode(s);
     },
     set comment(f) {
-      if (o = _.toBuffer(f, C.encode), n.commentLength = o.length, o.length > 65535) throw _.Errors.COMMENT_TOO_LONG();
+      if (s = w.toBuffer(f, D.encode), n.commentLength = s.length, s.length > 65535) throw w.Errors.COMMENT_TOO_LONG();
     },
     get name() {
-      var f = C.decode(r);
-      return s ? f.substr(f.length - 1).split("/").pop() : f.split("/").pop();
+      var f = D.decode(r);
+      return o ? f.substr(f.length - 1).split("/").pop() : f.split("/").pop();
     },
     get isDirectory() {
-      return s;
+      return o;
     },
     getCompressedData: function() {
       return c(!1, null);
@@ -1039,13 +1039,13 @@ var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
       c(!0, f);
     },
     setData: function(f) {
-      d = _.toBuffer(f, _.decoder.encode), !s && d.length ? (n.size = d.length, n.method = _.Constants.DEFLATED, n.crc = _.crc32(f), n.changed = !0) : n.method = _.Constants.STORED;
+      l = w.toBuffer(f, w.decoder.encode), !o && l.length ? (n.size = l.length, n.method = w.Constants.DEFLATED, n.crc = w.crc32(f), n.changed = !0) : n.method = w.Constants.STORED;
     },
     getData: function(f) {
-      return n.changed ? d : l(!1, null, f);
+      return n.changed ? l : u(!1, null, f);
     },
     getDataAsync: function(f, E) {
-      n.changed ? f(d) : l(!0, f, E);
+      n.changed ? f(l) : u(!0, f, E);
     },
     set attr(f) {
       n.attr = f;
@@ -1060,15 +1060,15 @@ var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
       return n;
     },
     packCentralHeader: function() {
-      n.flags_efs = this.efs, n.extraLength = g.length;
-      var f = n.centralHeaderToBinary(), E = _.Constants.CENHDR;
-      return r.copy(f, E), E += r.length, g.copy(f, E), E += n.extraLength, o.copy(f, E), f;
+      n.flags_efs = this.efs, n.extraLength = p.length;
+      var f = n.centralHeaderToBinary(), E = w.Constants.CENHDR;
+      return r.copy(f, E), E += r.length, p.copy(f, E), E += n.extraLength, s.copy(f, E), f;
     },
     packLocalHeader: function() {
       let f = 0;
       n.flags_efs = this.efs, n.extraLocalLength = h.length;
-      const E = n.localHeaderToBinary(), p = Buffer.alloc(E.length + r.length + n.extraLocalLength);
-      return E.copy(p, f), f += E.length, r.copy(p, f), f += r.length, h.copy(p, f), f += h.length, p;
+      const E = n.localHeaderToBinary(), g = Buffer.alloc(E.length + r.length + n.extraLocalLength);
+      return E.copy(g, f), f += E.length, r.copy(g, f), f += r.length, h.copy(g, f), f += h.length, g;
     },
     toJSON: function() {
       const f = function(E) {
@@ -1081,7 +1081,7 @@ var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
         isDirectory: this.isDirectory,
         header: n.toJSON(),
         compressedData: f(t),
-        data: f(d)
+        data: f(l)
       };
     },
     toString: function() {
@@ -1089,59 +1089,59 @@ var _ = Q, ht = ae, v = _.Constants, Ee = ce, be = function(e, t) {
     }
   };
 };
-const Ce = be, It = ae, M = Q;
-var Nt = function(e, t) {
-  var n = [], r = {}, o = Buffer.alloc(0), s = new It.MainHeader(), d = !1;
-  const g = /* @__PURE__ */ new Set(), h = t, { noSort: I, decoder: D } = h;
-  e ? a(h.readEntries) : d = !0;
-  function C() {
+const ve = ke, At = ue, b = te;
+var wt = function(e, t) {
+  var n = [], r = {}, s = Buffer.alloc(0), o = new At.MainHeader(), l = !1;
+  const p = /* @__PURE__ */ new Set(), h = t, { noSort: y, decoder: S } = h;
+  e ? a(h.readEntries) : l = !0;
+  function D() {
     const c = /* @__PURE__ */ new Set();
-    for (const u of Object.keys(r)) {
-      const m = u.split("/");
+    for (const d of Object.keys(r)) {
+      const m = d.split("/");
       if (m.pop(), !!m.length)
         for (let i = 0; i < m.length; i++) {
           const f = m.slice(0, i + 1).join("/") + "/";
           c.add(f);
         }
     }
-    for (const u of c)
-      if (!(u in r)) {
-        const m = new Ce(h);
-        m.entryName = u, m.attr = 16, m.temporary = !0, n.push(m), r[m.entryName] = m, g.add(m);
+    for (const d of c)
+      if (!(d in r)) {
+        const m = new ve(h);
+        m.entryName = d, m.attr = 16, m.temporary = !0, n.push(m), r[m.entryName] = m, p.add(m);
       }
   }
-  function T() {
-    if (d = !0, r = {}, s.diskEntries > (e.length - s.offset) / M.Constants.CENHDR)
-      throw M.Errors.DISK_ENTRY_TOO_LARGE();
-    n = new Array(s.diskEntries);
-    for (var c = s.offset, u = 0; u < n.length; u++) {
-      var m = c, i = new Ce(h, e);
-      i.header = e.slice(m, m += M.Constants.CENHDR), i.entryName = e.slice(m, m += i.header.fileNameLength), i.header.extraLength && (i.extra = e.slice(m, m += i.header.extraLength)), i.header.commentLength && (i.comment = e.slice(m, m + i.header.commentLength)), c += i.header.centralHeaderSize, n[u] = i, r[i.entryName] = i;
+  function C() {
+    if (l = !0, r = {}, o.diskEntries > (e.length - o.offset) / b.Constants.CENHDR)
+      throw b.Errors.DISK_ENTRY_TOO_LARGE();
+    n = new Array(o.diskEntries);
+    for (var c = o.offset, d = 0; d < n.length; d++) {
+      var m = c, i = new ve(h, e);
+      i.header = e.slice(m, m += b.Constants.CENHDR), i.entryName = e.slice(m, m += i.header.fileNameLength), i.header.extraLength && (i.extra = e.slice(m, m += i.header.extraLength)), i.header.commentLength && (i.comment = e.slice(m, m + i.header.commentLength)), c += i.header.centralHeaderSize, n[d] = i, r[i.entryName] = i;
     }
-    g.clear(), C();
+    p.clear(), D();
   }
   function a(c) {
-    var u = e.length - M.Constants.ENDHDR, m = Math.max(0, u - 65535), i = m, f = e.length, E = -1, p = 0;
-    for ((typeof h.trailingSpace == "boolean" ? h.trailingSpace : !1) && (m = 0), u; u >= i; u--)
-      if (e[u] === 80) {
-        if (e.readUInt32LE(u) === M.Constants.ENDSIG) {
-          E = u, p = u, f = u + M.Constants.ENDHDR, i = u - M.Constants.END64HDR;
+    var d = e.length - b.Constants.ENDHDR, m = Math.max(0, d - 65535), i = m, f = e.length, E = -1, g = 0;
+    for ((typeof h.trailingSpace == "boolean" ? h.trailingSpace : !1) && (m = 0), d; d >= i; d--)
+      if (e[d] === 80) {
+        if (e.readUInt32LE(d) === b.Constants.ENDSIG) {
+          E = d, g = d, f = d + b.Constants.ENDHDR, i = d - b.Constants.END64HDR;
           continue;
         }
-        if (e.readUInt32LE(u) === M.Constants.END64SIG) {
+        if (e.readUInt32LE(d) === b.Constants.END64SIG) {
           i = m;
           continue;
         }
-        if (e.readUInt32LE(u) === M.Constants.ZIP64SIG) {
-          E = u, f = u + M.readBigUInt64LE(e, u + M.Constants.ZIP64SIZE) + M.Constants.ZIP64LEAD;
+        if (e.readUInt32LE(d) === b.Constants.ZIP64SIG) {
+          E = d, f = d + b.readBigUInt64LE(e, d + b.Constants.ZIP64SIZE) + b.Constants.ZIP64LEAD;
           break;
         }
       }
-    if (E == -1) throw M.Errors.INVALID_FORMAT();
-    s.loadFromBinary(e.slice(E, f)), s.commentLength && (o = e.slice(p + M.Constants.ENDHDR)), c && T();
+    if (E == -1) throw b.Errors.INVALID_FORMAT();
+    o.loadFromBinary(e.slice(E, f)), o.commentLength && (s = e.slice(g + b.Constants.ENDHDR)), c && C();
   }
-  function l() {
-    n.length > 1 && !I && n.sort((c, u) => c.entryName.toLowerCase().localeCompare(u.entryName.toLowerCase()));
+  function u() {
+    n.length > 1 && !y && n.sort((c, d) => c.entryName.toLowerCase().localeCompare(d.entryName.toLowerCase()));
   }
   return {
     /**
@@ -1149,20 +1149,20 @@ var Nt = function(e, t) {
      * @return Array
      */
     get entries() {
-      return d || T(), n.filter((c) => !g.has(c));
+      return l || C(), n.filter((c) => !p.has(c));
     },
     /**
      * Archive comment
      * @return {String}
      */
     get comment() {
-      return D.decode(o);
+      return S.decode(s);
     },
     set comment(c) {
-      o = M.toBuffer(c, D.encode), s.commentLength = o.length;
+      s = b.toBuffer(c, S.encode), o.commentLength = s.length;
     },
     getEntryCount: function() {
-      return d ? n.length : s.diskEntries;
+      return l ? n.length : o.diskEntries;
     },
     forEach: function(c) {
       this.entries.forEach(c);
@@ -1174,7 +1174,7 @@ var Nt = function(e, t) {
      * @return ZipEntry
      */
     getEntry: function(c) {
-      return d || T(), r[c] || null;
+      return l || C(), r[c] || null;
     },
     /**
      * Adds the given entry to the entry list
@@ -1182,7 +1182,7 @@ var Nt = function(e, t) {
      * @param entry
      */
     setEntry: function(c) {
-      d || T(), n.push(c), r[c.entryName] = c, s.totalEntries = n.length;
+      l || C(), n.push(c), r[c.entryName] = c, o.totalEntries = n.length;
     },
     /**
      * Removes the file with the given name from the entry list.
@@ -1191,10 +1191,10 @@ var Nt = function(e, t) {
      * @param entryName
      * @returns {void}
      */
-    deleteFile: function(c, u = !0) {
-      d || T();
+    deleteFile: function(c, d = !0) {
+      l || C();
       const m = r[c];
-      this.getEntryChildren(m, u).map((f) => f.entryName).forEach(this.deleteEntry);
+      this.getEntryChildren(m, d).map((f) => f.entryName).forEach(this.deleteEntry);
     },
     /**
      * Removes the entry with the given name from the entry list.
@@ -1203,9 +1203,9 @@ var Nt = function(e, t) {
      * @returns {void}
      */
     deleteEntry: function(c) {
-      d || T();
-      const u = r[c], m = n.indexOf(u);
-      m >= 0 && (n.splice(m, 1), delete r[c], s.totalEntries = n.length);
+      l || C();
+      const d = r[c], m = n.indexOf(d);
+      m >= 0 && (n.splice(m, 1), delete r[c], o.totalEntries = n.length);
     },
     /**
      *  Iterates and returns all nested files and directories of the given entry
@@ -1213,9 +1213,9 @@ var Nt = function(e, t) {
      * @param entry
      * @return Array
      */
-    getEntryChildren: function(c, u = !0) {
-      if (d || T(), typeof c == "object")
-        if (c.isDirectory && u) {
+    getEntryChildren: function(c, d = !0) {
+      if (l || C(), typeof c == "object")
+        if (c.isDirectory && d) {
           const m = [], i = c.entryName;
           for (const f of n)
             f.entryName.startsWith(i) && m.push(f);
@@ -1232,8 +1232,8 @@ var Nt = function(e, t) {
      */
     getChildCount: function(c) {
       if (c && c.isDirectory) {
-        const u = this.getEntryChildren(c);
-        return u.includes(c) ? u.length - 1 : u.length;
+        const d = this.getEntryChildren(c);
+        return d.includes(c) ? d.length - 1 : d.length;
       }
       return 0;
     },
@@ -1243,106 +1243,106 @@ var Nt = function(e, t) {
      * @return Buffer
      */
     compressToBuffer: function() {
-      d || T(), l();
-      const c = [], u = [];
+      l || C(), u();
+      const c = [], d = [];
       let m = 0, i = 0;
-      s.size = 0, s.offset = 0;
+      o.size = 0, o.offset = 0;
       let f = 0;
-      for (const y of this.entries) {
-        const L = y.getCompressedData();
-        y.header.offset = i;
-        const O = y.packLocalHeader(), S = O.length + L.length;
-        i += S, c.push(O), c.push(L);
-        const A = y.packCentralHeader();
-        u.push(A), s.size += A.length, m += S + A.length, f++;
+      for (const N of this.entries) {
+        const L = N.getCompressedData();
+        N.header.offset = i;
+        const O = N.packLocalHeader(), A = O.length + L.length;
+        i += A, c.push(O), c.push(L);
+        const R = N.packCentralHeader();
+        d.push(R), o.size += R.length, m += A + R.length, f++;
       }
-      m += s.mainHeaderSize, s.offset = i, s.totalEntries = f, i = 0;
+      m += o.mainHeaderSize, o.offset = i, o.totalEntries = f, i = 0;
       const E = Buffer.alloc(m);
-      for (const y of c)
-        y.copy(E, i), i += y.length;
-      for (const y of u)
-        y.copy(E, i), i += y.length;
-      const p = s.toBinary();
-      return o && o.copy(p, M.Constants.ENDHDR), p.copy(E, i), e = E, d = !1, E;
+      for (const N of c)
+        N.copy(E, i), i += N.length;
+      for (const N of d)
+        N.copy(E, i), i += N.length;
+      const g = o.toBinary();
+      return s && s.copy(g, b.Constants.ENDHDR), g.copy(E, i), e = E, l = !1, E;
     },
-    toAsyncBuffer: function(c, u, m, i) {
+    toAsyncBuffer: function(c, d, m, i) {
       try {
-        d || T(), l();
+        l || C(), u();
         const f = [], E = [];
-        let p = 0, y = 0, L = 0;
-        s.size = 0, s.offset = 0;
-        const O = function(S) {
-          if (S.length > 0) {
-            const A = S.shift(), H = A.entryName + A.extra.toString();
-            m && m(H), A.getCompressedDataAsync(function(j) {
-              i && i(H), A.header.offset = y;
-              const G = A.packLocalHeader(), te = G.length + j.length;
-              y += te, f.push(G), f.push(j);
-              const de = A.packCentralHeader();
-              E.push(de), s.size += de.length, p += te + de.length, L++, O(S);
+        let g = 0, N = 0, L = 0;
+        o.size = 0, o.offset = 0;
+        const O = function(A) {
+          if (A.length > 0) {
+            const R = A.shift(), j = R.entryName + R.extra.toString();
+            m && m(j), R.getCompressedDataAsync(function($) {
+              i && i(j), R.header.offset = N;
+              const X = R.packLocalHeader(), oe = X.length + $.length;
+              N += oe, f.push(X), f.push($);
+              const ge = R.packCentralHeader();
+              E.push(ge), o.size += ge.length, g += oe + ge.length, L++, O(A);
             });
           } else {
-            p += s.mainHeaderSize, s.offset = y, s.totalEntries = L, y = 0;
-            const A = Buffer.alloc(p);
-            f.forEach(function(j) {
-              j.copy(A, y), y += j.length;
-            }), E.forEach(function(j) {
-              j.copy(A, y), y += j.length;
+            g += o.mainHeaderSize, o.offset = N, o.totalEntries = L, N = 0;
+            const R = Buffer.alloc(g);
+            f.forEach(function($) {
+              $.copy(R, N), N += $.length;
+            }), E.forEach(function($) {
+              $.copy(R, N), N += $.length;
             });
-            const H = s.toBinary();
-            o && o.copy(H, M.Constants.ENDHDR), H.copy(A, y), e = A, d = !1, c(A);
+            const j = o.toBinary();
+            s && s.copy(j, b.Constants.ENDHDR), j.copy(R, N), e = R, l = !1, c(R);
           }
         };
         O(Array.from(this.entries));
       } catch (f) {
-        u(f);
+        d(f);
       }
     }
   };
 };
-const x = Q, U = w, yt = be, Dt = Nt, X = (...e) => x.findLast(e, (t) => typeof t == "boolean"), Se = (...e) => x.findLast(e, (t) => typeof t == "string"), Lt = (...e) => x.findLast(e, (t) => typeof t == "function"), Tt = {
+const F = te, P = T, Ot = ke, Rt = wt, G = (...e) => F.findLast(e, (t) => typeof t == "boolean"), xe = (...e) => F.findLast(e, (t) => typeof t == "string"), vt = (...e) => F.findLast(e, (t) => typeof t == "function"), xt = {
   // option "noSort" : if true it disables files sorting
   noSort: !1,
   // read entries during load (initial loading may be slower)
   readEntries: !1,
   // default method is none
-  method: x.Constants.NONE,
+  method: F.Constants.NONE,
   // file system
   fs: null
 };
-var Ct = function(e, t) {
+var Ft = function(e, t) {
   let n = null;
-  const r = Object.assign(/* @__PURE__ */ Object.create(null), Tt);
-  e && typeof e == "object" && (e instanceof Uint8Array || (Object.assign(r, e), e = r.input ? r.input : void 0, r.input && delete r.input), Buffer.isBuffer(e) && (n = e, r.method = x.Constants.BUFFER, e = void 0)), Object.assign(r, t);
-  const o = new x(r);
-  if ((typeof r.decoder != "object" || typeof r.decoder.encode != "function" || typeof r.decoder.decode != "function") && (r.decoder = x.decoder), e && typeof e == "string")
-    if (o.fs.existsSync(e))
-      r.method = x.Constants.FILE, r.filename = e, n = o.fs.readFileSync(e);
+  const r = Object.assign(/* @__PURE__ */ Object.create(null), xt);
+  e && typeof e == "object" && (e instanceof Uint8Array || (Object.assign(r, e), e = r.input ? r.input : void 0, r.input && delete r.input), Buffer.isBuffer(e) && (n = e, r.method = F.Constants.BUFFER, e = void 0)), Object.assign(r, t);
+  const s = new F(r);
+  if ((typeof r.decoder != "object" || typeof r.decoder.encode != "function" || typeof r.decoder.decode != "function") && (r.decoder = F.decoder), e && typeof e == "string")
+    if (s.fs.existsSync(e))
+      r.method = F.Constants.FILE, r.filename = e, n = s.fs.readFileSync(e);
     else
-      throw x.Errors.INVALID_FILENAME();
-  const s = new Dt(n, r), { canonical: d, sanitize: g, zipnamefix: h } = x;
-  function I(a) {
-    if (a && s) {
-      var l;
-      if (typeof a == "string" && (l = s.getEntry(U.posix.normalize(a))), typeof a == "object" && typeof a.entryName < "u" && typeof a.header < "u" && (l = s.getEntry(a.entryName)), l)
-        return l;
+      throw F.Errors.INVALID_FILENAME();
+  const o = new Rt(n, r), { canonical: l, sanitize: p, zipnamefix: h } = F;
+  function y(a) {
+    if (a && o) {
+      var u;
+      if (typeof a == "string" && (u = o.getEntry(P.posix.normalize(a))), typeof a == "object" && typeof a.entryName < "u" && typeof a.header < "u" && (u = o.getEntry(a.entryName)), u)
+        return u;
     }
     return null;
   }
-  function D(a) {
-    const { join: l, normalize: c, sep: u } = U.posix;
-    return l(".", c(u + a.split("\\").join(u) + u));
+  function S(a) {
+    const { join: u, normalize: c, sep: d } = P.posix;
+    return u(".", c(d + a.split("\\").join(d) + d));
   }
-  function C(a) {
-    return a instanceof RegExp ? /* @__PURE__ */ function(l) {
+  function D(a) {
+    return a instanceof RegExp ? /* @__PURE__ */ function(u) {
       return function(c) {
-        return l.test(c);
+        return u.test(c);
       };
     }(a) : typeof a != "function" ? () => !0 : a;
   }
-  const T = (a, l) => {
-    let c = l.slice(-1);
-    return c = c === o.sep ? o.sep : "", U.relative(a, l) + c;
+  const C = (a, u) => {
+    let c = u.slice(-1);
+    return c = c === s.sep ? s.sep : "", P.relative(a, u) + c;
   };
   return {
     /**
@@ -1351,9 +1351,9 @@ var Ct = function(e, t) {
      * @param {Buffer|string} [pass] - password
      * @return Buffer or Null in case of error
      */
-    readFile: function(a, l) {
-      var c = I(a);
-      return c && c.getData(l) || null;
+    readFile: function(a, u) {
+      var c = y(a);
+      return c && c.getData(u) || null;
     },
     /**
      * Returns how many child elements has on entry (directories) on files it is always 0
@@ -1361,9 +1361,9 @@ var Ct = function(e, t) {
      * @returns {integer}
      */
     childCount: function(a) {
-      const l = I(a);
-      if (l)
-        return s.getChildCount(l);
+      const u = y(a);
+      if (u)
+        return o.getChildCount(u);
     },
     /**
      * Asynchronous readFile
@@ -1372,9 +1372,9 @@ var Ct = function(e, t) {
      *
      * @return Buffer or Null in case of error
      */
-    readFileAsync: function(a, l) {
-      var c = I(a);
-      c ? c.getDataAsync(l) : l(null, "getEntry failed for:" + a);
+    readFileAsync: function(a, u) {
+      var c = y(a);
+      c ? c.getDataAsync(u) : u(null, "getEntry failed for:" + a);
     },
     /**
      * Extracts the given entry from the archive and returns the content as plain text in the given encoding
@@ -1383,12 +1383,12 @@ var Ct = function(e, t) {
      *
      * @return String
      */
-    readAsText: function(a, l) {
-      var c = I(a);
+    readAsText: function(a, u) {
+      var c = y(a);
       if (c) {
-        var u = c.getData();
-        if (u && u.length)
-          return u.toString(l || "utf8");
+        var d = c.getData();
+        if (d && d.length)
+          return d.toString(u || "utf8");
       }
       return "";
     },
@@ -1400,15 +1400,15 @@ var Ct = function(e, t) {
      *
      * @return String
      */
-    readAsTextAsync: function(a, l, c) {
-      var u = I(a);
-      u ? u.getDataAsync(function(m, i) {
+    readAsTextAsync: function(a, u, c) {
+      var d = y(a);
+      d ? d.getDataAsync(function(m, i) {
         if (i) {
-          l(m, i);
+          u(m, i);
           return;
         }
-        m && m.length ? l(m.toString(c || "utf8")) : l("");
-      }) : l("");
+        m && m.length ? u(m.toString(c || "utf8")) : u("");
+      }) : u("");
     },
     /**
      * Remove the entry from the file or the entry and all it's nested directories and files if the given entry is a directory
@@ -1416,9 +1416,9 @@ var Ct = function(e, t) {
      * @param {ZipEntry|string} entry
      * @returns {void}
      */
-    deleteFile: function(a, l = !0) {
-      var c = I(a);
-      c && s.deleteFile(c.entryName, l);
+    deleteFile: function(a, u = !0) {
+      var c = y(a);
+      c && o.deleteFile(c.entryName, u);
     },
     /**
      * Remove the entry from the file or directory without affecting any nested entries
@@ -1427,8 +1427,8 @@ var Ct = function(e, t) {
      * @returns {void}
      */
     deleteEntry: function(a) {
-      var l = I(a);
-      l && s.deleteEntry(l.entryName);
+      var u = y(a);
+      u && o.deleteEntry(u.entryName);
     },
     /**
      * Adds a comment to the zip. The zip must be rewritten after adding the comment.
@@ -1436,7 +1436,7 @@ var Ct = function(e, t) {
      * @param {string} comment
      */
     addZipComment: function(a) {
-      s.comment = a;
+      o.comment = a;
     },
     /**
      * Returns the zip comment
@@ -1444,7 +1444,7 @@ var Ct = function(e, t) {
      * @return String
      */
     getZipComment: function() {
-      return s.comment || "";
+      return o.comment || "";
     },
     /**
      * Adds a comment to a specified zipEntry. The zip must be rewritten after adding the comment
@@ -1453,9 +1453,9 @@ var Ct = function(e, t) {
      * @param {ZipEntry} entry
      * @param {string} comment
      */
-    addZipEntryComment: function(a, l) {
-      var c = I(a);
-      c && (c.comment = l);
+    addZipEntryComment: function(a, u) {
+      var c = y(a);
+      c && (c.comment = u);
     },
     /**
      * Returns the comment of the specified entry
@@ -1464,8 +1464,8 @@ var Ct = function(e, t) {
      * @return String
      */
     getZipEntryComment: function(a) {
-      var l = I(a);
-      return l && l.comment || "";
+      var u = y(a);
+      return u && u.comment || "";
     },
     /**
      * Updates the content of an existing entry inside the archive. The zip must be rewritten after updating the content
@@ -1473,9 +1473,9 @@ var Ct = function(e, t) {
      * @param {ZipEntry} entry
      * @param {Buffer} content
      */
-    updateFile: function(a, l) {
-      var c = I(a);
-      c && c.setData(l);
+    updateFile: function(a, u) {
+      var c = y(a);
+      c && c.setData(u);
     },
     /**
      * Adds a file from the disk to the archive
@@ -1485,15 +1485,15 @@ var Ct = function(e, t) {
      * @param {string} [zipName] Optional name for the file
      * @param {string} [comment] Optional file comment
      */
-    addLocalFile: function(a, l, c, u) {
-      if (o.fs.existsSync(a)) {
-        l = l ? D(l) : "";
-        const m = U.win32.basename(U.win32.normalize(a));
-        l += c || m;
-        const i = o.fs.statSync(a), f = i.isFile() ? o.fs.readFileSync(a) : Buffer.alloc(0);
-        i.isDirectory() && (l += o.sep), this.addFile(l, f, u, i);
+    addLocalFile: function(a, u, c, d) {
+      if (s.fs.existsSync(a)) {
+        u = u ? S(u) : "";
+        const m = P.win32.basename(P.win32.normalize(a));
+        u += c || m;
+        const i = s.fs.statSync(a), f = i.isFile() ? s.fs.readFileSync(a) : Buffer.alloc(0);
+        i.isDirectory() && (u += s.sep), this.addFile(u, f, d, i);
       } else
-        throw x.Errors.FILE_NOT_FOUND(a);
+        throw F.Errors.FILE_NOT_FOUND(a);
     },
     /**
      * Callback for showing if everything was done.
@@ -1512,21 +1512,21 @@ var Ct = function(e, t) {
      * @param {string} [options.zipName] - Optional name for the file
      * @param {doneCallback} callback - The callback that handles the response.
      */
-    addLocalFileAsync: function(a, l) {
+    addLocalFileAsync: function(a, u) {
       a = typeof a == "object" ? a : { localPath: a };
-      const c = U.resolve(a.localPath), { comment: u } = a;
+      const c = P.resolve(a.localPath), { comment: d } = a;
       let { zipPath: m, zipName: i } = a;
       const f = this;
-      o.fs.stat(c, function(E, p) {
-        if (E) return l(E, !1);
-        m = m ? D(m) : "";
-        const y = U.win32.basename(U.win32.normalize(c));
-        if (m += i || y, p.isFile())
-          o.fs.readFile(c, function(L, O) {
-            return L ? l(L, !1) : (f.addFile(m, O, u, p), setImmediate(l, void 0, !0));
+      s.fs.stat(c, function(E, g) {
+        if (E) return u(E, !1);
+        m = m ? S(m) : "";
+        const N = P.win32.basename(P.win32.normalize(c));
+        if (m += i || N, g.isFile())
+          s.fs.readFile(c, function(L, O) {
+            return L ? u(L, !1) : (f.addFile(m, O, d, g), setImmediate(u, void 0, !0));
           });
-        else if (p.isDirectory())
-          return m += o.sep, f.addFile(m, Buffer.alloc(0), u, p), setImmediate(l, void 0, !0);
+        else if (g.isDirectory())
+          return m += s.sep, f.addFile(m, Buffer.alloc(0), d, g), setImmediate(u, void 0, !0);
       });
     },
     /**
@@ -1536,16 +1536,16 @@ var Ct = function(e, t) {
      * @param {string} [zipPath] - optional path inside zip
      * @param {(RegExp|function)} [filter] - optional RegExp or Function if files match will be included.
      */
-    addLocalFolder: function(a, l, c) {
-      if (c = C(c), l = l ? D(l) : "", a = U.normalize(a), o.fs.existsSync(a)) {
-        const u = o.findFiles(a), m = this;
-        if (u.length)
-          for (const i of u) {
-            const f = U.join(l, T(a, i));
-            c(f) && m.addLocalFile(i, U.dirname(f));
+    addLocalFolder: function(a, u, c) {
+      if (c = D(c), u = u ? S(u) : "", a = P.normalize(a), s.fs.existsSync(a)) {
+        const d = s.findFiles(a), m = this;
+        if (d.length)
+          for (const i of d) {
+            const f = P.join(u, C(a, i));
+            c(f) && m.addLocalFile(i, P.dirname(f));
           }
       } else
-        throw x.Errors.FILE_NOT_FOUND(a);
+        throw F.Errors.FILE_NOT_FOUND(a);
     },
     /**
      * Asynchronous addLocalFolder
@@ -1555,29 +1555,29 @@ var Ct = function(e, t) {
      * @param {RegExp|function} [filter] optional RegExp or Function if files match will
      *               be included.
      */
-    addLocalFolderAsync: function(a, l, c, u) {
-      u = C(u), c = c ? D(c) : "", a = U.normalize(a);
+    addLocalFolderAsync: function(a, u, c, d) {
+      d = D(d), c = c ? S(c) : "", a = P.normalize(a);
       var m = this;
-      o.fs.open(a, "r", function(i) {
+      s.fs.open(a, "r", function(i) {
         if (i && i.code === "ENOENT")
-          l(void 0, x.Errors.FILE_NOT_FOUND(a));
+          u(void 0, F.Errors.FILE_NOT_FOUND(a));
         else if (i)
-          l(void 0, i);
+          u(void 0, i);
         else {
-          var f = o.findFiles(a), E = -1, p = function() {
+          var f = s.findFiles(a), E = -1, g = function() {
             if (E += 1, E < f.length) {
-              var y = f[E], L = T(a, y).split("\\").join("/");
-              L = L.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), u(L) ? o.fs.stat(y, function(O, S) {
-                O && l(void 0, O), S.isFile() ? o.fs.readFile(y, function(A, H) {
-                  A ? l(void 0, A) : (m.addFile(c + L, H, "", S), p());
-                }) : (m.addFile(c + L + "/", Buffer.alloc(0), "", S), p());
+              var N = f[E], L = C(a, N).split("\\").join("/");
+              L = L.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), d(L) ? s.fs.stat(N, function(O, A) {
+                O && u(void 0, O), A.isFile() ? s.fs.readFile(N, function(R, j) {
+                  R ? u(void 0, R) : (m.addFile(c + L, j, "", A), g());
+                }) : (m.addFile(c + L + "/", Buffer.alloc(0), "", A), g());
               }) : process.nextTick(() => {
-                p();
+                g();
               });
             } else
-              l(!0, void 0);
+              u(!0, void 0);
           };
-          p();
+          g();
         }
       });
     },
@@ -1592,35 +1592,35 @@ var Ct = function(e, t) {
      * @param {doneCallback} callback - The callback that handles the response.
      *
      */
-    addLocalFolderAsync2: function(a, l) {
+    addLocalFolderAsync2: function(a, u) {
       const c = this;
-      a = typeof a == "object" ? a : { localPath: a }, localPath = U.resolve(D(a.localPath));
-      let { zipPath: u, filter: m, namefix: i } = a;
-      m instanceof RegExp ? m = /* @__PURE__ */ function(p) {
-        return function(y) {
-          return p.test(y);
+      a = typeof a == "object" ? a : { localPath: a }, localPath = P.resolve(S(a.localPath));
+      let { zipPath: d, filter: m, namefix: i } = a;
+      m instanceof RegExp ? m = /* @__PURE__ */ function(g) {
+        return function(N) {
+          return g.test(N);
         };
       }(m) : typeof m != "function" && (m = function() {
         return !0;
-      }), u = u ? D(u) : "", i == "latin1" && (i = (p) => p.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "")), typeof i != "function" && (i = (p) => p);
-      const f = (p) => U.join(u, i(T(localPath, p))), E = (p) => U.win32.basename(U.win32.normalize(i(p)));
-      o.fs.open(localPath, "r", function(p) {
-        p && p.code === "ENOENT" ? l(void 0, x.Errors.FILE_NOT_FOUND(localPath)) : p ? l(void 0, p) : o.findFilesAsync(localPath, function(y, L) {
-          if (y) return l(y);
-          L = L.filter((O) => m(f(O))), L.length || l(void 0, !1), setImmediate(
-            L.reverse().reduce(function(O, S) {
-              return function(A, H) {
-                if (A || H === !1) return setImmediate(O, A, !1);
+      }), d = d ? S(d) : "", i == "latin1" && (i = (g) => g.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "")), typeof i != "function" && (i = (g) => g);
+      const f = (g) => P.join(d, i(C(localPath, g))), E = (g) => P.win32.basename(P.win32.normalize(i(g)));
+      s.fs.open(localPath, "r", function(g) {
+        g && g.code === "ENOENT" ? u(void 0, F.Errors.FILE_NOT_FOUND(localPath)) : g ? u(void 0, g) : s.findFilesAsync(localPath, function(N, L) {
+          if (N) return u(N);
+          L = L.filter((O) => m(f(O))), L.length || u(void 0, !1), setImmediate(
+            L.reverse().reduce(function(O, A) {
+              return function(R, j) {
+                if (R || j === !1) return setImmediate(O, R, !1);
                 c.addLocalFileAsync(
                   {
-                    localPath: S,
-                    zipPath: U.dirname(f(S)),
-                    zipName: E(S)
+                    localPath: A,
+                    zipPath: P.dirname(f(A)),
+                    zipName: E(A)
                   },
                   O
                 );
               };
-            }, l)
+            }, u)
           );
         });
       });
@@ -1634,10 +1634,10 @@ var Ct = function(e, t) {
      * @param {RegExp|function} [props.filter] - optional RegExp or Function if files match will be included.
      * @param {function|string} [props.namefix] - optional function to help fix filename
      */
-    addLocalFolderPromise: function(a, l) {
-      return new Promise((c, u) => {
-        this.addLocalFolderAsync2(Object.assign({ localPath: a }, l), (m, i) => {
-          m && u(m), i && c(this);
+    addLocalFolderPromise: function(a, u) {
+      return new Promise((c, d) => {
+        this.addLocalFolderAsync2(Object.assign({ localPath: a }, u), (m, i) => {
+          m && d(m), i && c(this);
         });
       });
     },
@@ -1651,16 +1651,16 @@ var Ct = function(e, t) {
      * @param {string} [comment] - file comment
      * @param {number | object} [attr] - number as unix file permissions, object as filesystem Stats object
      */
-    addFile: function(a, l, c, u) {
+    addFile: function(a, u, c, d) {
       a = h(a);
-      let m = I(a);
+      let m = y(a);
       const i = m != null;
-      i || (m = new yt(r), m.entryName = a), m.comment = c || "";
-      const f = typeof u == "object" && u instanceof o.fs.Stats;
-      f && (m.header.time = u.mtime);
+      i || (m = new Ot(r), m.entryName = a), m.comment = c || "";
+      const f = typeof d == "object" && d instanceof s.fs.Stats;
+      f && (m.header.time = d.mtime);
       var E = m.isDirectory ? 16 : 0;
-      let p = m.isDirectory ? 16384 : 32768;
-      return f ? p |= 4095 & u.mode : typeof u == "number" ? p |= 4095 & u : p |= m.isDirectory ? 493 : 420, E = (E | p << 16) >>> 0, m.attr = E, m.setData(l), i || s.setEntry(m), m;
+      let g = m.isDirectory ? 16384 : 32768;
+      return f ? g |= 4095 & d.mode : typeof d == "number" ? g |= 4095 & d : g |= m.isDirectory ? 493 : 420, E = (E | g << 16) >>> 0, m.attr = E, m.setData(u), i || o.setEntry(m), m;
     },
     /**
      * Returns an array of ZipEntry objects representing the files and folders inside the archive
@@ -1669,7 +1669,7 @@ var Ct = function(e, t) {
      * @returns Array
      */
     getEntries: function(a) {
-      return s.password = a, s ? s.entries : [];
+      return o.password = a, o ? o.entries : [];
     },
     /**
      * Returns a ZipEntry object representing the file or folder specified by ``name``.
@@ -1678,13 +1678,13 @@ var Ct = function(e, t) {
      * @return ZipEntry
      */
     getEntry: function(a) {
-      return I(a);
+      return y(a);
     },
     getEntryCount: function() {
-      return s.getEntryCount();
+      return o.getEntryCount();
     },
     forEach: function(a) {
-      return s.forEach(a);
+      return o.forEach(a);
     },
     /**
      * Extracts the given entry to the given targetPath
@@ -1699,43 +1699,43 @@ var Ct = function(e, t) {
      *
      * @return Boolean
      */
-    extractEntryTo: function(a, l, c, u, m, i) {
-      u = X(!1, u), m = X(!1, m), c = X(!0, c), i = Se(m, i);
-      var f = I(a);
+    extractEntryTo: function(a, u, c, d, m, i) {
+      d = G(!1, d), m = G(!1, m), c = G(!0, c), i = xe(m, i);
+      var f = y(a);
       if (!f)
-        throw x.Errors.NO_ENTRY();
-      var E = d(f.entryName), p = g(l, i && !f.isDirectory ? i : c ? E : U.basename(E));
+        throw F.Errors.NO_ENTRY();
+      var E = l(f.entryName), g = p(u, i && !f.isDirectory ? i : c ? E : P.basename(E));
       if (f.isDirectory) {
-        var y = s.getEntryChildren(f);
-        return y.forEach(function(S) {
-          if (S.isDirectory) return;
-          var A = S.getData();
-          if (!A)
-            throw x.Errors.CANT_EXTRACT_FILE();
-          var H = d(S.entryName), j = g(l, c ? H : U.basename(H));
-          const G = m ? S.header.fileAttr : void 0;
-          o.writeFileTo(j, A, u, G);
+        var N = o.getEntryChildren(f);
+        return N.forEach(function(A) {
+          if (A.isDirectory) return;
+          var R = A.getData();
+          if (!R)
+            throw F.Errors.CANT_EXTRACT_FILE();
+          var j = l(A.entryName), $ = p(u, c ? j : P.basename(j));
+          const X = m ? A.header.fileAttr : void 0;
+          s.writeFileTo($, R, d, X);
         }), !0;
       }
-      var L = f.getData(s.password);
-      if (!L) throw x.Errors.CANT_EXTRACT_FILE();
-      if (o.fs.existsSync(p) && !u)
-        throw x.Errors.CANT_OVERRIDE();
+      var L = f.getData(o.password);
+      if (!L) throw F.Errors.CANT_EXTRACT_FILE();
+      if (s.fs.existsSync(g) && !d)
+        throw F.Errors.CANT_OVERRIDE();
       const O = m ? a.header.fileAttr : void 0;
-      return o.writeFileTo(p, L, u, O), !0;
+      return s.writeFileTo(g, L, d, O), !0;
     },
     /**
      * Test the archive
      * @param {string} [pass]
      */
     test: function(a) {
-      if (!s)
+      if (!o)
         return !1;
-      for (var l in s.entries)
+      for (var u in o.entries)
         try {
-          if (l.isDirectory)
+          if (u.isDirectory)
             continue;
-          var c = s.entries[l].getData(a);
+          var c = o.entries[u].getData(a);
           if (!c)
             return !1;
         } catch {
@@ -1753,23 +1753,23 @@ var Ct = function(e, t) {
      *                  Default is FALSE
      * @param {string|Buffer} [pass] password
      */
-    extractAllTo: function(a, l, c, u) {
-      if (c = X(!1, c), u = Se(c, u), l = X(!1, l), !s) throw x.Errors.NO_ZIP();
-      s.entries.forEach(function(m) {
-        var i = g(a, d(m.entryName));
+    extractAllTo: function(a, u, c, d) {
+      if (c = G(!1, c), d = xe(c, d), u = G(!1, u), !o) throw F.Errors.NO_ZIP();
+      o.entries.forEach(function(m) {
+        var i = p(a, l(m.entryName));
         if (m.isDirectory) {
-          o.makeDir(i);
+          s.makeDir(i);
           return;
         }
-        var f = m.getData(u);
+        var f = m.getData(d);
         if (!f)
-          throw x.Errors.CANT_EXTRACT_FILE();
+          throw F.Errors.CANT_EXTRACT_FILE();
         const E = c ? m.header.fileAttr : void 0;
-        o.writeFileTo(i, f, l, E);
+        s.writeFileTo(i, f, u, E);
         try {
-          o.fs.utimesSync(i, m.header.time, m.header.time);
+          s.fs.utimesSync(i, m.header.time, m.header.time);
         } catch {
-          throw x.Errors.CANT_EXTRACT_FILE();
+          throw F.Errors.CANT_EXTRACT_FILE();
         }
       });
     },
@@ -1783,53 +1783,53 @@ var Ct = function(e, t) {
      *                  Default is FALSE
      * @param {function} callback The callback will be executed when all entries are extracted successfully or any error is thrown.
      */
-    extractAllToAsync: function(a, l, c, u) {
-      if (u = Lt(l, c, u), c = X(!1, c), l = X(!1, l), !u)
-        return new Promise((p, y) => {
-          this.extractAllToAsync(a, l, c, function(L) {
-            L ? y(L) : p(this);
+    extractAllToAsync: function(a, u, c, d) {
+      if (d = vt(u, c, d), c = G(!1, c), u = G(!1, u), !d)
+        return new Promise((g, N) => {
+          this.extractAllToAsync(a, u, c, function(L) {
+            L ? N(L) : g(this);
           });
         });
-      if (!s) {
-        u(x.Errors.NO_ZIP());
+      if (!o) {
+        d(F.Errors.NO_ZIP());
         return;
       }
-      a = U.resolve(a);
-      const m = (p) => g(a, U.normalize(d(p.entryName))), i = (p, y) => new Error(p + ': "' + y + '"'), f = [], E = [];
-      s.entries.forEach((p) => {
-        p.isDirectory ? f.push(p) : E.push(p);
+      a = P.resolve(a);
+      const m = (g) => p(a, P.normalize(l(g.entryName))), i = (g, N) => new Error(g + ': "' + N + '"'), f = [], E = [];
+      o.entries.forEach((g) => {
+        g.isDirectory ? f.push(g) : E.push(g);
       });
-      for (const p of f) {
-        const y = m(p), L = c ? p.header.fileAttr : void 0;
+      for (const g of f) {
+        const N = m(g), L = c ? g.header.fileAttr : void 0;
         try {
-          o.makeDir(y), L && o.fs.chmodSync(y, L), o.fs.utimesSync(y, p.header.time, p.header.time);
+          s.makeDir(N), L && s.fs.chmodSync(N, L), s.fs.utimesSync(N, g.header.time, g.header.time);
         } catch {
-          u(i("Unable to create folder", y));
+          d(i("Unable to create folder", N));
         }
       }
-      E.reverse().reduce(function(p, y) {
+      E.reverse().reduce(function(g, N) {
         return function(L) {
           if (L)
-            p(L);
+            g(L);
           else {
-            const O = U.normalize(d(y.entryName)), S = g(a, O);
-            y.getDataAsync(function(A, H) {
-              if (H)
-                p(H);
-              else if (!A)
-                p(x.Errors.CANT_EXTRACT_FILE());
+            const O = P.normalize(l(N.entryName)), A = p(a, O);
+            N.getDataAsync(function(R, j) {
+              if (j)
+                g(j);
+              else if (!R)
+                g(F.Errors.CANT_EXTRACT_FILE());
               else {
-                const j = c ? y.header.fileAttr : void 0;
-                o.writeFileToAsync(S, A, l, j, function(G) {
-                  G || p(i("Unable to write file", S)), o.fs.utimes(S, y.header.time, y.header.time, function(te) {
-                    te ? p(i("Unable to set times", S)) : p();
+                const $ = c ? N.header.fileAttr : void 0;
+                s.writeFileToAsync(A, R, u, $, function(X) {
+                  X || g(i("Unable to write file", A)), s.fs.utimes(A, N.header.time, N.header.time, function(oe) {
+                    oe ? g(i("Unable to set times", A)) : g();
                   });
                 });
               }
             });
           }
         };
-      }, u)();
+      }, d)();
     },
     /**
      * Writes the newly created zip file to disk at the specified location or if a zip was opened and no ``targetFileName`` is provided, it will overwrite the opened zip
@@ -1837,12 +1837,12 @@ var Ct = function(e, t) {
      * @param {string} targetFileName
      * @param {function} callback
      */
-    writeZip: function(a, l) {
-      if (arguments.length === 1 && typeof a == "function" && (l = a, a = ""), !a && r.filename && (a = r.filename), !!a) {
-        var c = s.compressToBuffer();
+    writeZip: function(a, u) {
+      if (arguments.length === 1 && typeof a == "function" && (u = a, a = ""), !a && r.filename && (a = r.filename), !!a) {
+        var c = o.compressToBuffer();
         if (c) {
-          var u = o.writeFileTo(a, c, !0);
-          typeof l == "function" && l(u ? null : new Error("failed"), "");
+          var d = s.writeFileTo(a, c, !0);
+          typeof u == "function" && u(d ? null : new Error("failed"), "");
         }
       }
     },
@@ -1855,12 +1855,12 @@ var Ct = function(e, t) {
     
              * @returns {Promise<void>}
              */
-    writeZipPromise: function(a, l) {
-      const { overwrite: c, perm: u } = Object.assign({ overwrite: !0 }, l);
+    writeZipPromise: function(a, u) {
+      const { overwrite: c, perm: d } = Object.assign({ overwrite: !0 }, u);
       return new Promise((m, i) => {
         !a && r.filename && (a = r.filename), a || i("ADM-ZIP: ZIP File Name Missing"), this.toBufferPromise().then((f) => {
-          const E = (p) => p ? m(p) : i("ADM-ZIP: Wasn't able to write zip file");
-          o.writeFileToAsync(a, f, c, u, E);
+          const E = (g) => g ? m(g) : i("ADM-ZIP: Wasn't able to write zip file");
+          s.writeFileToAsync(a, f, c, d, E);
         }, i);
       });
     },
@@ -1868,8 +1868,8 @@ var Ct = function(e, t) {
      * @returns {Promise<Buffer>} A promise to the Buffer.
      */
     toBufferPromise: function() {
-      return new Promise((a, l) => {
-        s.toAsyncBuffer(a, l);
+      return new Promise((a, u) => {
+        o.toAsyncBuffer(a, u);
       });
     },
     /**
@@ -1881,142 +1881,262 @@ var Ct = function(e, t) {
      * @prop {function} [onItemEnd]
      * @returns {Buffer}
      */
-    toBuffer: function(a, l, c, u) {
-      return typeof a == "function" ? (s.toAsyncBuffer(a, l, c, u), null) : s.compressToBuffer();
+    toBuffer: function(a, u, c, d) {
+      return typeof a == "function" ? (o.toAsyncBuffer(a, u, c, d), null) : o.compressToBuffer();
     }
   };
 };
-const Me = /* @__PURE__ */ Ye(Ct), ge = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Ze = /* @__PURE__ */ st(Ft), Se = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
-  default: Me
-}, Symbol.toStringTag, { value: "Module" })), St = Fe(import.meta.url), _e = w.dirname(St);
-function He() {
-  return process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+  default: Ze
+}, Symbol.toStringTag, { value: "Module" })), Ut = Ne(import.meta.url), Pt = T.dirname(Ut);
+function De() {
+  return process.env.NODE_ENV === "test" ? T.join(Pt, "../tmp-test-credentials.enc") : T.join(z.getPath("userData"), "credentials.enc");
 }
-function _t() {
-  return process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
+async function Bt(e) {
+  if (!ae.isEncryptionAvailable())
+    throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), new Error("Encryption not available on this system");
+  try {
+    const t = JSON.stringify(e), n = ae.encryptString(t);
+    _.writeFileSync(De(), n), console.log("[SecureStore] Credentials saved securely");
+  } catch (t) {
+    throw console.error("[SecureStore] Failed to save credentials:", t), new Error("Failed to save credentials securely");
+  }
 }
-const wt = "google/gemini-2.0-flash-thinking-exp:free";
-let J = [], he = null, Ie = "idle", ze = null, oe = 0;
-function se(e) {
+function ne() {
+  const e = De();
+  if (_.existsSync(e))
+    try {
+      if (!ae.isEncryptionAvailable())
+        return console.warn("[SecureStore] Encryption not available, cannot decrypt credentials"), null;
+      const t = _.readFileSync(e), n = ae.decryptString(t), r = JSON.parse(n);
+      return console.log("[SecureStore] Credentials loaded from secure storage"), r;
+    } catch (t) {
+      return console.error("[SecureStore] Failed to load credentials:", t), null;
+    }
+  return null;
+}
+function Ge() {
+  const e = ne();
+  return e != null && e.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+}
+function Xe(e) {
+  const t = ne();
+  return t != null && t.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
+}
+function Mt(e, t) {
+  return e === "anthropic" ? "MiniMax-M2.7" : t != null && t.includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo";
+}
+function bt(e) {
+  const t = ne();
+  if (t != null && t.qaModel)
+    return t.qaModel;
+  if (process.env.QA_MODEL) return process.env.QA_MODEL;
+  const n = (t == null ? void 0 : t.qaBaseUrl) || Xe(e);
+  return Mt(e, n);
+}
+function jt() {
+  const e = ne();
+  return e != null && e.qaApiStyle ? e.qaApiStyle : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
+}
+function Ht() {
+  try {
+    const e = De();
+    _.existsSync(e) && (_.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
+  } catch (e) {
+    console.error("[SecureStore] Failed to clear credentials:", e);
+  }
+}
+function $t() {
+  return Ge().length > 0;
+}
+const zt = Ne(import.meta.url), Fe = T.dirname(zt);
+function ee() {
+  return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : jt();
+}
+function Le() {
+  return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : Ge();
+}
+function Ce() {
+  return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : ee() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : Xe(ee());
+}
+function Ke() {
+  return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : ee() === "anthropic" ? "MiniMax-M2.7" : Ce().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : bt(ee());
+}
+function Ve(e) {
+  return e.replace(/\/+$/g, "");
+}
+function kt(e) {
+  try {
+    const t = new URL(e);
+    return t.pathname !== "/" && t.pathname !== "";
+  } catch {
+    return e.split("/").length > 3;
+  }
+}
+let W = [], ce = null, _e = "idle", We = null, Y = 0;
+function fe(e) {
   return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((t) => t.length > 2);
 }
-function Ot(e, t, n) {
-  const r = new Array(t.size).fill(0), o = /* @__PURE__ */ new Map();
-  for (const s of e)
-    o.set(s, (o.get(s) || 0) + 1);
-  for (const [s, d] of o) {
-    const g = t.get(s);
-    if (g !== void 0) {
-      const h = d / e.length, I = n.get(s) || 0;
-      r[g] = h * I;
+function Zt(e, t, n) {
+  const r = new Array(t.size).fill(0), s = /* @__PURE__ */ new Map();
+  for (const o of e)
+    s.set(o, (s.get(o) || 0) + 1);
+  for (const [o, l] of s) {
+    const p = t.get(o);
+    if (p !== void 0) {
+      const h = l / e.length, y = n.get(o) || 0;
+      r[p] = h * y;
     }
   }
   return r;
 }
-function At(e) {
-  const t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((g) => se(g));
-  for (const g of r) {
-    const h = new Set(g);
-    for (const I of h)
-      n.set(I, (n.get(I) || 0) + 1);
+function Gt(e) {
+  const t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((p) => fe(p));
+  for (const p of r) {
+    const h = new Set(p);
+    for (const y of h)
+      n.set(y, (n.get(y) || 0) + 1);
   }
-  let o = 0;
-  for (const g of n.keys())
-    t.set(g, o++);
-  const s = /* @__PURE__ */ new Map(), d = e.length;
-  for (const [g, h] of n)
-    s.set(g, Math.log((d + 1) / (h + 1)) + 1);
-  return { vocab: t, idf: s };
+  let s = 0;
+  for (const p of n.keys())
+    t.set(p, s++);
+  const o = /* @__PURE__ */ new Map(), l = e.length;
+  for (const [p, h] of n)
+    o.set(p, Math.log((l + 1) / (h + 1)) + 1);
+  return { vocab: t, idf: o };
 }
-function Rt(e, t) {
-  const n = new Set(se(e)), r = new Set(se(t));
-  let o = 0;
-  for (const s of n)
-    r.has(s) && o++;
-  return o / n.size;
+function Xt(e, t) {
+  const n = new Set(fe(e));
+  if (n.size === 0) return 0;
+  const r = new Set(fe(t));
+  let s = 0;
+  for (const o of n)
+    r.has(o) && s++;
+  return s / n.size;
 }
-async function Ft(e) {
-  var r, o, s;
-  const t = await fetch(`${_t()}/chat/completions`, {
+async function Kt(e, t) {
+  var p, h, y;
+  const n = Ve(Ce());
+  let r;
+  n.endsWith("/chat/completions") ? r = n : n.endsWith("/api/v1") ? r = `${n}/chat/completions` : n.endsWith("/v1") ? r = `${n}/chat/completions` : kt(n) ? r = `${n}/chat/completions` : r = `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
+  const s = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${Le()}`
+  };
+  n.includes("openrouter.ai") && (s["HTTP-Referer"] = "https://github.com", s["X-Title"] = "UniversalReader");
+  const o = await fetch(r, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${He()}`,
-      "HTTP-Referer": "https://github.com",
-      "X-Title": "UniversalReader"
-    },
+    headers: s,
+    signal: t,
     body: JSON.stringify({
-      model: wt,
+      model: Ke(),
       messages: e,
       temperature: 0.7
     })
   });
-  if (!t.ok) {
-    const d = await t.text();
-    throw new Error(`OpenRouter API error: ${t.status} - ${d}`);
+  if (!o.ok) {
+    const S = await o.text();
+    throw new Error(`OpenAI-compatible API error: ${o.status} - ${S}`);
   }
-  return ((s = (o = (r = (await t.json()).choices) == null ? void 0 : r[0]) == null ? void 0 : o.message) == null ? void 0 : s.content) || "Sorry, I couldn't generate a response.";
+  return ((y = (h = (p = (await o.json()).choices) == null ? void 0 : p[0]) == null ? void 0 : h.message) == null ? void 0 : y.content) || "Sorry, I couldn't generate a response.";
 }
-async function xt(e, t = 4) {
-  if (J.length === 0) return [];
-  const n = J.map((r, o) => ({
-    idx: o,
-    score: Rt(e, r.content),
+async function Vt(e, t) {
+  var l;
+  const n = Ve(Ce()), r = await fetch(`${n}/v1/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": Le(),
+      "anthropic-version": "2023-06-01"
+    },
+    signal: t,
+    body: JSON.stringify({
+      model: Ke(),
+      max_tokens: 1024,
+      messages: e
+    })
+  });
+  if (!r.ok) {
+    const p = await r.text();
+    throw new Error(`Anthropic-compatible API error: ${r.status} - ${p}`);
+  }
+  return ((l = (await r.json()).content) == null ? void 0 : l.filter((p) => p.type === "text").map((p) => p.text || "").join(`
+`).trim()) || "Sorry, I couldn't generate a response.";
+}
+async function Wt(e, t = 3) {
+  for (let n = 0; n < t; n++)
+    try {
+      const r = new AbortController(), s = setTimeout(() => r.abort(), 6e4), o = ee() === "anthropic" ? await Vt(e, r.signal) : await Kt(e, r.signal);
+      return clearTimeout(s), o;
+    } catch (r) {
+      const s = n === t - 1, o = r instanceof Error ? r.message : String(r);
+      if (console.error(`[QA] Chat API error (attempt ${n + 1}/${t}):`, o), s)
+        throw new Error(`Chat API failed after ${t} attempts: ${o}`);
+      let l = 1e3 * (n + 1);
+      o.includes("429") ? (l = 2e3 * (n + 2), console.log(`[QA] Rate limit detected, waiting ${l}ms before retry...`)) : o.includes("50") || o.includes("503") ? (l = 1500 * (n + 1), console.log(`[QA] Server error detected, waiting ${l}ms before retry...`)) : o.includes("abort") && (l = 500, console.log(`[QA] Request timeout, retrying in ${l}ms...`)), await new Promise((p) => setTimeout(p, l));
+    }
+  throw new Error("Unexpected error in retry loop");
+}
+async function Qt(e, t = 4) {
+  if (W.length === 0) return [];
+  const n = W.map((r, s) => ({
+    idx: s,
+    score: Xt(e, r.content),
     doc: r
   }));
-  return n.sort((r, o) => o.score - r.score), n.slice(0, t).map((r) => ({
+  return n.sort((r, s) => s.score - r.score), n.slice(0, t).map((r) => ({
     pageContent: r.doc.content,
     metadata: r.doc.metadata
   }));
 }
-function re(e, t) {
-  Ie = e, ze = t || null;
+function ie(e, t) {
+  _e = e, We = t || null;
 }
-function vt() {
+function Yt() {
   return {
-    status: Ie,
-    currentBook: he || void 0,
-    error: ze || void 0,
-    chunkCount: oe || void 0
+    status: _e,
+    currentBook: ce || void 0,
+    error: We || void 0,
+    chunkCount: Y || void 0
   };
 }
-async function Ut(e, t) {
+async function qt(e, t) {
   switch (t.toLowerCase()) {
     case "txt":
     case "md":
-      return R.promises.readFile(e, "utf-8");
+      return _.promises.readFile(e, "utf-8");
     case "pdf": {
       const n = await import("./pdf-CMEkdAEn.js"), r = [
-        w.join(process.cwd(), "public", "pdf.worker.min.mjs"),
-        w.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
-        w.join(_e, "..", "dist", "pdf.worker.min.mjs"),
-        w.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
-        w.join(_e, "..", "dist-electron", "pdf.worker.mjs")
+        T.join(process.cwd(), "public", "pdf.worker.min.mjs"),
+        T.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
+        T.join(Fe, "..", "dist", "pdf.worker.min.mjs"),
+        T.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
+        T.join(Fe, "..", "dist-electron", "pdf.worker.mjs")
       ];
       for (const h of r)
-        if (R.existsSync(h)) {
+        if (_.existsSync(h)) {
           n.GlobalWorkerOptions.workerSrc = h;
           break;
         }
-      const o = await R.promises.readFile(e), s = new Uint8Array(o), d = await n.getDocument({ data: s }).promise, g = [];
-      for (let h = 1; h <= d.numPages; h++) {
-        const C = (await (await d.getPage(h)).getTextContent()).items.map((T) => typeof T == "object" && T !== null && "str" in T ? T.str : "").join(" ");
-        g.push(C);
+      const s = await _.promises.readFile(e), o = new Uint8Array(s), l = await n.getDocument({ data: o }).promise, p = [];
+      for (let h = 1; h <= l.numPages; h++) {
+        const D = (await (await l.getPage(h)).getTextContent()).items.map((C) => typeof C == "object" && C !== null && "str" in C ? C.str : "").join(" ");
+        p.push(D);
       }
-      return g.join(`
+      return p.join(`
 
 `);
     }
     case "epub": {
-      const r = new Me(e).getEntries(), o = [];
-      for (const d of r)
-        if (d.entryName.endsWith(".html") || d.entryName.endsWith(".xhtml") || d.entryName.endsWith(".htm")) {
-          const g = d.getData().toString("utf-8");
-          o.push(g);
+      const r = new Ze(e).getEntries(), s = [];
+      for (const l of r)
+        if (l.entryName.endsWith(".html") || l.entryName.endsWith(".xhtml") || l.entryName.endsWith(".htm")) {
+          const p = l.getData().toString("utf-8");
+          s.push(p);
         }
-      return o.map(
-        (d) => d.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim()
+      return s.map(
+        (l) => l.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim()
       ).join(`
 
 `);
@@ -2031,104 +2151,122 @@ async function Ut(e, t) {
       throw new Error(`Unsupported format: ${t}`);
   }
 }
-async function Pt(e, t) {
+async function Jt(e, t) {
   try {
-    if (re("loading"), !He())
+    W = [], ce = null, Y = 0, ie("loading");
+    const n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
+    if (console.log(`[QA] Memory before load: ${r}MB heap used`), n.heapUsed > 500 * 1024 * 1024)
+      if (console.warn(`[QA] High memory usage (${r}MB), attempting GC...`), global.gc) {
+        global.gc();
+        const D = process.memoryUsage(), C = Math.round(D.heapUsed / 1024 / 1024);
+        console.log(`[QA] Memory after GC: ${C}MB heap used`);
+      } else
+        console.warn("[QA] GC not available (run with --expose-gc flag)");
+    if (!Le())
       throw new Error(
-        "OPENROUTER_API_KEY environment variable is not set. Please set it in your .env file or system environment. Get your free API key from https://openrouter.ai/keys"
+        "QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment."
       );
-    if (!R.existsSync(e))
+    if (!_.existsSync(e))
       throw new Error(`File not found: ${e}`);
     console.log(`[QA] Extracting text from ${e}`);
-    const n = await Ut(e, t);
-    if (!n || n.trim().length === 0)
+    const s = await qt(e, t);
+    if (!s || s.trim().length === 0)
       throw new Error("No text content extracted from file");
-    console.log(`[QA] Extracted ${n.length} characters`);
-    const r = 1e3, o = [];
-    for (let g = 0; g < n.length; g += r)
-      o.push(n.slice(g, g + r));
-    console.log(`[QA] Created ${o.length} text chunks`);
-    const { vocab: s, idf: d } = At(o);
-    return J = o.map((g, h) => {
-      const I = se(g);
+    console.log(`[QA] Extracted ${s.length} characters`);
+    const o = 1e3, l = [];
+    for (let D = 0; D < s.length; D += o)
+      l.push(s.slice(D, D + o));
+    console.log(`[QA] Created ${l.length} text chunks`);
+    const { vocab: p, idf: h } = Gt(l);
+    W = l.map((D, C) => {
+      const a = fe(D);
       return {
-        content: g,
-        embedding: Ot(I, s, d),
-        metadata: { source: w.basename(e), chunkIndex: h }
+        content: D,
+        embedding: Zt(a, p, h),
+        metadata: { source: T.basename(e), chunkIndex: C }
       };
-    }), oe = o.length, he = e, re("ready"), console.log(`[QA] Ready with ${oe} chunks`), { success: !0 };
+    }), Y = l.length, ce = e, ie("ready");
+    const y = process.memoryUsage(), S = Math.round(y.heapUsed / 1024 / 1024);
+    return console.log(`[QA] Ready with ${Y} chunks, memory: ${S}MB`), { success: !0 };
   } catch (n) {
     const r = n instanceof Error ? n.message : "Unknown error";
-    return console.error("[QA] Load error:", r), re("error", r), { success: !1, error: r };
+    return console.error("[QA] Load error:", r), ie("error", r), { success: !1, error: r };
   }
 }
-async function Bt(e) {
-  if (J.length === 0)
+async function en(e) {
+  const t = e.trim();
+  if (!t)
+    throw new Error("Question cannot be empty.");
+  if (W.length === 0)
     throw new Error("No book loaded. Please load a book first.");
-  if (Ie !== "ready")
+  if (_e !== "ready")
     throw new Error("QA service not ready. Please wait.");
-  console.log(`[QA] Question: ${e}`);
-  const t = await xt(e, 4), r = `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
+  console.log(`[QA] Question: ${t}`);
+  const n = await Qt(t, 3), r = n.map((p) => p.pageContent.slice(0, 1500)).join(`
+
+`);
+  console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
+  const s = `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
 
 Context:
-${t.map((d) => d.pageContent.slice(0, 2e3)).join(`
+${r}
 
-`)}
+Question: ${t}
 
-Question: ${e}
-
-Answer:`, o = await Ft([
-    { role: "user", content: r }
-  ]), s = t.map((d) => ({
-    content: d.pageContent,
-    source: d.metadata.source || "Unknown"
+Answer:`, o = await Wt([
+    { role: "user", content: s }
+  ]), l = n.map((p) => ({
+    content: p.pageContent,
+    source: p.metadata.source || "Unknown"
   }));
   return console.log(`[QA] Answer length: ${o.length}`), {
     answer: o,
-    sources: s
+    sources: l
   };
 }
-function bt() {
-  J = [], he = null, oe = 0, re("idle"), console.log("[QA] Cleared");
+function tn() {
+  W = [], ce = null, Y = 0, ie("idle");
+  const e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
+  console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
 }
-const le = {
-  loadBookForQA: Pt,
-  askQuestion: Bt,
-  clearQA: bt,
-  getStatus: vt
-}, je = [
+const me = {
+  loadBookForQA: Jt,
+  askQuestion: en,
+  clearQA: tn,
+  getStatus: Yt
+}, Qe = [
   "pdf",
   "epub",
   "mobi",
   "azw3",
   "txt",
   "md"
-], Ze = ["docx"], Mt = /* @__PURE__ */ new Set(["epub", "mobi", "azw3", "txt", "md"]);
-function ue(e) {
+], Ye = ["docx"], nn = /* @__PURE__ */ new Set(["epub", "mobi", "azw3", "txt", "md"]);
+function pe(e) {
   return e.trim().toLowerCase().replace(/^\./, "");
 }
-function ke(e) {
-  const t = ue(e);
-  return je.includes(t);
+function qe(e) {
+  const t = pe(e);
+  return Qe.includes(t);
 }
-function Ht(e) {
-  const t = ue(e);
-  return Ze.includes(t);
+function rn(e) {
+  const t = pe(e);
+  return Ye.includes(t);
 }
-function zt(e) {
-  return ke(e) ? "supported" : Ht(e) ? "convertible" : "unsupported";
+function on(e) {
+  return qe(e) ? "supported" : rn(e) ? "convertible" : "unsupported";
 }
-function pe(e) {
-  return Mt.has(e) ? "flow" : "paged";
+function Ie(e) {
+  return nn.has(e) ? "flow" : "paged";
 }
-function jt() {
-  return [...je, ...Ze];
+function sn() {
+  return [...Qe, ...Ye];
 }
-function we(e) {
+function Ue(e) {
   return e === "docx" ? "md" : e;
 }
-function Zt(e) {
-  const t = ue(e), n = zt(t);
+function an(e) {
+  const t = pe(e), n = on(t);
   if (n === "unsupported")
     return {
       capability: n,
@@ -2136,29 +2274,29 @@ function Zt(e) {
       requiresConversion: !1,
       reason: "unsupported_format"
     };
-  if (ke(t)) {
-    const o = we(t);
+  if (qe(t)) {
+    const s = Ue(t);
     return {
       capability: n,
       sourceFormat: t,
-      targetFormat: o,
-      documentKind: pe(o),
+      targetFormat: s,
+      documentKind: Ie(s),
       ingestStatus: "ready",
       requiresConversion: !1
     };
   }
-  const r = we(t);
+  const r = Ue(t);
   return {
     capability: n,
     sourceFormat: t,
     targetFormat: r,
-    documentKind: pe(r),
+    documentKind: Ie(r),
     ingestStatus: "converted",
     requiresConversion: !0
   };
 }
-const kt = w.join(Z.getPath("userData"), "library.db"), z = new Ve(kt);
-z.exec(`
+const cn = T.join(z.getPath("userData"), "library.db"), H = new nt(cn);
+H.exec(`
   CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -2176,15 +2314,15 @@ z.exec(`
     sourceFormat TEXT
   );
 `);
-const ee = (e, t) => {
-  z.prepare("PRAGMA table_info(books)").all().some((o) => o.name === e) || z.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
+const re = (e, t) => {
+  H.prepare("PRAGMA table_info(books)").all().some((s) => s.name === e) || H.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
 };
-ee("progressLocator", "TEXT");
-ee("progressUpdatedAt", "INTEGER");
-ee("documentKind", "TEXT");
-ee("ingestStatus", "TEXT");
-ee("sourceFormat", "TEXT");
-z.exec(`
+re("progressLocator", "TEXT");
+re("progressUpdatedAt", "INTEGER");
+re("documentKind", "TEXT");
+re("ingestStatus", "TEXT");
+re("sourceFormat", "TEXT");
+H.exec(`
   CREATE TABLE IF NOT EXISTS annotations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     bookId INTEGER NOT NULL,
@@ -2199,99 +2337,99 @@ z.exec(`
     FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
   );
 `);
-z.exec(`
+H.exec(`
   CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);
   CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
   CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
   CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);
 `);
-const Y = w.join(Z.getPath("userData"), "covers");
-R.mkdirSync(Y, { recursive: !0 });
-async function $t(e, t) {
+const q = T.join(z.getPath("userData"), "covers");
+_.mkdirSync(q, { recursive: !0 });
+async function fn(e, t) {
   try {
-    const n = (await Promise.resolve().then(() => ge)).default, o = new n(e).getEntries(), s = [
+    const n = (await Promise.resolve().then(() => Se)).default, s = new n(e).getEntries(), o = [
       /cover\.(jpg|jpeg|png|gif)$/i,
       /cover-image\.(jpg|jpeg|png|gif)$/i,
       /images\/cover\.(jpg|jpeg|png|gif)$/i,
       /OEBPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
       /OPS\/images\/cover\.(jpg|jpeg|png|gif)$/i
-    ], d = o.find((h) => h.entryName.endsWith(".opf"));
-    if (d) {
-      const h = d.getData().toString("utf-8"), I = h.match(/name="cover"\s+content="([^"]+)"/) || h.match(/properties="cover-image"[^>]*href="([^"]+)"/);
-      if (I) {
-        const D = I[1], C = h.match(new RegExp(`id="${D}"[^>]*href="([^"]+)"`)) || h.match(new RegExp(`href="([^"]+)"[^>]*id="${D}"`));
-        if (C) {
-          const T = C[1], a = w.dirname(d.entryName), l = a ? `${a}/${T}` : T, c = o.find(
-            (u) => u.entryName === l || u.entryName.endsWith(T)
+    ], l = s.find((h) => h.entryName.endsWith(".opf"));
+    if (l) {
+      const h = l.getData().toString("utf-8"), y = h.match(/name="cover"\s+content="([^"]+)"/) || h.match(/properties="cover-image"[^>]*href="([^"]+)"/);
+      if (y) {
+        const S = y[1], D = h.match(new RegExp(`id="${S}"[^>]*href="([^"]+)"`)) || h.match(new RegExp(`href="([^"]+)"[^>]*id="${S}"`));
+        if (D) {
+          const C = D[1], a = T.dirname(l.entryName), u = a ? `${a}/${C}` : C, c = s.find(
+            (d) => d.entryName === u || d.entryName.endsWith(C)
           );
           if (c) {
-            const u = c.getData(), m = w.extname(c.entryName) || ".jpg", i = `${t}${m}`, f = w.join(Y, i);
-            return await R.promises.writeFile(f, u), f;
+            const d = c.getData(), m = T.extname(c.entryName) || ".jpg", i = `${t}${m}`, f = T.join(q, i);
+            return await _.promises.writeFile(f, d), f;
           }
         }
       }
     }
-    for (const h of s) {
-      const I = o.find((D) => h.test(D.entryName));
-      if (I) {
-        const D = I.getData(), C = w.extname(I.entryName) || ".jpg", T = `${t}${C}`, a = w.join(Y, T);
-        return await R.promises.writeFile(a, D), a;
+    for (const h of o) {
+      const y = s.find((S) => h.test(S.entryName));
+      if (y) {
+        const S = y.getData(), D = T.extname(y.entryName) || ".jpg", C = `${t}${D}`, a = T.join(q, C);
+        return await _.promises.writeFile(a, S), a;
       }
     }
-    const g = o.find(
+    const p = s.find(
       (h) => /\.(jpg|jpeg|png|gif)$/i.test(h.entryName) && (h.entryName.toLowerCase().includes("cover") || h.entryName.toLowerCase().includes("title"))
     );
-    if (g) {
-      const h = g.getData(), I = w.extname(g.entryName) || ".jpg", D = `${t}${I}`, C = w.join(Y, D);
-      return await R.promises.writeFile(C, h), C;
+    if (p) {
+      const h = p.getData(), y = T.extname(p.entryName) || ".jpg", S = `${t}${y}`, D = T.join(q, S);
+      return await _.promises.writeFile(D, h), D;
     }
     return null;
   } catch (n) {
     return console.error("Failed to extract EPUB cover:", n), null;
   }
 }
-async function Xt(e, t) {
+async function ln(e, t) {
   try {
-    const n = await import("./pdf-CMEkdAEn.js"), r = await R.promises.readFile(e), o = new Uint8Array(r), d = await (await n.getDocument({ data: o }).promise).getPage(1), g = d.getViewport({ scale: 1 }), h = Math.min(400 / g.width, 1.5), I = d.getViewport({ scale: h }), D = Ke(I.width, I.height), C = D.getContext("2d");
-    await d.render({
-      canvasContext: C,
-      viewport: I
+    const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), l = await (await n.getDocument({ data: s }).promise).getPage(1), p = l.getViewport({ scale: 1 }), h = Math.min(400 / p.width, 1.5), y = l.getViewport({ scale: h }), S = rt(y.width, y.height), D = S.getContext("2d");
+    await l.render({
+      canvasContext: D,
+      viewport: y
     }).promise;
-    const T = `${t}.png`, a = w.join(Y, T), l = D.toBuffer("image/png");
-    return await R.promises.writeFile(a, l), a;
+    const C = `${t}.png`, a = T.join(q, C), u = S.toBuffer("image/png");
+    return await _.promises.writeFile(a, u), a;
   } catch (n) {
     return console.error("Failed to extract PDF cover:", n), null;
   }
 }
-function Gt(e) {
+function un(e) {
   return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (t, n) => String.fromCharCode(Number(n)));
 }
-async function Vt(e) {
-  const t = (await Promise.resolve().then(() => ge)).default, r = new t(e).getEntry("word/document.xml");
+async function dn(e) {
+  const t = (await Promise.resolve().then(() => Se)).default, r = new t(e).getEntry("word/document.xml");
   if (!r)
     throw new Error("DOCX 内容缺失: word/document.xml");
-  return r.getData().toString("utf-8").split(/<\/w:p>/i).map((d) => [...d.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, `
-`).matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((D) => Gt(D[1])).join("").trim()).filter(Boolean).join(`
+  return r.getData().toString("utf-8").split(/<\/w:p>/i).map((l) => [...l.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, `
+`).matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((S) => un(S[1])).join("").trim()).filter(Boolean).join(`
 
 `);
 }
-async function Kt(e, t) {
+async function En(e, t) {
   try {
     if (t === "epub") {
-      const n = (await Promise.resolve().then(() => ge)).default, s = new n(e).getEntries().find((d) => d.entryName.endsWith(".opf"));
-      if (s) {
-        const d = s.getData().toString("utf-8"), g = d.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), h = d.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
+      const n = (await Promise.resolve().then(() => Se)).default, o = new n(e).getEntries().find((l) => l.entryName.endsWith(".opf"));
+      if (o) {
+        const l = o.getData().toString("utf-8"), p = l.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), h = l.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
         return {
-          title: g ? g[1].trim() : void 0,
+          title: p ? p[1].trim() : void 0,
           author: h ? h[1].trim() : void 0
         };
       }
     }
     if (t === "pdf") {
-      const n = await import("./pdf-CMEkdAEn.js"), r = await R.promises.readFile(e), o = new Uint8Array(r), g = (await (await n.getDocument({ data: o }).promise).getMetadata()).info;
+      const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), p = (await (await n.getDocument({ data: s }).promise).getMetadata()).info;
       return {
-        title: (g == null ? void 0 : g.Title) || void 0,
-        author: (g == null ? void 0 : g.Author) || void 0
+        title: (p == null ? void 0 : p.Title) || void 0,
+        author: (p == null ? void 0 : p.Author) || void 0
       };
     }
   } catch (n) {
@@ -2299,7 +2437,7 @@ async function Kt(e, t) {
   }
   return {};
 }
-function Wt(e) {
+function mn(e) {
   if (e)
     try {
       return JSON.parse(e);
@@ -2307,138 +2445,138 @@ function Wt(e) {
       return;
     }
 }
-function Ne(e) {
+function Te(e) {
   const t = e.format || "txt";
   return {
     ...e,
-    progressLocator: Wt(e.progressLocator),
+    progressLocator: mn(e.progressLocator),
     progressUpdatedAt: e.progressUpdatedAt ?? void 0,
-    documentKind: e.documentKind || pe(t),
+    documentKind: e.documentKind || Ie(t),
     ingestStatus: e.ingestStatus || "ready",
     sourceFormat: e.sourceFormat || t
   };
 }
-const Yt = z.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), qt = z.prepare(`
+const pn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), gn = H.prepare(`
   SELECT * FROM books
   WHERE title LIKE ? OR author LIKE ?
   ORDER BY lastReadAt DESC
-`), Jt = z.prepare(`
+`), hn = H.prepare(`
   UPDATE books
   SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
   WHERE id = ?
 `);
-B.handle("read-file", async (e, t) => R.promises.readFile(t));
-B.handle("read-file-buffer", async (e, t) => R.promises.readFile(t));
-B.handle("file-exists", async (e, t) => {
+v.handle("read-file", async (e, t) => _.promises.readFile(t));
+v.handle("read-file-buffer", async (e, t) => _.promises.readFile(t));
+v.handle("file-exists", async (e, t) => {
   try {
-    return await R.promises.access(t, R.constants.F_OK), !0;
+    return await _.promises.access(t, _.constants.F_OK), !0;
   } catch {
     return !1;
   }
 });
-B.handle("open-external", async (e, t) => Oe.openExternal(t));
-B.handle("open-user-data-folder", async () => Oe.openPath(Z.getPath("userData")));
-B.handle("get-cover-url", async (e, t) => {
+v.handle("open-external", async (e, t) => Pe.openExternal(t));
+v.handle("open-user-data-folder", async () => Pe.openPath(z.getPath("userData")));
+v.handle("get-cover-url", async (e, t) => {
   if (!t) return null;
   try {
-    return await R.promises.access(t, R.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+    return await _.promises.access(t, _.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
   } catch {
     return null;
   }
 });
-const $e = w.join(Z.getPath("userData"), "backgrounds");
-R.mkdirSync($e, { recursive: !0 });
-B.handle("select-background-image", async () => {
-  const e = await Ae.showOpenDialog({
+const Je = T.join(z.getPath("userData"), "backgrounds");
+_.mkdirSync(Je, { recursive: !0 });
+v.handle("select-background-image", async () => {
+  const e = await Be.showOpenDialog({
     properties: ["openFile"],
     filters: [
       { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp", "bmp"] }
     ]
   });
   if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = w.extname(t), r = `background-${xe.randomUUID()}${n}`, o = w.join($e, r);
+  const t = e.filePaths[0], n = T.extname(t), r = `background-${be.randomUUID()}${n}`, s = T.join(Je, r);
   try {
-    return await R.promises.copyFile(t, o), o;
-  } catch (s) {
-    return console.error("Failed to copy background image:", s), null;
+    return await _.promises.copyFile(t, s), s;
+  } catch (o) {
+    return console.error("Failed to copy background image:", o), null;
   }
 });
-B.handle("get-background-image-url", async (e, t) => {
+v.handle("get-background-image-url", async (e, t) => {
   if (!t) return null;
   try {
-    return await R.promises.access(t, R.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+    return await _.promises.access(t, _.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
   } catch {
     return null;
   }
 });
-B.handle("open-file-dialog", async () => {
-  const e = await Ae.showOpenDialog({
+v.handle("open-file-dialog", async () => {
+  const e = await Be.showOpenDialog({
     properties: ["openFile"],
     filters: [
-      { name: "Books", extensions: [...jt()] }
+      { name: "Books", extensions: [...sn()] }
     ]
   });
   if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = w.extname(t).toLowerCase(), r = ue(n), o = Zt(r);
-  if (o.capability === "unsupported" || !o.targetFormat || !o.documentKind || !o.ingestStatus)
+  const t = e.filePaths[0], n = T.extname(t).toLowerCase(), r = pe(n), s = an(r);
+  if (s.capability === "unsupported" || !s.targetFormat || !s.documentKind || !s.ingestStatus)
     return null;
-  const s = w.basename(t, n), d = xe.randomUUID(), g = w.join(Z.getPath("userData"), "books");
-  await R.promises.mkdir(g, { recursive: !0 });
+  const o = T.basename(t, n), l = be.randomUUID(), p = T.join(z.getPath("userData"), "books");
+  await _.promises.mkdir(p, { recursive: !0 });
   let h;
-  if (o.requiresConversion && o.sourceFormat === "docx") {
-    const a = `${s}-${d}.docx`, l = w.join(g, a);
-    await R.promises.copyFile(t, l);
-    const c = await Vt(l), u = `${s}-${d}.md`;
-    h = w.join(g, u), await R.promises.writeFile(h, c, "utf-8");
+  if (s.requiresConversion && s.sourceFormat === "docx") {
+    const a = `${o}-${l}.docx`, u = T.join(p, a);
+    await _.promises.copyFile(t, u);
+    const c = await dn(u), d = `${o}-${l}.md`;
+    h = T.join(p, d), await _.promises.writeFile(h, c, "utf-8");
   } else {
-    const a = `${s}-${d}${n}`;
-    h = w.join(g, a), await R.promises.copyFile(t, h);
+    const a = `${o}-${l}${n}`;
+    h = T.join(p, a), await _.promises.copyFile(t, h);
   }
-  const I = await Kt(h, o.targetFormat), D = I.title || s, C = I.author || null;
-  let T = null;
-  o.targetFormat === "epub" || o.targetFormat === "mobi" || o.targetFormat === "azw3" ? T = await $t(h, d) : o.targetFormat === "pdf" && (T = await Xt(h, d));
+  const y = await En(h, s.targetFormat), S = y.title || o, D = y.author || null;
+  let C = null;
+  s.targetFormat === "epub" || s.targetFormat === "mobi" || s.targetFormat === "azw3" ? C = await fn(h, l) : s.targetFormat === "pdf" && (C = await ln(h, l));
   try {
-    const l = z.prepare(`
+    const u = H.prepare(`
       INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP
       RETURNING *
     `).get(
+      S,
       D,
-      C,
       h,
-      o.targetFormat,
-      o.sourceFormat,
-      o.documentKind,
-      o.ingestStatus,
-      T
+      s.targetFormat,
+      s.sourceFormat,
+      s.documentKind,
+      s.ingestStatus,
+      C
     );
-    return l ? Ne(l) : null;
+    return u ? Te(u) : null;
   } catch (a) {
     return console.error("DB Insert Error:", a), null;
   }
 });
-B.handle("get-library", () => Yt.all().map(Ne));
-B.handle("search-library", (e, t) => {
+v.handle("get-library", () => pn.all().map(Te));
+v.handle("search-library", (e, t) => {
   const n = `%${t}%`;
-  return qt.all(n, n).map(Ne);
+  return gn.all(n, n).map(Te);
 });
-B.handle("update-progress", (e, t, n, r, o) => {
-  const s = typeof o == "number" ? o : Date.now(), d = r ? JSON.stringify(r) : null;
-  Jt.run(n, d, s, t);
+v.handle("update-progress", (e, t, n, r, s) => {
+  const o = typeof s == "number" ? s : Date.now(), l = r ? JSON.stringify(r) : null;
+  hn.run(n, l, o, t);
 });
-B.handle("delete-book", (e, t) => {
+v.handle("delete-book", (e, t) => {
   try {
-    const n = z.prepare("SELECT * FROM books WHERE id = ?").get(t);
-    return n && (n.coverPath && R.promises.unlink(n.coverPath).catch(() => {
-    }), n.path && R.promises.unlink(n.path).catch(() => {
-    })), z.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
+    const n = H.prepare("SELECT * FROM books WHERE id = ?").get(t);
+    return n && (n.coverPath && _.promises.unlink(n.coverPath).catch(() => {
+    }), n.path && _.promises.unlink(n.path).catch(() => {
+    })), H.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
   } catch (n) {
     return console.error("Delete book error:", n), !1;
   }
 });
-B.handle("get-annotations", (e, t) => z.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t));
-B.handle("add-annotation", (e, t) => z.prepare(`
+v.handle("get-annotations", (e, t) => H.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t));
+v.handle("add-annotation", (e, t) => H.prepare(`
     INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     RETURNING *
@@ -2451,62 +2589,78 @@ B.handle("add-annotation", (e, t) => z.prepare(`
   t.note || null,
   t.color || "#ffeb3b"
 ));
-B.handle("update-annotation", (e, t, n) => {
-  const r = [], o = [];
-  return n.note !== void 0 && (r.push("note = ?"), o.push(n.note)), n.color !== void 0 && (r.push("color = ?"), o.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), o.push(t), z.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...o));
+v.handle("update-annotation", (e, t, n) => {
+  const r = [], s = [];
+  return n.note !== void 0 && (r.push("note = ?"), s.push(n.note)), n.color !== void 0 && (r.push("color = ?"), s.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), s.push(t), H.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...s));
 });
-B.handle("delete-annotation", (e, t) => {
+v.handle("delete-annotation", (e, t) => {
   try {
-    return z.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
+    return H.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
   } catch (n) {
     return console.error("Delete annotation error:", n), !1;
   }
 });
-B.handle("qa-load-book", async (e, t, n) => le.loadBookForQA(t, n));
-B.handle("qa-ask", async (e, t) => le.askQuestion(t));
-B.handle("qa-clear", async () => {
-  le.clearQA();
+v.handle("qa-load-book", async (e, t, n) => me.loadBookForQA(t, n));
+v.handle("qa-ask", async (e, t) => me.askQuestion(t));
+v.handle("qa-clear", async () => {
+  me.clearQA();
 });
-B.handle("qa-get-status", async () => le.getStatus());
-const Qt = Fe(import.meta.url), Xe = K.dirname(Qt);
-process.env.DIST = K.join(Xe, "../dist");
-process.env.VITE_PUBLIC = Z.isPackaged ? process.env.DIST : K.join(process.env.DIST, "../public");
+v.handle("qa-get-status", async () => me.getStatus());
+v.handle("credentials-save", async (e, t) => {
+  try {
+    return await Bt(t), { success: !0 };
+  } catch (n) {
+    return { success: !1, error: n instanceof Error ? n.message : String(n) };
+  }
+});
+v.handle("credentials-load", async () => ne());
+v.handle("credentials-clear", async () => {
+  try {
+    return Ht(), { success: !0 };
+  } catch (e) {
+    return { success: !1, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+v.handle("credentials-has", async () => $t());
+const yn = Ne(import.meta.url), et = V.dirname(yn);
+process.env.DIST = V.join(et, "../dist");
+process.env.VITE_PUBLIC = z.isPackaged ? process.env.DIST : V.join(process.env.DIST, "../public");
 let k;
-const me = process.env.VITE_DEV_SERVER_URL;
-function en(e) {
+const ye = process.env.VITE_DEV_SERVER_URL;
+function In(e) {
   e.webContents.on(
     "did-fail-load",
-    (t, n, r, o, s) => {
-      s && console.error(
+    (t, n, r, s, o) => {
+      o && console.error(
         "[main] did-fail-load",
-        JSON.stringify({ errorCode: n, errorDescription: r, validatedURL: o })
+        JSON.stringify({ errorCode: n, errorDescription: r, validatedURL: s })
       );
     }
   ), e.webContents.on("render-process-gone", (t, n) => {
     console.error("[main] render-process-gone", JSON.stringify(n));
   });
 }
-function Ge() {
-  if (k = new Re({
-    icon: K.join(process.env.VITE_PUBLIC, "vite.svg"),
+function tt() {
+  if (k = new Me({
+    icon: V.join(process.env.VITE_PUBLIC, "vite.svg"),
     webPreferences: {
-      preload: K.join(Xe, "preload.mjs"),
+      preload: V.join(et, "preload.mjs"),
       contextIsolation: !0,
       nodeIntegration: !1
     }
-  }), en(k), k.webContents.on("did-finish-load", () => {
+  }), In(k), k.webContents.on("did-finish-load", () => {
     k == null || k.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), me)
-    console.log("[main] loading dev url:", me), k.loadURL(me), k.webContents.openDevTools({ mode: "detach" });
+  }), ye)
+    console.log("[main] loading dev url:", ye), k.loadURL(ye), k.webContents.openDevTools({ mode: "detach" });
   else {
-    const e = K.join(process.env.DIST, "index.html");
+    const e = V.join(process.env.DIST, "index.html");
     console.log("[main] loading file:", e), k.loadFile(e);
   }
 }
-Z.on("window-all-closed", () => {
-  process.platform !== "darwin" && Z.quit();
+z.on("window-all-closed", () => {
+  process.platform !== "darwin" && z.quit();
 });
-Z.on("activate", () => {
-  Re.getAllWindows().length === 0 && Ge();
+z.on("activate", () => {
+  Me.getAllWindows().length === 0 && tt();
 });
-Z.whenReady().then(Ge);
+z.whenReady().then(tt);

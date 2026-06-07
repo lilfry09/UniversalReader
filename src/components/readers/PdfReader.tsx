@@ -12,6 +12,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 import { isElectron } from '../../utils/platform'
 import type { ReaderTheme, Annotation, ReaderSettings, PdfProgressLocator, ReaderProgressLocator, ReaderProgressUpdate } from '../../types'
+import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 
 interface PdfReaderProps {
@@ -28,6 +29,20 @@ interface SelectionInfo {
   text: string
   position: { x: number; y: number }
   pageNumber: number
+  rects: PdfHighlightRect[]
+}
+
+interface PdfHighlightRect {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+interface PdfHighlightLocator {
+  kind: 'pdf-highlight'
+  version: 1
+  rects: PdfHighlightRect[]
 }
 
 export default function PdfReader({ 
@@ -36,7 +51,8 @@ export default function PdfReader({
   initialProgress = 0, 
   initialLocator,
   onProgressUpdate, 
-  theme
+  theme,
+  readerSettings = DEFAULT_READER_SETTINGS
 }: PdfReaderProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
@@ -50,6 +66,8 @@ export default function PdfReader({
   const [showAnnotations, setShowAnnotations] = useState(false)
   const [selection, setSelection] = useState<SelectionInfo | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const pageShellRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+  const scrollUpdateRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load annotations
   const loadAnnotations = useCallback(async () => {
@@ -129,6 +147,12 @@ export default function PdfReader({
   const changePage = (offset: number) => {
     const newPage = Math.min(Math.max(1, pageNumber + offset), numPages)
     setPageNumber(newPage)
+    if (readerSettings.pageMode === 'scroll') {
+      pageShellRefs.current.get(newPage)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
     
     if (onProgressUpdate && numPages > 0) {
       const locator: PdfProgressLocator = {
@@ -148,7 +172,85 @@ export default function PdfReader({
     setScale(prev => Math.min(Math.max(0.5, prev + delta), 3.0))
   }
 
+  const parsePdfHighlightLocator = (raw?: string): PdfHighlightLocator | null => {
+    if (!raw) return null
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<PdfHighlightLocator>
+      if (parsed.kind !== 'pdf-highlight' || parsed.version !== 1 || !Array.isArray(parsed.rects)) {
+        return null
+      }
+
+      const rects = parsed.rects.filter((rect): rect is PdfHighlightRect => (
+        typeof rect.left === 'number'
+        && typeof rect.top === 'number'
+        && typeof rect.width === 'number'
+        && typeof rect.height === 'number'
+      ))
+
+      return rects.length > 0 ? { kind: 'pdf-highlight', version: 1, rects } : null
+    } catch {
+      return null
+    }
+  }
+
   // Handle text selection
+  const updateProgressForPage = useCallback((nextPage: number) => {
+    if (onProgressUpdate && numPages > 0) {
+      const locator: PdfProgressLocator = {
+        kind: 'pdf',
+        page: nextPage,
+        totalPages: numPages,
+      }
+      onProgressUpdate({
+        progress: nextPage / numPages,
+        locator,
+        updatedAt: Date.now(),
+      })
+    }
+  }, [numPages, onProgressUpdate])
+
+  const handleScroll = useCallback(() => {
+    if (readerSettings.pageMode !== 'scroll' || numPages <= 0) return
+
+    if (scrollUpdateRef.current) {
+      clearTimeout(scrollUpdateRef.current)
+    }
+
+    scrollUpdateRef.current = setTimeout(() => {
+      const container = containerRef.current
+      if (!container) return
+
+      const containerRect = container.getBoundingClientRect()
+      const viewportCenter = containerRect.top + containerRect.height / 2
+      let nearestPage = pageNumber
+      let nearestDistance = Number.POSITIVE_INFINITY
+
+      pageShellRefs.current.forEach((pageElement, page) => {
+        const rect = pageElement.getBoundingClientRect()
+        const pageCenter = rect.top + rect.height / 2
+        const distance = Math.abs(pageCenter - viewportCenter)
+        if (distance < nearestDistance) {
+          nearestDistance = distance
+          nearestPage = page
+        }
+      })
+
+      if (nearestPage !== pageNumber) {
+        setPageNumber(nearestPage)
+        updateProgressForPage(nearestPage)
+      }
+    }, 120)
+  }, [numPages, pageNumber, readerSettings.pageMode, updateProgressForPage])
+
+  useEffect(() => {
+    return () => {
+      if (scrollUpdateRef.current) {
+        clearTimeout(scrollUpdateRef.current)
+      }
+    }
+  }, [])
+
   const handleMouseUp = useCallback(() => {
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed || !sel.toString().trim()) {
@@ -164,6 +266,41 @@ export default function PdfReader({
 
     const range = sel.getRangeAt(0)
     const rect = range.getBoundingClientRect()
+    const firstClientRect = range.getClientRects()[0]
+    const selectedPage = Array.from(pageShellRefs.current.entries()).find(([, pageElement]) => {
+      const pageRect = pageElement.getBoundingClientRect()
+      return firstClientRect
+        && firstClientRect.top >= pageRect.top
+        && firstClientRect.bottom <= pageRect.bottom
+    })
+
+    if (!selectedPage) {
+      setSelection(null)
+      return
+    }
+
+    const [selectionPageNumber, pageElement] = selectedPage
+    const pageRect = pageElement.getBoundingClientRect()
+    const rects = Array.from(range.getClientRects())
+      .map(clientRect => {
+        const left = Math.max(clientRect.left, pageRect.left)
+        const top = Math.max(clientRect.top, pageRect.top)
+        const right = Math.min(clientRect.right, pageRect.right)
+        const bottom = Math.min(clientRect.bottom, pageRect.bottom)
+
+        return {
+          left: (left - pageRect.left) / pageRect.width,
+          top: (top - pageRect.top) / pageRect.height,
+          width: (right - left) / pageRect.width,
+          height: (bottom - top) / pageRect.height,
+        }
+      })
+      .filter(selectionRect => selectionRect.width > 0.002 && selectionRect.height > 0.002)
+
+    if (rects.length === 0) {
+      setSelection(null)
+      return
+    }
     
     setSelection({
       text,
@@ -171,9 +308,10 @@ export default function PdfReader({
         x: rect.left + rect.width / 2,
         y: rect.top - 10,
       },
-      pageNumber,
+      pageNumber: selectionPageNumber,
+      rects,
     })
-  }, [pageNumber])
+  }, [])
 
   // Add highlight
   const handleHighlight = async (color: string) => {
@@ -185,6 +323,11 @@ export default function PdfReader({
         type: 'highlight',
         pageNumber: selection.pageNumber,
         text: selection.text,
+        cfi: JSON.stringify({
+          kind: 'pdf-highlight',
+          version: 1,
+          rects: selection.rects,
+        } satisfies PdfHighlightLocator),
         color,
       })
       await loadAnnotations()
@@ -209,6 +352,11 @@ export default function PdfReader({
         pageNumber: selection.pageNumber,
         text: selection.text,
         note,
+        cfi: JSON.stringify({
+          kind: 'pdf-highlight',
+          version: 1,
+          rects: selection.rects,
+        } satisfies PdfHighlightLocator),
         color: '#ffeb3b',
       })
       await loadAnnotations()
@@ -243,6 +391,12 @@ export default function PdfReader({
   const handleNavigateToAnnotation = (annotation: Annotation) => {
     if (annotation.pageNumber) {
       setPageNumber(annotation.pageNumber)
+      if (readerSettings.pageMode === 'scroll') {
+        pageShellRefs.current.get(annotation.pageNumber)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      }
     }
   }
 
@@ -291,8 +445,13 @@ export default function PdfReader({
     )
   }
 
-  // Filter annotations for current page (for future highlight overlay feature)
-  // const pageAnnotations = annotations.filter(a => a.pageNumber === pageNumber)
+  const pageHighlights = annotations
+    .filter(annotation => annotation.cfi)
+    .map(annotation => ({
+      annotation,
+      locator: parsePdfHighlightLocator(annotation.cfi),
+    }))
+    .filter((item): item is { annotation: Annotation; locator: PdfHighlightLocator } => item.locator != null)
 
   // Compute background style for custom background image
   const backgroundStyle: React.CSSProperties = theme.customBgImage
@@ -304,12 +463,62 @@ export default function PdfReader({
       }
     : { backgroundColor: theme.bg }
 
+  const renderPage = (page: number) => {
+    const highlights = pageHighlights.filter(({ annotation }) => annotation.pageNumber === page)
+
+    return (
+      <div
+        key={page}
+        ref={(node) => {
+          if (node) {
+            pageShellRefs.current.set(page, node)
+          } else {
+            pageShellRefs.current.delete(page)
+          }
+        }}
+        className="relative shadow-lg"
+      >
+        <Page
+          pageNumber={page}
+          scale={scale}
+          renderTextLayer={true}
+          renderAnnotationLayer={true}
+          loading={
+            <div className="w-[600px] h-[800px] bg-white animate-pulse" />
+          }
+        />
+
+        <div className="pointer-events-none absolute inset-0 z-20">
+          {highlights.map(({ annotation, locator }) =>
+            locator.rects.map((highlightRect, index) => (
+              <div
+                key={`${annotation.id}-${index}`}
+                className="absolute rounded-[2px] mix-blend-multiply"
+                style={{
+                  left: `${highlightRect.left * 100}%`,
+                  top: `${highlightRect.top * 100}%`,
+                  width: `${highlightRect.width * 100}%`,
+                  height: `${highlightRect.height * 100}%`,
+                  backgroundColor: annotation.color,
+                  opacity: 0.42,
+                }}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const visiblePages = readerSettings.pageMode === 'scroll' && numPages > 0
+    ? Array.from({ length: numPages }, (_, index) => index + 1)
+    : [pageNumber]
+
   return (
     <div 
       className="flex flex-col h-full relative" 
       style={backgroundStyle} 
       onClickCapture={handleClickCapture}
-      ref={containerRef}
     >
       {/* Toolbar */}
       <div 
@@ -362,8 +571,10 @@ export default function PdfReader({
 
       {/* Document Area */}
       <div 
-        className="flex-1 overflow-auto flex justify-center p-8"
+        ref={containerRef}
+        className="flex-1 overflow-auto p-8"
         style={{ marginRight: showAnnotations ? '320px' : '0' }}
+        onScroll={handleScroll}
         onWheel={(e) => {
           if (e.ctrlKey) {
             e.preventDefault()
@@ -377,7 +588,6 @@ export default function PdfReader({
           file={pdfData}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
-          className="shadow-lg"
           loading={
             <div className="text-white">Loading document...</div>
           }
@@ -385,15 +595,9 @@ export default function PdfReader({
             <div className="text-red-300">Failed to render PDF</div>
           }
         >
-          <Page 
-            pageNumber={pageNumber} 
-            scale={scale} 
-            renderTextLayer={true}
-            renderAnnotationLayer={true}
-            loading={
-              <div className="w-[600px] h-[800px] bg-white animate-pulse" />
-            }
-          />
+          <div className="flex flex-col items-center gap-8">
+            {visiblePages.map(renderPage)}
+          </div>
         </Document>
       </div>
 

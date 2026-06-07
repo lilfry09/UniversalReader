@@ -9,6 +9,7 @@
   - 📚 **EPUB**: 流式布局阅读，支持章节跳转。
   - 📝 **Markdown**: 漂亮的文档渲染。
 - **本地书库**: 基于 SQLite 的图书管理，支持书籍导入和持久化存储。
+- **AI 问答助手**: 支持基于当前书籍内容进行问答，并展示参考片段。
 - **现代化 UI**: 使用 Tailwind CSS 构建，拥有简洁的侧边栏导航和响应式布局。
 - **跨平台**: 基于 Electron，可运行于 Windows, macOS 和 Linux。
 
@@ -37,6 +38,28 @@
    npm run dev
    ```
 
+### AI 问答配置
+
+问答功能默认使用 OpenAI-compatible API，可通过环境变量切换模型或网关：
+
+```bash
+QA_API_KEY=your-api-key
+QA_BASE_URL=https://openrouter.ai/api/v1
+QA_MODEL=google/gemini-2.0-flash-thinking-exp:free
+QA_API_STYLE=openai
+```
+
+也可以使用 Anthropic-compatible API：
+
+```bash
+QA_API_STYLE=anthropic
+QA_BASE_URL=https://api.minimax.io/anthropic
+QA_MODEL=MiniMax-M2.7
+QA_API_KEY=your-api-key
+```
+
+兼容旧变量：`OPENROUTER_API_KEY`、`OPENROUTER_BASE_URL`、`DEEPSEEK_API_KEY`。
+
 ### 构建打包
 
 如果你想构建可执行文件，请运行：
@@ -54,6 +77,16 @@ npm run build
   - react-pdf (PDF)
   - foliate-js (EPUB)
   - react-markdown (Markdown)
+
+## ✅ 质量检查
+
+```bash
+npm run lint
+npm run test:run
+npm run build
+```
+
+`npm run build` 会执行 TypeScript 检查、Vite 构建和 Electron 打包。首次打包可能需要从 GitHub 下载 Electron 运行时。
 
 ## 📌 待办事项 / 计划
 

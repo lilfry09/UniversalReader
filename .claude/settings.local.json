@@ -8,7 +8,20 @@
       "Bash(tail:*)",
       "Bash(cd /d/SJTUlearning/25Winter/UniversalReader && npm run test:run 2>&1)",
       "Bash(cd:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "WebSearch",
+      "Bash(node *)",
+      "Bash(ping *)",
+      "WebFetch(domain:new.sharedchat.cc)",
+      "Bash(curl *)",
+      "Bash(python -c ' *)",
+      "Read(//tmp/**)",
+      "Bash(python -c 'import uuid;print\\(uuid.uuid4\\(\\)\\)')"
     ]
   }
 }

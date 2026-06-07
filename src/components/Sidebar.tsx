@@ -1,42 +1,53 @@
 import { NavLink } from 'react-router-dom'
-import { Library, Settings, BookOpen } from 'lucide-react'
+import { Library, Settings, BookOpen, PanelLeft } from 'lucide-react'
 import { clsx } from 'clsx'
 
 export function Sidebar() {
   const navItems = [
-    { icon: Library, label: 'Library', path: '/' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: Library, label: '书库', hint: 'Library', path: '/' },
+    { icon: Settings, label: '设置', hint: 'Preferences', path: '/settings' },
   ]
 
   return (
-    <div className="w-64 h-screen bg-gray-900 text-white flex flex-col border-r border-gray-800">
-      <div className="p-4 border-b border-gray-800 flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-blue-400" />
-        <span className="font-bold text-lg">UniReader</span>
+    <div className="flex h-screen w-64 shrink-0 flex-col border-r border-[#cfd8d2] bg-[#20332e] text-[#f8faf7]">
+      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#d6a05d] text-[#1d2f2a] shadow-sm">
+          <BookOpen className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="truncate text-[15px] font-semibold leading-tight">UniversalReader</div>
+          <div className="text-xs text-[#b5c5bd]">Local reading desk</div>
+        </div>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+                'group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors',
                 isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-[#edf1ee] text-[#1f332e] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.36)]'
+                  : 'text-[#b5c5bd] hover:bg-white/10 hover:text-white'
               )
             }
           >
-            <item.icon className="w-5 h-5" />
-            <span>{item.label}</span>
+            <item.icon className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate font-medium">{item.label}</span>
+            <span className="text-[10px] uppercase tracking-[0.08em] text-current opacity-55">
+              {item.hint}
+            </span>
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-800">
-        <div className="text-xs text-gray-500">v0.1.0 Alpha</div>
+      <div className="border-t border-white/10 p-4">
+        <div className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-xs text-[#b5c5bd]">
+          <PanelLeft className="h-3.5 w-3.5" />
+          <span>v0.1.0 Alpha</span>
+        </div>
       </div>
     </div>
   )
