@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Key, Save, Trash2, Eye, EyeOff } from 'lucide-react'
 import { clsx } from 'clsx'
 import { isElectron } from '../utils'
@@ -13,11 +13,7 @@ export default function APIConfig() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  useEffect(() => {
-    loadCredentials()
-  }, [])
-
-  const loadCredentials = async () => {
+  const loadCredentials = useCallback(async () => {
     if (!isElectron()) return
 
     try {
@@ -34,7 +30,13 @@ export default function APIConfig() {
     } catch (err) {
       console.error('Failed to load credentials:', err)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadCredentials()
+    })
+  }, [loadCredentials])
 
   const handleSave = async () => {
     if (!isElectron()) return
@@ -174,7 +176,7 @@ export default function APIConfig() {
               type="text"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder={apiStyle === 'openai' ? 'gpt-5.5 (推荐)' : 'claude-3-5-sonnet-20241022'}
+              placeholder={apiStyle === 'openai' ? 'gpt-3.5-turbo' : 'claude-3-5-sonnet-20241022'}
               className={inputClass}
             />
             <div className="mt-1 text-xs text-slate-500">

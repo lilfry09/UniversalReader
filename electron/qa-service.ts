@@ -56,14 +56,26 @@ function getBaseUrl(): string {
 function getChatModel(): string {
   // In test environment, fallback to env vars
   if (process.env.NODE_ENV === 'test') {
-    return process.env.QA_MODEL ||
-      (getApiStyle() === "anthropic" ? "MiniMax-M2.7" : "google/gemini-2.0-flash-thinking-exp:free");
+    if (process.env.QA_MODEL) return process.env.QA_MODEL;
+    if (getApiStyle() === "anthropic") return "MiniMax-M2.7";
+    return getBaseUrl().includes("openrouter.ai")
+      ? "google/gemini-2.0-flash-thinking-exp:free"
+      : "gpt-3.5-turbo";
   }
   return secureStore.getChatModel(getApiStyle());
 }
 
 function trimTrailingSlash(url: string): string {
   return url.replace(/\/+$/g, "");
+}
+
+function hasBaseUrlPath(baseUrl: string): boolean {
+  try {
+    const parsed = new URL(baseUrl);
+    return parsed.pathname !== "/" && parsed.pathname !== "";
+  } catch {
+    return baseUrl.split("/").length > 3;
+  }
 }
 
 // Simple in-memory vector store
@@ -153,22 +165,23 @@ async function chatOpenAICompatible(
   messages: { role: string; content: string }[],
   signal?: AbortSignal
 ): Promise<string> {
-  let baseUrl = trimTrailingSlash(getBaseUrl());
+  const baseUrl = trimTrailingSlash(getBaseUrl());
 
   // Handle different URL formats
   let endpoint: string;
-  if (baseUrl.includes('/chat/completions')) {
+  if (baseUrl.endsWith('/chat/completions')) {
     // Already a complete endpoint
     endpoint = baseUrl;
-  } else if (baseUrl.includes('/api/v1')) {
+  } else if (baseUrl.endsWith('/api/v1')) {
     // Has /api/v1, just add /chat/completions
     endpoint = `${baseUrl}/chat/completions`;
-  } else if (baseUrl.includes('/v1')) {
+  } else if (baseUrl.endsWith('/v1')) {
     // Has /v1, just add /chat/completions
     endpoint = `${baseUrl}/chat/completions`;
+  } else if (!hasBaseUrlPath(baseUrl)) {
+    endpoint = `${baseUrl}/v1/chat/completions`;
   } else {
-    // No path, try /api/v1/chat/completions first (common for SharedChat-like services)
-    endpoint = `${baseUrl}/api/v1/chat/completions`;
+    endpoint = `${baseUrl}/chat/completions`;
   }
 
   console.log('[QA] API endpoint:', endpoint);
@@ -189,7 +202,7 @@ async function chatOpenAICompatible(
     headers,
     signal,
     body: JSON.stringify({
-      model: getChatModel() || 'gpt-5.5',
+      model: getChatModel(),
       messages,
       temperature: 0.7
     })

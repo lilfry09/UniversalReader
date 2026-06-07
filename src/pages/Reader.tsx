@@ -6,6 +6,8 @@ import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
 import { isElectron, isLightTheme, WEB_LIBRARY_KEY, READER_THEME_KEY, READER_SETTINGS_KEY, READER_CUSTOM_BG_KEY } from '../utils'
 import { safeGetItem, safeSetItem } from '../utils/storage'
 import { getReaderEngine } from '../domain/document'
+import type { FoliateView } from '../components/readers/EpubReader'
+import type { TocItem } from '../components/TocPanel'
 
 const PdfReader = lazy(() => import('../components/readers/PdfReader'))
 const MarkdownReader = lazy(() => import('../components/readers/MarkdownReader'))
@@ -46,9 +48,9 @@ export default function Reader() {
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [showQA, setShowQA] = useState(false)
   const [showToc, setShowToc] = useState(false)
-  const [tocData, setTocData] = useState<any[]>([])
+  const [tocData, setTocData] = useState<TocItem[]>([])
   const [currentTocHref, setCurrentTocHref] = useState<string>()
-  const epubViewRef = useRef<any>(null)
+  const epubViewRef = useRef<FoliateView | null>(null)
   const pendingProgressRef = useRef<PendingProgressUpdate | null>(null)
   const progressFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastPersistedProgressRef = useRef<{
@@ -639,6 +641,7 @@ export default function Reader() {
                 onNavigate={(href) => {
                   // Navigate in EPUB reader
                   if (epubViewRef.current && typeof epubViewRef.current.goTo === 'function') {
+                    setCurrentTocHref(href)
                     epubViewRef.current.goTo(href).catch((e: Error) => console.error('TOC navigation error:', e))
                   }
                 }}

@@ -115,6 +115,16 @@ export function getBaseUrl(apiStyle: 'openai' | 'anthropic'): string {
 /**
  * Get chat model with fallback to environment variables
  */
+function getDefaultChatModel(apiStyle: 'openai' | 'anthropic', baseUrl?: string): string {
+  if (apiStyle === 'anthropic') {
+    return 'MiniMax-M2.7'
+  }
+
+  return baseUrl?.includes('openrouter.ai')
+    ? 'google/gemini-2.0-flash-thinking-exp:free'
+    : 'gpt-3.5-turbo'
+}
+
 export function getChatModel(apiStyle: 'openai' | 'anthropic'): string {
   const credentials = loadCredentials()
   if (credentials?.qaModel) {
@@ -124,10 +134,8 @@ export function getChatModel(apiStyle: 'openai' | 'anthropic'): string {
   // Fallback to environment variable
   if (process.env.QA_MODEL) return process.env.QA_MODEL
 
-  // Default models
-  return apiStyle === 'anthropic'
-    ? 'MiniMax-M2.7'
-    : 'google/gemini-2.0-flash-thinking-exp:free'
+  const baseUrl = credentials?.qaBaseUrl || getBaseUrl(apiStyle)
+  return getDefaultChatModel(apiStyle, baseUrl)
 }
 
 /**

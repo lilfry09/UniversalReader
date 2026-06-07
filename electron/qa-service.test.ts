@@ -29,6 +29,10 @@ describe('QA Service', () => {
   beforeEach(() => {
     qaService.clearQA()
     vi.clearAllMocks()
+    delete process.env.QA_API_KEY
+    delete process.env.QA_BASE_URL
+    delete process.env.QA_MODEL
+    delete process.env.QA_API_STYLE
   })
 
   afterEach(() => {
@@ -165,6 +169,73 @@ describe('QA Service', () => {
         model: 'custom-openai-model',
         temperature: 0.7,
       })
+    })
+
+    it('should use v1 SharedChat-compatible endpoints and a generic OpenAI default model', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue(
+        'SharedChat-compatible providers can answer questions through the OpenAI chat completions API.'
+      )
+      process.env.QA_API_KEY = 'sharedchat-key'
+      process.env.QA_BASE_URL = 'https://new.sharedchat.cc/v1/'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'SharedChat answer' } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await qaService.loadBookForQA('/test/book.md', 'md')
+      const answerResult = await qaService.askQuestion('Which API can the provider use?')
+
+      expect(answerResult.answer).toBe('SharedChat answer')
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://new.sharedchat.cc/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer sharedchat-key',
+          }),
+        })
+      )
+
+      const request = fetchMock.mock.calls[0][1] as { body: string }
+      expect(JSON.parse(request.body)).toMatchObject({
+        model: 'gpt-3.5-turbo',
+      })
+    })
+
+    it('should add v1 to bare OpenAI-compatible provider hosts', async () => {
+      const fs = await import('fs')
+      vi.mocked(fs.default.existsSync).mockReturnValue(true)
+      vi.mocked(fs.default.promises.readFile).mockResolvedValue(
+        'Bare OpenAI-compatible provider hosts still expose chat completions under the v1 API path.'
+      )
+      process.env.QA_API_KEY = 'sharedchat-key'
+      process.env.QA_BASE_URL = 'https://new.sharedchat.cc'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          choices: [{ message: { content: 'Bare host answer' } }],
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await qaService.loadBookForQA('/test/book.md', 'md')
+      await qaService.askQuestion('Where is the API path?')
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://new.sharedchat.cc/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      )
     })
 
     it('should send Anthropic-compatible requests when configured', async () => {

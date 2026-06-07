@@ -6,7 +6,7 @@ import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 import { isElectron, OPEN_EXTERNAL_LINKS_KEY } from '../../utils'
 import type { TocItem } from '../TocPanel'
 
-interface FoliateView extends HTMLElement {
+export interface FoliateView extends HTMLElement {
   open: (book: Blob | File) => Promise<void>
   next: () => Promise<void>
   prev: () => Promise<void>
@@ -97,6 +97,8 @@ export default function EpubReader({
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<FoliateView | null>(null)
   const progressCallbackRef = useRef<typeof onProgressUpdate>(onProgressUpdate)
+  const tocLoadRef = useRef<typeof onTocLoad>(onTocLoad)
+  const viewReadyRef = useRef<typeof onViewReady>(onViewReady)
   const initialProgressRef = useRef(initialProgress)
   const initialLocatorRef = useRef(initialLocator)
   const themeRef = useRef(theme)
@@ -131,7 +133,9 @@ export default function EpubReader({
 
   useEffect(() => {
     progressCallbackRef.current = onProgressUpdate
-  }, [onProgressUpdate])
+    tocLoadRef.current = onTocLoad
+    viewReadyRef.current = onViewReady
+  }, [onProgressUpdate, onTocLoad, onViewReady])
 
   useEffect(() => {
     initialProgressRef.current = initialProgress
@@ -289,17 +293,15 @@ export default function EpubReader({
 
         // Extract TOC if available
         try {
-          if (onTocLoad && (view as any).book?.toc) {
-            onTocLoad((view as any).book.toc)
+          if (view.book?.toc) {
+            tocLoadRef.current?.(view.book.toc)
           }
         } catch (tocErr) {
           console.warn('Failed to extract TOC:', tocErr)
         }
 
         // Expose view to parent component
-        if (onViewReady) {
-          onViewReady(view)
-        }
+        viewReadyRef.current?.(view)
 
         // Handle relocate events
         const handleRelocate = (e: Event) => {
