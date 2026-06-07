@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Settings, Type, Image, BookOpen, Minus, Plus, MessageSquare, List } from 'lucide-react'
 import type { Book, ThemeMode, ReaderSettings, PageMode, ReaderTheme, ReaderProgressUpdate } from '../types'
 import { THEMES, DEFAULT_READER_SETTINGS, FONT_FAMILIES } from '../types'
 import { isElectron, isLightTheme, WEB_LIBRARY_KEY, READER_THEME_KEY, READER_SETTINGS_KEY, READER_CUSTOM_BG_KEY } from '../utils'
@@ -11,6 +11,7 @@ const PdfReader = lazy(() => import('../components/readers/PdfReader'))
 const MarkdownReader = lazy(() => import('../components/readers/MarkdownReader'))
 const EpubReader = lazy(() => import('../components/readers/EpubReader'))
 const QAChat = lazy(() => import('../components/QAChat'))
+const TocPanel = lazy(() => import('../components/TocPanel'))
 const PROGRESS_FLUSH_INTERVAL_MS = 1200
 const PROGRESS_SKIP_DELTA = 0.001
 
@@ -44,6 +45,7 @@ export default function Reader() {
   })
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [showQA, setShowQA] = useState(false)
+  const [showToc, setShowToc] = useState(false)
   const pendingProgressRef = useRef<PendingProgressUpdate | null>(null)
   const progressFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastPersistedProgressRef = useRef<{
@@ -99,6 +101,7 @@ export default function Reader() {
 
   const hoverBg = isLightTheme(themeMode) ? 'hover:bg-black/10' : 'hover:bg-white/10'
   const dividerColor = isLightTheme(themeMode) ? '#e5e7eb' : 'rgba(255,255,255,0.12)'
+  const toolbarButtonClass = `flex h-9 w-9 items-center justify-center rounded-md transition-colors ${hoverBg}`
   const readerEngine = getReaderEngine(book?.format ?? 'txt')
   const currentBookId = book?.id
 
@@ -295,29 +298,39 @@ export default function Reader() {
     }
   }
 
-  if (loading) return <div className="p-8">Loading...</div>
-  if (!book) return <div className="p-8">Book not found</div>
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-slate-500">
+        正在打开书籍...
+      </div>
+    )
+  }
+  if (!book) return <div className="p-8 text-sm text-slate-500">Book not found</div>
   if (fileExists === false) {
     return (
       <div className="h-full flex flex-col">
         <div
-          className="h-12 border-b flex items-center px-4 gap-4 shrink-0"
+          className="flex h-14 shrink-0 items-center gap-3 border-b px-4"
           style={{ backgroundColor: currentTheme.ui, color: currentTheme.text, borderColor: dividerColor }}
         >
           <button 
             onClick={() => navigate('/')}
-            className={`p-1 rounded transition-colors ${hoverBg}`}
+            className={toolbarButtonClass}
             style={{ color: currentTheme.text }}
+            title="返回书库"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="font-medium truncate flex-1" style={{ color: currentTheme.text }}>
-            {book.title}
-          </h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-semibold" style={{ color: currentTheme.text }}>
+              {book.title}
+            </h1>
+            <div className="text-xs opacity-60">{book.format.toUpperCase()}</div>
+          </div>
         </div>
 
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="max-w-xl w-full border rounded-lg p-6 shadow-sm" style={{ backgroundColor: currentTheme.ui, borderColor: dividerColor, color: currentTheme.text }}>
+          <div className="w-full max-w-xl rounded-md border p-6 shadow-sm" style={{ backgroundColor: currentTheme.ui, borderColor: dividerColor, color: currentTheme.text }}>
             <h2 className="text-lg font-semibold mb-2">文件找不到</h2>
             <p className="text-sm mb-4 break-all" style={{ opacity: 0.85 }}>
               {book.path}
@@ -329,7 +342,7 @@ export default function Reader() {
                   const imported = await window.ipcRenderer.invoke('open-file-dialog')
                   if (imported) navigate(`/reader/${imported.id}`)
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="rounded-md bg-[#20332e] px-4 py-2 text-white transition hover:bg-[#2b433b]"
               >
                 重新导入
               </button>
@@ -339,7 +352,7 @@ export default function Reader() {
                   await window.ipcRenderer.invoke('delete-book', book.id)
                   navigate('/')
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="rounded-md bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
               >
                 从书库移除
               </button>
@@ -351,42 +364,71 @@ export default function Reader() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex h-full flex-col">
       {/* Header */}
       <div
-        className="h-12 border-b flex items-center px-4 gap-4 shrink-0 relative z-50"
+        className="relative z-50 flex h-16 shrink-0 items-center gap-3 border-b px-4 shadow-sm"
         style={{ backgroundColor: currentTheme.ui, color: currentTheme.text, borderColor: dividerColor }}
       >
         <button 
           onClick={() => navigate('/')}
-          className={`p-1 rounded transition-colors ${hoverBg}`}
+          className={toolbarButtonClass}
           style={{ color: currentTheme.text }}
+          title="返回书库"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="font-medium truncate flex-1" style={{ color: currentTheme.text }}>
-          {book.title}
-        </h1>
-        
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-sm font-semibold" style={{ color: currentTheme.text }}>
+            {book.title}
+          </h1>
+          <div className="mt-0.5 flex items-center gap-2 text-xs opacity-65">
+            <span>{book.format.toUpperCase()}</span>
+            {book.progress > 0 && (
+              <>
+                <span>·</span>
+                <span>已阅读 {Math.round(book.progress * 100)}%</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => setShowToc(!showToc)}
+            className={toolbarButtonClass}
+            style={{
+              color: showToc ? '#637a68' : currentTheme.text,
+              backgroundColor: showToc ? 'rgba(99,122,104,0.14)' : undefined,
+            }}
+            title="目录"
+          >
+            <List className="h-5 w-5" />
+          </button>
+        </div>
+
         <div className="relative">
           <button
             onClick={() => setShowQA(!showQA)}
-            className={`p-1.5 rounded transition-colors ${hoverBg} ${showQA ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
-            style={{ color: showQA ? '#3b82f6' : currentTheme.text }}
+            className={toolbarButtonClass}
+            style={{
+              color: showQA ? '#b47a35' : currentTheme.text,
+              backgroundColor: showQA ? 'rgba(180,122,53,0.14)' : undefined,
+            }}
             title="AI 问答"
           >
-            <MessageSquare className="w-5 h-5" />
+            <MessageSquare className="h-5 w-5" />
           </button>
         </div>
 
         <div className="relative">
           <button
             onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-            className={`p-1.5 rounded transition-colors ${hoverBg}`}
+            className={toolbarButtonClass}
             style={{ color: currentTheme.text }}
             title="阅读设置"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="h-5 w-5" />
           </button>
 
           {showSettingsMenu && (
@@ -396,7 +438,7 @@ export default function Reader() {
                 onClick={() => setShowSettingsMenu(false)}
               />
               <div
-                className="absolute right-0 mt-2 w-80 rounded-lg shadow-xl border py-2 z-20 max-h-[80vh] overflow-y-auto"
+                className="absolute right-0 z-20 mt-2 max-h-[80vh] w-80 overflow-y-auto rounded-md border py-2 shadow-xl"
                 style={{ backgroundColor: currentTheme.ui, color: currentTheme.text, borderColor: dividerColor }}
               >
                 {/* Theme Section */}
@@ -412,13 +454,13 @@ export default function Reader() {
                       className={`
                         flex flex-col items-center gap-1 p-2 rounded-md border text-xs transition-all
                         ${themeMode === mode 
-                          ? 'border-blue-500 bg-blue-600/15' 
+                          ? 'border-[#637a68] bg-[#637a68]/15' 
                           : 'hover:border-gray-300'}
                       `}
                       style={{
-                        borderColor: themeMode === mode ? '#3b82f6' : dividerColor,
-                        backgroundColor: themeMode === mode ? 'rgba(59,130,246,0.12)' : 'transparent',
-                        color: themeMode === mode ? '#3b82f6' : currentTheme.text,
+                        borderColor: themeMode === mode ? '#637a68' : dividerColor,
+                        backgroundColor: themeMode === mode ? 'rgba(99,122,104,0.14)' : 'transparent',
+                        color: themeMode === mode ? '#637a68' : currentTheme.text,
                       }}
                     >
                       <div 
@@ -517,13 +559,13 @@ export default function Reader() {
                       className={`
                         flex-1 py-1.5 rounded-md border text-xs transition-all
                         ${readerSettings.pageMode === mode 
-                          ? 'border-blue-500 bg-blue-600/15 text-blue-500' 
+                          ? 'border-[#637a68] bg-[#637a68]/15 text-[#637a68]' 
                           : 'hover:border-gray-300'}
                       `}
                       style={{
-                        borderColor: readerSettings.pageMode === mode ? '#3b82f6' : dividerColor,
-                        backgroundColor: readerSettings.pageMode === mode ? 'rgba(59,130,246,0.12)' : 'transparent',
-                        color: readerSettings.pageMode === mode ? '#3b82f6' : currentTheme.text,
+                        borderColor: readerSettings.pageMode === mode ? '#637a68' : dividerColor,
+                        backgroundColor: readerSettings.pageMode === mode ? 'rgba(99,122,104,0.14)' : 'transparent',
+                        color: readerSettings.pageMode === mode ? '#637a68' : currentTheme.text,
                       }}
                     >
                       {label}
@@ -583,11 +625,29 @@ export default function Reader() {
       </div>
 
       {/* Content */}
-      <div className={`flex-1 overflow-hidden relative ${showQA ? 'flex' : ''}`}>
-        <div className={`${showQA ? 'w-2/3' : 'w-full'} h-full overflow-hidden`}>
+      <div className={`flex-1 overflow-hidden relative flex`}>
+        {/* TOC Panel */}
+        {showToc && (
+          <div className="w-64 h-full border-r flex-shrink-0" style={{ borderColor: dividerColor }}>
+            <Suspense fallback={<ReaderFallback label="正在加载目录..." />}>
+              <TocPanel
+                toc={[]}
+                onNavigate={(href) => {
+                  console.log('Navigate to:', href)
+                  // TODO: Implement navigation
+                }}
+                onClose={() => setShowToc(false)}
+                theme={currentTheme}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {/* Reader */}
+        <div className="flex-1 h-full overflow-hidden">
           <Suspense fallback={<ReaderFallback label="正在加载阅读器..." />}>
             {readerEngine === 'pdf' && (
-              <PdfReader 
+              <PdfReader
                 filePath={book.path}
                 bookId={book.id}
                 initialProgress={book.progress}
@@ -597,9 +657,9 @@ export default function Reader() {
                 readerSettings={readerSettings}
               />
             )}
-            
+
             {readerEngine === 'markdown' && (
-              <MarkdownReader 
+              <MarkdownReader
                 filePath={book.path}
                 format={book.format === 'md' ? 'md' : 'txt'}
                 theme={currentTheme}
@@ -608,7 +668,7 @@ export default function Reader() {
             )}
 
             {readerEngine === 'epub' && (
-              <EpubReader 
+              <EpubReader
                 filePath={book.path}
                 bookId={book.id}
                 format={book.format === 'epub' ? 'epub' : book.format === 'mobi' ? 'mobi' : 'azw3'}
@@ -627,9 +687,10 @@ export default function Reader() {
             )}
           </Suspense>
         </div>
-        
+
+        {/* QA Panel */}
         {showQA && (
-          <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-700">
+          <div className="w-96 h-full border-l flex-shrink-0" style={{ borderColor: dividerColor }}>
             <Suspense fallback={<ReaderFallback label="正在加载问答助手..." />}>
               <QAChat
                 bookPath={book.path}
