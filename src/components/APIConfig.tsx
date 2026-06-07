@@ -174,7 +174,7 @@ export default function APIConfig() {
               type="text"
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder={apiStyle === 'openai' ? 'gpt-4' : 'claude-3-5-sonnet-20241022'}
+              placeholder={apiStyle === 'openai' ? 'gpt-5.5 (推荐)' : 'claude-3-5-sonnet-20241022'}
               className={inputClass}
             />
             <div className="mt-1 text-xs text-slate-500">

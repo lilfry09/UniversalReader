@@ -189,7 +189,7 @@ async function chatOpenAICompatible(
     headers,
     signal,
     body: JSON.stringify({
-      model: getChatModel() || 'gpt-3.5-turbo',
+      model: getChatModel() || 'gpt-5.5',
       messages,
       temperature: 0.7
     })
