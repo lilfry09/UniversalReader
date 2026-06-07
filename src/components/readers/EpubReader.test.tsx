@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SelectionInfo } from './EpubReader'
+import { getInitialEpubNavigationTarget } from './epubRestore'
 
 describe('EpubReader Component Logic', () => {
   const canUseSelectionCfi = (selection: SelectionInfo | null) =>
@@ -118,6 +119,53 @@ describe('Reader Settings', () => {
     const validFonts = ['Georgia', 'Merriweather', 'OpenDyslexic']
     const fontFamily = 'Georgia'
     expect(validFonts).toContain(fontFamily)
+  })
+})
+
+describe('EPUB restore target selection', () => {
+  it('uses CFI in paginated mode when both CFI and fraction are available', () => {
+    const target = getInitialEpubNavigationTarget({
+      kind: 'epub',
+      cfi: 'epubcfi(/6/12!/4/10)',
+      fraction: 0.25,
+    }, 0.1, 'paginated')
+
+    expect(target).toBe('epubcfi(/6/12!/4/10)')
+  })
+
+  it('uses CFI in single-page mode when both CFI and fraction are available', () => {
+    const target = getInitialEpubNavigationTarget({
+      kind: 'epub',
+      cfi: 'epubcfi(/6/14!/4/2)',
+      fraction: 0.4,
+    }, 0.1, 'single')
+
+    expect(target).toBe('epubcfi(/6/14!/4/2)')
+  })
+
+  it('uses fraction instead of CFI in scroll mode to avoid foliate anchor races', () => {
+    const target = getInitialEpubNavigationTarget({
+      kind: 'epub',
+      cfi: 'epubcfi(/6/12!/4/10)',
+      fraction: 0.33,
+    }, 0.1, 'scroll')
+
+    expect(target).toEqual({ fraction: 0.33 })
+  })
+
+  it('falls back to saved progress in scroll mode when the locator has no fraction', () => {
+    const target = getInitialEpubNavigationTarget({
+      kind: 'epub',
+      cfi: 'epubcfi(/6/12!/4/10)',
+    }, 0.42, 'scroll')
+
+    expect(target).toEqual({ fraction: 0.42 })
+  })
+
+  it('falls back to zero when there is no locator or progress', () => {
+    const target = getInitialEpubNavigationTarget(undefined, 0, 'paginated')
+
+    expect(target).toEqual({ fraction: 0 })
   })
 })
 

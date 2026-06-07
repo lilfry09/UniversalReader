@@ -5,6 +5,7 @@ import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 import { isElectron, OPEN_EXTERNAL_LINKS_KEY } from '../../utils'
 import type { TocItem } from '../TocPanel'
+import { getInitialEpubNavigationTarget } from './epubRestore'
 
 export interface FoliateView extends HTMLElement {
   open: (book: Blob | File) => Promise<void>
@@ -277,21 +278,11 @@ export default function EpubReader({
 
         // Restoring previous position should not fail the whole book loading flow.
         try {
-          if (initialLocatorSnapshot?.kind === 'epub') {
-            if (readerSettingsRef.current.pageMode === 'scroll' && typeof initialLocatorSnapshot.fraction === 'number') {
-              await view.goTo({ fraction: initialLocatorSnapshot.fraction })
-            } else if (readerSettingsRef.current.pageMode === 'scroll' && initialProgressSnapshot > 0) {
-              await view.goTo({ fraction: initialProgressSnapshot })
-            } else if (initialLocatorSnapshot.cfi) {
-              await view.goTo(initialLocatorSnapshot.cfi)
-            } else if (typeof initialLocatorSnapshot.fraction === 'number') {
-              await view.goTo({ fraction: initialLocatorSnapshot.fraction })
-            }
-          } else if (initialProgressSnapshot > 0) {
-            await view.goTo({ fraction: initialProgressSnapshot })
-          } else {
-            await view.goTo({ fraction: 0 })
-          }
+          await view.goTo(getInitialEpubNavigationTarget(
+            initialLocatorSnapshot,
+            initialProgressSnapshot,
+            readerSettingsRef.current.pageMode
+          ))
         } catch (restoreErr) {
           console.warn('Failed to restore EPUB position, fallback to chapter start:', restoreErr)
         }

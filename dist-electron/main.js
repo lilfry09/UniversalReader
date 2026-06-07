@@ -1,14 +1,30 @@
-import { safeStorage as ae, app as z, ipcMain as v, shell as Pe, dialog as Be, BrowserWindow as Me } from "electron";
+import { safeStorage as ae, app as z, ipcMain as v, shell as Pe, dialog as be, BrowserWindow as Be } from "electron";
 import V from "node:path";
 import { fileURLToPath as Ne } from "node:url";
-import nt from "better-sqlite3";
-import be from "node:crypto";
+import rt from "better-sqlite3";
+import Me from "node:crypto";
 import _ from "fs";
 import T from "path";
-import { createCanvas as rt } from "canvas";
+import { createCanvas as ot } from "canvas";
 import je from "zlib";
-import ot from "crypto";
-function st(e) {
+import st from "crypto";
+function it(e, t) {
+  for (var n = 0; n < t.length; n++) {
+    const r = t[n];
+    if (typeof r != "string" && !Array.isArray(r)) {
+      for (const s in r)
+        if (s !== "default" && !(s in e)) {
+          const o = Object.getOwnPropertyDescriptor(r, s);
+          o && Object.defineProperty(e, s, o.get ? o : {
+            enumerable: !0,
+            get: () => r[s]
+          });
+        }
+    }
+  }
+  return Object.freeze(Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }));
+}
+function at(e) {
   return e && e.__esModule && Object.prototype.hasOwnProperty.call(e, "default") ? e.default : e;
 }
 var Q = { exports: {} }, He = {
@@ -276,16 +292,16 @@ var Q = { exports: {} }, He = {
   for (const r of Object.keys(t))
     e[r] = n(t[r]);
 })(le);
-const it = _, M = T, Ae = He, at = le, ct = typeof process == "object" && process.platform === "win32", we = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
+const ct = _, B = T, Ae = He, ft = le, lt = typeof process == "object" && process.platform === "win32", we = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
   for (let n = 0; n < 8; n++)
     t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
   return t >>> 0;
 });
-function B(e) {
-  this.sep = M.sep, this.fs = it, we(e) && we(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
+function b(e) {
+  this.sep = B.sep, this.fs = ct, we(e) && we(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
 }
-var ft = B;
-B.prototype.makeDir = function(e) {
+var ut = b;
+b.prototype.makeDir = function(e) {
   const t = this;
   function n(r) {
     let s = r.split(t.sep)[0];
@@ -298,13 +314,13 @@ B.prototype.makeDir = function(e) {
         } catch {
           t.fs.mkdirSync(s);
         }
-        if (l && l.isFile()) throw at.FILE_IN_THE_WAY(`"${s}"`);
+        if (l && l.isFile()) throw ft.FILE_IN_THE_WAY(`"${s}"`);
       }
     });
   }
   n(e);
 };
-B.prototype.writeFileTo = function(e, t, n, r) {
+b.prototype.writeFileTo = function(e, t, n, r) {
   const s = this;
   if (s.fs.existsSync(e)) {
     if (!n) return !1;
@@ -312,7 +328,7 @@ B.prototype.writeFileTo = function(e, t, n, r) {
     if (o.isDirectory())
       return !1;
   }
-  var l = M.dirname(e);
+  var l = B.dirname(e);
   s.fs.existsSync(l) || s.makeDir(l);
   var p;
   try {
@@ -328,7 +344,7 @@ B.prototype.writeFileTo = function(e, t, n, r) {
     }
   return s.fs.chmodSync(e, r || 438), !0;
 };
-B.prototype.writeFileToAsync = function(e, t, n, r, s) {
+b.prototype.writeFileToAsync = function(e, t, n, r, s) {
   typeof r == "function" && (s = r, r = void 0);
   const o = this;
   o.fs.exists(e, function(l) {
@@ -336,7 +352,7 @@ B.prototype.writeFileToAsync = function(e, t, n, r, s) {
     o.fs.stat(e, function(p, h) {
       if (l && h.isDirectory())
         return s(!1);
-      var y = M.dirname(e);
+      var y = B.dirname(e);
       o.fs.exists(y, function(S) {
         S || o.makeDir(y), o.fs.open(e, "w", 438, function(D, C) {
           D ? o.fs.chmod(e, 438, function() {
@@ -363,18 +379,18 @@ B.prototype.writeFileToAsync = function(e, t, n, r, s) {
     });
   });
 };
-B.prototype.findFiles = function(e) {
+b.prototype.findFiles = function(e) {
   const t = this;
   function n(r, s, o) {
     let l = [];
     return t.fs.readdirSync(r).forEach(function(p) {
-      const h = M.join(r, p), y = t.fs.statSync(h);
-      l.push(M.normalize(h) + (y.isDirectory() ? t.sep : "")), y.isDirectory() && o && (l = l.concat(n(h, s, o)));
+      const h = B.join(r, p), y = t.fs.statSync(h);
+      l.push(B.normalize(h) + (y.isDirectory() ? t.sep : "")), y.isDirectory() && o && (l = l.concat(n(h, s, o)));
     }), l;
   }
   return n(e, void 0, !0);
 };
-B.prototype.findFilesAsync = function(e, t) {
+b.prototype.findFilesAsync = function(e, t) {
   const n = this;
   let r = [];
   n.fs.readdir(e, function(s, o) {
@@ -382,9 +398,9 @@ B.prototype.findFilesAsync = function(e, t) {
     let l = o.length;
     if (!l) return t(null, r);
     o.forEach(function(p) {
-      p = M.join(e, p), n.fs.stat(p, function(h, y) {
+      p = B.join(e, p), n.fs.stat(p, function(h, y) {
         if (h) return t(h);
-        y && (r.push(M.normalize(p) + (y.isDirectory() ? n.sep : "")), y.isDirectory() ? n.findFilesAsync(p, function(S, D) {
+        y && (r.push(B.normalize(p) + (y.isDirectory() ? n.sep : "")), y.isDirectory() ? n.findFilesAsync(p, function(S, D) {
           if (S) return t(S);
           r = r.concat(D), --l || t(null, r);
         }) : --l || t(null, r));
@@ -392,20 +408,20 @@ B.prototype.findFilesAsync = function(e, t) {
     });
   });
 };
-B.prototype.getAttributes = function() {
+b.prototype.getAttributes = function() {
 };
-B.prototype.setAttributes = function() {
+b.prototype.setAttributes = function() {
 };
-B.crc32update = function(e, t) {
+b.crc32update = function(e, t) {
   return $e[(e ^ t) & 255] ^ e >>> 8;
 };
-B.crc32 = function(e) {
+b.crc32 = function(e) {
   typeof e == "string" && (e = Buffer.from(e, "utf8"));
   let t = e.length, n = -1;
-  for (let r = 0; r < t; ) n = B.crc32update(n, e[r++]);
+  for (let r = 0; r < t; ) n = b.crc32update(n, e[r++]);
   return ~n >>> 0;
 };
-B.methodToString = function(e) {
+b.methodToString = function(e) {
   switch (e) {
     case Ae.STORED:
       return "STORED (" + e + ")";
@@ -415,50 +431,50 @@ B.methodToString = function(e) {
       return "UNSUPPORTED (" + e + ")";
   }
 };
-B.canonical = function(e) {
+b.canonical = function(e) {
   if (!e) return "";
-  const t = M.posix.normalize("/" + e.split("\\").join("/"));
-  return M.join(".", t);
+  const t = B.posix.normalize("/" + e.split("\\").join("/"));
+  return B.join(".", t);
 };
-B.zipnamefix = function(e) {
+b.zipnamefix = function(e) {
   if (!e) return "";
-  const t = M.posix.normalize("/" + e.split("\\").join("/"));
-  return M.posix.join(".", t);
+  const t = B.posix.normalize("/" + e.split("\\").join("/"));
+  return B.posix.join(".", t);
 };
-B.findLast = function(e, t) {
+b.findLast = function(e, t) {
   if (!Array.isArray(e)) throw new TypeError("arr is not array");
   const n = e.length >>> 0;
   for (let r = n - 1; r >= 0; r--)
     if (t(e[r], r, e))
       return e[r];
 };
-B.sanitize = function(e, t) {
-  e = M.resolve(M.normalize(e));
+b.sanitize = function(e, t) {
+  e = B.resolve(B.normalize(e));
   for (var n = t.split("/"), r = 0, s = n.length; r < s; r++) {
-    var o = M.normalize(M.join(e, n.slice(r, s).join(M.sep)));
+    var o = B.normalize(B.join(e, n.slice(r, s).join(B.sep)));
     if (o.indexOf(e) === 0)
       return o;
   }
-  return M.normalize(M.join(e, M.basename(t)));
+  return B.normalize(B.join(e, B.basename(t)));
 };
-B.toBuffer = function(t, n) {
+b.toBuffer = function(t, n) {
   return Buffer.isBuffer(t) ? t : t instanceof Uint8Array ? Buffer.from(t) : typeof t == "string" ? n(t) : Buffer.alloc(0);
 };
-B.readBigUInt64LE = function(e, t) {
+b.readBigUInt64LE = function(e, t) {
   var n = Buffer.from(e.slice(t, t + 8));
   return n.swap64(), parseInt(`0x${n.toString("hex")}`);
 };
-B.fromDOS2Date = function(e) {
+b.fromDOS2Date = function(e) {
   return new Date((e >> 25 & 127) + 1980, Math.max((e >> 21 & 15) - 1, 0), Math.max(e >> 16 & 31, 1), e >> 11 & 31, e >> 5 & 63, (e & 31) << 1);
 };
-B.fromDate2DOS = function(e) {
+b.fromDate2DOS = function(e) {
   let t = 0, n = 0;
   return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
 };
-B.isWin = ct;
-B.crcTable = $e;
-const lt = T;
-var ut = function(e, { fs: t }) {
+b.isWin = lt;
+b.crcTable = $e;
+const dt = T;
+var Et = function(e, { fs: t }) {
   var n = e || "", r = o(), s = null;
   function o() {
     return {
@@ -470,7 +486,7 @@ var ut = function(e, { fs: t }) {
       atime: 0
     };
   }
-  return n && t.existsSync(n) ? (s = t.statSync(n), r.directory = s.isDirectory(), r.mtime = s.mtime, r.atime = s.atime, r.executable = (73 & s.mode) !== 0, r.readonly = (128 & s.mode) === 0, r.hidden = lt.basename(n)[0] === ".") : console.warn("Invalid path: " + n), {
+  return n && t.existsSync(n) ? (s = t.statSync(n), r.directory = s.isDirectory(), r.mtime = s.mtime, r.atime = s.atime, r.executable = (73 & s.mode) !== 0, r.readonly = (128 & s.mode) === 0, r.hidden = dt.basename(n)[0] === ".") : console.warn("Invalid path: " + n), {
     get directory() {
       return r.directory;
     },
@@ -508,17 +524,17 @@ var ut = function(e, { fs: t }) {
       return JSON.stringify(this.toJSON(), null, "	");
     }
   };
-}, dt = {
+}, mt = {
   efs: !0,
   encode: (e) => Buffer.from(e, "utf8"),
   decode: (e) => e.toString("utf8")
 };
-Q.exports = ft;
+Q.exports = ut;
 Q.exports.Constants = He;
 Q.exports.Errors = le;
-Q.exports.FileAttr = ut;
-Q.exports.decoder = dt;
-var te = Q.exports, ue = {}, Z = te, I = Z.Constants, Et = function() {
+Q.exports.FileAttr = Et;
+Q.exports.decoder = mt;
+var te = Q.exports, ue = {}, Z = te, I = Z.Constants, pt = function() {
   var e = 20, t = 10, n = 0, r = 0, s = 0, o = 0, l = 0, p = 0, h = 0, y = 0, S = 0, D = 0, C = 0, a = 0, u = 0;
   e |= Z.isWin ? 2560 : 768, n |= I.FLG_EFS;
   const c = {
@@ -713,7 +729,7 @@ var te = Q.exports, ue = {}, Z = te, I = Z.Constants, Et = function() {
       return JSON.stringify(this.toJSON(), null, "	");
     }
   };
-}, K = te, x = K.Constants, mt = function() {
+}, K = te, x = K.Constants, gt = function() {
   var e = 0, t = 0, n = 0, r = 0, s = 0;
   return {
     get diskEntries() {
@@ -777,9 +793,9 @@ var te = Q.exports, ue = {}, Z = te, I = Z.Constants, Et = function() {
     }
   };
 };
-ue.EntryHeader = Et;
-ue.MainHeader = mt;
-var de = {}, pt = function(e) {
+ue.EntryHeader = pt;
+ue.MainHeader = gt;
+var de = {}, ht = function(e) {
   var t = je, n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
   return {
     deflate: function() {
@@ -801,10 +817,10 @@ var de = {}, pt = function(e) {
     }
   };
 };
-const gt = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
-var ht = function(e, t) {
+const yt = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
+var It = function(e, t) {
   var n = je;
-  const r = gt >= 15 && t > 0 ? { maxOutputLength: t } : {};
+  const r = yt >= 15 && t > 0 ? { maxOutputLength: t } : {};
   return {
     inflate: function() {
       return n.inflateRawSync(e, r);
@@ -825,11 +841,11 @@ var ht = function(e, t) {
     }
   };
 };
-const { randomFillSync: Oe } = ot, yt = le, It = new Uint32Array(256).map((e, t) => {
+const { randomFillSync: Oe } = st, Nt = le, St = new Uint32Array(256).map((e, t) => {
   for (let n = 0; n < 8; n++)
     t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
   return t >>> 0;
-}), ze = (e, t) => Math.imul(e, t) >>> 0, Re = (e, t) => It[(e ^ t) & 255] ^ e >>> 8, J = () => typeof Oe == "function" ? Oe(Buffer.alloc(12)) : J.node();
+}), ze = (e, t) => Math.imul(e, t) >>> 0, Re = (e, t) => St[(e ^ t) & 255] ^ e >>> 8, J = () => typeof Oe == "function" ? Oe(Buffer.alloc(12)) : J.node();
 J.node = () => {
   const e = Buffer.alloc(12), t = e.length;
   for (let n = 0; n < t; n++) e[n] = Math.random() * 256 & 255;
@@ -852,7 +868,7 @@ Ee.prototype.next = function() {
   const e = (this.keys[2] | 2) >>> 0;
   return ze(e, e ^ 1) >> 8 & 255;
 };
-function Nt(e) {
+function Dt(e) {
   const t = new Ee(e);
   return function(n) {
     const r = Buffer.alloc(n.length);
@@ -862,7 +878,7 @@ function Nt(e) {
     return r;
   };
 }
-function St(e) {
+function Lt(e) {
   const t = new Ee(e);
   return function(n, r, s = 0) {
     r || (r = Buffer.alloc(n.length));
@@ -873,32 +889,32 @@ function St(e) {
     return r;
   };
 }
-function Dt(e, t, n) {
+function Ct(e, t, n) {
   if (!e || !Buffer.isBuffer(e) || e.length < 12)
     return Buffer.alloc(0);
-  const r = Nt(n), s = r(e.slice(0, 12)), o = (t.flags & 8) === 8 ? t.timeHighByte : t.crc >>> 24;
+  const r = Dt(n), s = r(e.slice(0, 12)), o = (t.flags & 8) === 8 ? t.timeHighByte : t.crc >>> 24;
   if (s[11] !== o)
-    throw yt.WRONG_PASSWORD();
+    throw Nt.WRONG_PASSWORD();
   return r(e.slice(12));
 }
-function Lt(e) {
+function _t(e) {
   Buffer.isBuffer(e) && e.length >= 12 ? se.genSalt = function() {
     return e.slice(0, 12);
   } : e === "node" ? se.genSalt = J.node : se.genSalt = J;
 }
-function Ct(e, t, n, r = !1) {
+function Tt(e, t, n, r = !1) {
   e == null && (e = Buffer.alloc(0)), Buffer.isBuffer(e) || (e = Buffer.from(e.toString()));
-  const s = St(n), o = se.genSalt();
+  const s = Lt(n), o = se.genSalt();
   o[11] = t.crc >>> 24 & 255, r && (o[10] = t.crc >>> 16 & 255);
   const l = Buffer.alloc(e.length + 12);
   return s(o, l), s(e, l, 12);
 }
-var _t = { decrypt: Dt, encrypt: Ct, _salter: Lt };
-de.Deflater = pt;
-de.Inflater = ht;
-de.ZipCrypto = _t;
-var w = te, Tt = ue, U = w.Constants, he = de, ke = function(e, t) {
-  var n = new Tt.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
+var At = { decrypt: Ct, encrypt: Tt, _salter: _t };
+de.Deflater = ht;
+de.Inflater = It;
+de.ZipCrypto = At;
+var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
+  var n = new wt.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
   const S = e, D = typeof S.decoder == "object" ? S.decoder : w.decoder;
   y = D.hasOwnProperty("efs") ? D.efs : !1;
   function C() {
@@ -1089,9 +1105,9 @@ var w = te, Tt = ue, U = w.Constants, he = de, ke = function(e, t) {
     }
   };
 };
-const ve = ke, At = ue, b = te;
-var wt = function(e, t) {
-  var n = [], r = {}, s = Buffer.alloc(0), o = new At.MainHeader(), l = !1;
+const ve = ke, Ot = ue, M = te;
+var Rt = function(e, t) {
+  var n = [], r = {}, s = Buffer.alloc(0), o = new Ot.MainHeader(), l = !1;
   const p = /* @__PURE__ */ new Set(), h = t, { noSort: y, decoder: S } = h;
   e ? a(h.readEntries) : l = !0;
   function D() {
@@ -1111,34 +1127,34 @@ var wt = function(e, t) {
       }
   }
   function C() {
-    if (l = !0, r = {}, o.diskEntries > (e.length - o.offset) / b.Constants.CENHDR)
-      throw b.Errors.DISK_ENTRY_TOO_LARGE();
+    if (l = !0, r = {}, o.diskEntries > (e.length - o.offset) / M.Constants.CENHDR)
+      throw M.Errors.DISK_ENTRY_TOO_LARGE();
     n = new Array(o.diskEntries);
     for (var c = o.offset, d = 0; d < n.length; d++) {
       var m = c, i = new ve(h, e);
-      i.header = e.slice(m, m += b.Constants.CENHDR), i.entryName = e.slice(m, m += i.header.fileNameLength), i.header.extraLength && (i.extra = e.slice(m, m += i.header.extraLength)), i.header.commentLength && (i.comment = e.slice(m, m + i.header.commentLength)), c += i.header.centralHeaderSize, n[d] = i, r[i.entryName] = i;
+      i.header = e.slice(m, m += M.Constants.CENHDR), i.entryName = e.slice(m, m += i.header.fileNameLength), i.header.extraLength && (i.extra = e.slice(m, m += i.header.extraLength)), i.header.commentLength && (i.comment = e.slice(m, m + i.header.commentLength)), c += i.header.centralHeaderSize, n[d] = i, r[i.entryName] = i;
     }
     p.clear(), D();
   }
   function a(c) {
-    var d = e.length - b.Constants.ENDHDR, m = Math.max(0, d - 65535), i = m, f = e.length, E = -1, g = 0;
+    var d = e.length - M.Constants.ENDHDR, m = Math.max(0, d - 65535), i = m, f = e.length, E = -1, g = 0;
     for ((typeof h.trailingSpace == "boolean" ? h.trailingSpace : !1) && (m = 0), d; d >= i; d--)
       if (e[d] === 80) {
-        if (e.readUInt32LE(d) === b.Constants.ENDSIG) {
-          E = d, g = d, f = d + b.Constants.ENDHDR, i = d - b.Constants.END64HDR;
+        if (e.readUInt32LE(d) === M.Constants.ENDSIG) {
+          E = d, g = d, f = d + M.Constants.ENDHDR, i = d - M.Constants.END64HDR;
           continue;
         }
-        if (e.readUInt32LE(d) === b.Constants.END64SIG) {
+        if (e.readUInt32LE(d) === M.Constants.END64SIG) {
           i = m;
           continue;
         }
-        if (e.readUInt32LE(d) === b.Constants.ZIP64SIG) {
-          E = d, f = d + b.readBigUInt64LE(e, d + b.Constants.ZIP64SIZE) + b.Constants.ZIP64LEAD;
+        if (e.readUInt32LE(d) === M.Constants.ZIP64SIG) {
+          E = d, f = d + M.readBigUInt64LE(e, d + M.Constants.ZIP64SIZE) + M.Constants.ZIP64LEAD;
           break;
         }
       }
-    if (E == -1) throw b.Errors.INVALID_FORMAT();
-    o.loadFromBinary(e.slice(E, f)), o.commentLength && (s = e.slice(g + b.Constants.ENDHDR)), c && C();
+    if (E == -1) throw M.Errors.INVALID_FORMAT();
+    o.loadFromBinary(e.slice(E, f)), o.commentLength && (s = e.slice(g + M.Constants.ENDHDR)), c && C();
   }
   function u() {
     n.length > 1 && !y && n.sort((c, d) => c.entryName.toLowerCase().localeCompare(d.entryName.toLowerCase()));
@@ -1159,7 +1175,7 @@ var wt = function(e, t) {
       return S.decode(s);
     },
     set comment(c) {
-      s = b.toBuffer(c, S.encode), o.commentLength = s.length;
+      s = M.toBuffer(c, S.encode), o.commentLength = s.length;
     },
     getEntryCount: function() {
       return l ? n.length : o.diskEntries;
@@ -1263,7 +1279,7 @@ var wt = function(e, t) {
       for (const N of d)
         N.copy(E, i), i += N.length;
       const g = o.toBinary();
-      return s && s.copy(g, b.Constants.ENDHDR), g.copy(E, i), e = E, l = !1, E;
+      return s && s.copy(g, M.Constants.ENDHDR), g.copy(E, i), e = E, l = !1, E;
     },
     toAsyncBuffer: function(c, d, m, i) {
       try {
@@ -1290,7 +1306,7 @@ var wt = function(e, t) {
               $.copy(R, N), N += $.length;
             });
             const j = o.toBinary();
-            s && s.copy(j, b.Constants.ENDHDR), j.copy(R, N), e = R, l = !1, c(R);
+            s && s.copy(j, M.Constants.ENDHDR), j.copy(R, N), e = R, l = !1, c(R);
           }
         };
         O(Array.from(this.entries));
@@ -1300,7 +1316,7 @@ var wt = function(e, t) {
     }
   };
 };
-const F = te, P = T, Ot = ke, Rt = wt, G = (...e) => F.findLast(e, (t) => typeof t == "boolean"), xe = (...e) => F.findLast(e, (t) => typeof t == "string"), vt = (...e) => F.findLast(e, (t) => typeof t == "function"), xt = {
+const F = te, P = T, vt = ke, xt = Rt, G = (...e) => F.findLast(e, (t) => typeof t == "boolean"), xe = (...e) => F.findLast(e, (t) => typeof t == "string"), Ft = (...e) => F.findLast(e, (t) => typeof t == "function"), Ut = {
   // option "noSort" : if true it disables files sorting
   noSort: !1,
   // read entries during load (initial loading may be slower)
@@ -1310,9 +1326,9 @@ const F = te, P = T, Ot = ke, Rt = wt, G = (...e) => F.findLast(e, (t) => typeof
   // file system
   fs: null
 };
-var Ft = function(e, t) {
+var Ze = function(e, t) {
   let n = null;
-  const r = Object.assign(/* @__PURE__ */ Object.create(null), xt);
+  const r = Object.assign(/* @__PURE__ */ Object.create(null), Ut);
   e && typeof e == "object" && (e instanceof Uint8Array || (Object.assign(r, e), e = r.input ? r.input : void 0, r.input && delete r.input), Buffer.isBuffer(e) && (n = e, r.method = F.Constants.BUFFER, e = void 0)), Object.assign(r, t);
   const s = new F(r);
   if ((typeof r.decoder != "object" || typeof r.decoder.encode != "function" || typeof r.decoder.decode != "function") && (r.decoder = F.decoder), e && typeof e == "string")
@@ -1320,7 +1336,7 @@ var Ft = function(e, t) {
       r.method = F.Constants.FILE, r.filename = e, n = s.fs.readFileSync(e);
     else
       throw F.Errors.INVALID_FILENAME();
-  const o = new Rt(n, r), { canonical: l, sanitize: p, zipnamefix: h } = F;
+  const o = new xt(n, r), { canonical: l, sanitize: p, zipnamefix: h } = F;
   function y(a) {
     if (a && o) {
       var u;
@@ -1655,7 +1671,7 @@ var Ft = function(e, t) {
       a = h(a);
       let m = y(a);
       const i = m != null;
-      i || (m = new Ot(r), m.entryName = a), m.comment = c || "";
+      i || (m = new vt(r), m.entryName = a), m.comment = c || "";
       const f = typeof d == "object" && d instanceof s.fs.Stats;
       f && (m.header.time = d.mtime);
       var E = m.isDirectory ? 16 : 0;
@@ -1784,7 +1800,7 @@ var Ft = function(e, t) {
      * @param {function} callback The callback will be executed when all entries are extracted successfully or any error is thrown.
      */
     extractAllToAsync: function(a, u, c, d) {
-      if (d = vt(u, c, d), c = G(!1, c), u = G(!1, u), !d)
+      if (d = Ft(u, c, d), c = G(!1, c), u = G(!1, u), !d)
         return new Promise((g, N) => {
           this.extractAllToAsync(a, u, c, function(L) {
             L ? N(L) : g(this);
@@ -1886,12 +1902,12 @@ var Ft = function(e, t) {
     }
   };
 };
-const Ze = /* @__PURE__ */ st(Ft), Se = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const Ge = /* @__PURE__ */ at(Ze), Se = /* @__PURE__ */ it({
   __proto__: null,
-  default: Ze
-}, Symbol.toStringTag, { value: "Module" })), Ut = Ne(import.meta.url), Pt = T.dirname(Ut);
+  default: Ge
+}, [Ze]), Pt = Ne(import.meta.url), bt = T.dirname(Pt);
 function De() {
-  return process.env.NODE_ENV === "test" ? T.join(Pt, "../tmp-test-credentials.enc") : T.join(z.getPath("userData"), "credentials.enc");
+  return process.env.NODE_ENV === "test" ? T.join(bt, "../tmp-test-credentials.enc") : T.join(z.getPath("userData"), "credentials.enc");
 }
 async function Bt(e) {
   if (!ae.isEncryptionAvailable())
@@ -1916,30 +1932,30 @@ function ne() {
     }
   return null;
 }
-function Ge() {
+function Xe() {
   const e = ne();
   return e != null && e.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
 }
-function Xe(e) {
+function Ke(e) {
   const t = ne();
   return t != null && t.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
 }
 function Mt(e, t) {
   return e === "anthropic" ? "MiniMax-M2.7" : t != null && t.includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo";
 }
-function bt(e) {
+function jt(e) {
   const t = ne();
   if (t != null && t.qaModel)
     return t.qaModel;
   if (process.env.QA_MODEL) return process.env.QA_MODEL;
-  const n = (t == null ? void 0 : t.qaBaseUrl) || Xe(e);
+  const n = (t == null ? void 0 : t.qaBaseUrl) || Ke(e);
   return Mt(e, n);
 }
-function jt() {
+function Ht() {
   const e = ne();
   return e != null && e.qaApiStyle ? e.qaApiStyle : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
 }
-function Ht() {
+function $t() {
   try {
     const e = De();
     _.existsSync(e) && (_.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
@@ -1947,26 +1963,26 @@ function Ht() {
     console.error("[SecureStore] Failed to clear credentials:", e);
   }
 }
-function $t() {
-  return Ge().length > 0;
+function zt() {
+  return Xe().length > 0;
 }
-const zt = Ne(import.meta.url), Fe = T.dirname(zt);
+const kt = Ne(import.meta.url), Fe = T.dirname(kt);
 function ee() {
-  return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : jt();
+  return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : Ht();
 }
 function Le() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : Ge();
+  return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : Xe();
 }
 function Ce() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : ee() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : Xe(ee());
+  return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : ee() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : Ke(ee());
 }
-function Ke() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : ee() === "anthropic" ? "MiniMax-M2.7" : Ce().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : bt(ee());
+function Ve() {
+  return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : ee() === "anthropic" ? "MiniMax-M2.7" : Ce().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : jt(ee());
 }
-function Ve(e) {
+function We(e) {
   return e.replace(/\/+$/g, "");
 }
-function kt(e) {
+function Zt(e) {
   try {
     const t = new URL(e);
     return t.pathname !== "/" && t.pathname !== "";
@@ -1974,11 +1990,11 @@ function kt(e) {
     return e.split("/").length > 3;
   }
 }
-let W = [], ce = null, _e = "idle", We = null, Y = 0;
+let W = [], ce = null, _e = "idle", Qe = null, Y = 0;
 function fe(e) {
   return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((t) => t.length > 2);
 }
-function Zt(e, t, n) {
+function Gt(e, t, n) {
   const r = new Array(t.size).fill(0), s = /* @__PURE__ */ new Map();
   for (const o of e)
     s.set(o, (s.get(o) || 0) + 1);
@@ -1991,7 +2007,7 @@ function Zt(e, t, n) {
   }
   return r;
 }
-function Gt(e) {
+function Xt(e) {
   const t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((p) => fe(p));
   for (const p of r) {
     const h = new Set(p);
@@ -2006,7 +2022,7 @@ function Gt(e) {
     o.set(p, Math.log((l + 1) / (h + 1)) + 1);
   return { vocab: t, idf: o };
 }
-function Xt(e, t) {
+function Kt(e, t) {
   const n = new Set(fe(e));
   if (n.size === 0) return 0;
   const r = new Set(fe(t));
@@ -2015,11 +2031,11 @@ function Xt(e, t) {
     r.has(o) && s++;
   return s / n.size;
 }
-async function Kt(e, t) {
+async function Vt(e, t) {
   var p, h, y;
-  const n = Ve(Ce());
+  const n = We(Ce());
   let r;
-  n.endsWith("/chat/completions") ? r = n : n.endsWith("/api/v1") ? r = `${n}/chat/completions` : n.endsWith("/v1") ? r = `${n}/chat/completions` : kt(n) ? r = `${n}/chat/completions` : r = `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
+  n.endsWith("/chat/completions") ? r = n : n.endsWith("/api/v1") ? r = `${n}/chat/completions` : n.endsWith("/v1") ? r = `${n}/chat/completions` : Zt(n) ? r = `${n}/chat/completions` : r = `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
   const s = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${Le()}`
@@ -2030,7 +2046,7 @@ async function Kt(e, t) {
     headers: s,
     signal: t,
     body: JSON.stringify({
-      model: Ke(),
+      model: Ve(),
       messages: e,
       temperature: 0.7
     })
@@ -2041,9 +2057,9 @@ async function Kt(e, t) {
   }
   return ((y = (h = (p = (await o.json()).choices) == null ? void 0 : p[0]) == null ? void 0 : h.message) == null ? void 0 : y.content) || "Sorry, I couldn't generate a response.";
 }
-async function Vt(e, t) {
+async function Wt(e, t) {
   var l;
-  const n = Ve(Ce()), r = await fetch(`${n}/v1/messages`, {
+  const n = We(Ce()), r = await fetch(`${n}/v1/messages`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -2052,7 +2068,7 @@ async function Vt(e, t) {
     },
     signal: t,
     body: JSON.stringify({
-      model: Ke(),
+      model: Ve(),
       max_tokens: 1024,
       messages: e
     })
@@ -2064,10 +2080,10 @@ async function Vt(e, t) {
   return ((l = (await r.json()).content) == null ? void 0 : l.filter((p) => p.type === "text").map((p) => p.text || "").join(`
 `).trim()) || "Sorry, I couldn't generate a response.";
 }
-async function Wt(e, t = 3) {
+async function Qt(e, t = 3) {
   for (let n = 0; n < t; n++)
     try {
-      const r = new AbortController(), s = setTimeout(() => r.abort(), 6e4), o = ee() === "anthropic" ? await Vt(e, r.signal) : await Kt(e, r.signal);
+      const r = new AbortController(), s = setTimeout(() => r.abort(), 6e4), o = ee() === "anthropic" ? await Wt(e, r.signal) : await Vt(e, r.signal);
       return clearTimeout(s), o;
     } catch (r) {
       const s = n === t - 1, o = r instanceof Error ? r.message : String(r);
@@ -2078,11 +2094,11 @@ async function Wt(e, t = 3) {
     }
   throw new Error("Unexpected error in retry loop");
 }
-async function Qt(e, t = 4) {
+async function Yt(e, t = 4) {
   if (W.length === 0) return [];
   const n = W.map((r, s) => ({
     idx: s,
-    score: Xt(e, r.content),
+    score: Kt(e, r.content),
     doc: r
   }));
   return n.sort((r, s) => s.score - r.score), n.slice(0, t).map((r) => ({
@@ -2091,17 +2107,17 @@ async function Qt(e, t = 4) {
   }));
 }
 function ie(e, t) {
-  _e = e, We = t || null;
+  _e = e, Qe = t || null;
 }
-function Yt() {
+function qt() {
   return {
     status: _e,
     currentBook: ce || void 0,
-    error: We || void 0,
+    error: Qe || void 0,
     chunkCount: Y || void 0
   };
 }
-async function qt(e, t) {
+async function Jt(e, t) {
   switch (t.toLowerCase()) {
     case "txt":
     case "md":
@@ -2129,7 +2145,7 @@ async function qt(e, t) {
 `);
     }
     case "epub": {
-      const r = new Ze(e).getEntries(), s = [];
+      const r = new Ge(e).getEntries(), s = [];
       for (const l of r)
         if (l.entryName.endsWith(".html") || l.entryName.endsWith(".xhtml") || l.entryName.endsWith(".htm")) {
           const p = l.getData().toString("utf-8");
@@ -2151,7 +2167,7 @@ async function qt(e, t) {
       throw new Error(`Unsupported format: ${t}`);
   }
 }
-async function Jt(e, t) {
+async function en(e, t) {
   try {
     W = [], ce = null, Y = 0, ie("loading");
     const n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
@@ -2169,7 +2185,7 @@ async function Jt(e, t) {
     if (!_.existsSync(e))
       throw new Error(`File not found: ${e}`);
     console.log(`[QA] Extracting text from ${e}`);
-    const s = await qt(e, t);
+    const s = await Jt(e, t);
     if (!s || s.trim().length === 0)
       throw new Error("No text content extracted from file");
     console.log(`[QA] Extracted ${s.length} characters`);
@@ -2177,12 +2193,12 @@ async function Jt(e, t) {
     for (let D = 0; D < s.length; D += o)
       l.push(s.slice(D, D + o));
     console.log(`[QA] Created ${l.length} text chunks`);
-    const { vocab: p, idf: h } = Gt(l);
+    const { vocab: p, idf: h } = Xt(l);
     W = l.map((D, C) => {
       const a = fe(D);
       return {
         content: D,
-        embedding: Zt(a, p, h),
+        embedding: Gt(a, p, h),
         metadata: { source: T.basename(e), chunkIndex: C }
       };
     }), Y = l.length, ce = e, ie("ready");
@@ -2193,7 +2209,7 @@ async function Jt(e, t) {
     return console.error("[QA] Load error:", r), ie("error", r), { success: !1, error: r };
   }
 }
-async function en(e) {
+async function tn(e) {
   const t = e.trim();
   if (!t)
     throw new Error("Question cannot be empty.");
@@ -2202,7 +2218,7 @@ async function en(e) {
   if (_e !== "ready")
     throw new Error("QA service not ready. Please wait.");
   console.log(`[QA] Question: ${t}`);
-  const n = await Qt(t, 3), r = n.map((p) => p.pageContent.slice(0, 1500)).join(`
+  const n = await Yt(t, 3), r = n.map((p) => p.pageContent.slice(0, 1500)).join(`
 
 `);
   console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
@@ -2213,7 +2229,7 @@ ${r}
 
 Question: ${t}
 
-Answer:`, o = await Wt([
+Answer:`, o = await Qt([
     { role: "user", content: s }
   ]), l = n.map((p) => ({
     content: p.pageContent,
@@ -2224,49 +2240,49 @@ Answer:`, o = await Wt([
     sources: l
   };
 }
-function tn() {
+function nn() {
   W = [], ce = null, Y = 0, ie("idle");
   const e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
   console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
 }
 const me = {
-  loadBookForQA: Jt,
-  askQuestion: en,
-  clearQA: tn,
-  getStatus: Yt
-}, Qe = [
+  loadBookForQA: en,
+  askQuestion: tn,
+  clearQA: nn,
+  getStatus: qt
+}, Ye = [
   "pdf",
   "epub",
   "mobi",
   "azw3",
   "txt",
   "md"
-], Ye = ["docx"], nn = /* @__PURE__ */ new Set(["epub", "mobi", "azw3", "txt", "md"]);
+], qe = ["docx"], rn = /* @__PURE__ */ new Set(["epub", "mobi", "azw3", "txt", "md"]);
 function pe(e) {
   return e.trim().toLowerCase().replace(/^\./, "");
 }
-function qe(e) {
-  const t = pe(e);
-  return Qe.includes(t);
-}
-function rn(e) {
+function Je(e) {
   const t = pe(e);
   return Ye.includes(t);
 }
 function on(e) {
-  return qe(e) ? "supported" : rn(e) ? "convertible" : "unsupported";
+  const t = pe(e);
+  return qe.includes(t);
+}
+function sn(e) {
+  return Je(e) ? "supported" : on(e) ? "convertible" : "unsupported";
 }
 function Ie(e) {
-  return nn.has(e) ? "flow" : "paged";
+  return rn.has(e) ? "flow" : "paged";
 }
-function sn() {
-  return [...Qe, ...Ye];
+function an() {
+  return [...Ye, ...qe];
 }
 function Ue(e) {
   return e === "docx" ? "md" : e;
 }
-function an(e) {
-  const t = pe(e), n = on(t);
+function cn(e) {
+  const t = pe(e), n = sn(t);
   if (n === "unsupported")
     return {
       capability: n,
@@ -2274,7 +2290,7 @@ function an(e) {
       requiresConversion: !1,
       reason: "unsupported_format"
     };
-  if (qe(t)) {
+  if (Je(t)) {
     const s = Ue(t);
     return {
       capability: n,
@@ -2295,7 +2311,7 @@ function an(e) {
     requiresConversion: !0
   };
 }
-const cn = T.join(z.getPath("userData"), "library.db"), H = new nt(cn);
+const fn = T.join(z.getPath("userData"), "library.db"), H = new rt(fn);
 H.exec(`
   CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2345,7 +2361,7 @@ H.exec(`
 `);
 const q = T.join(z.getPath("userData"), "covers");
 _.mkdirSync(q, { recursive: !0 });
-async function fn(e, t) {
+async function ln(e, t) {
   try {
     const n = (await Promise.resolve().then(() => Se)).default, s = new n(e).getEntries(), o = [
       /cover\.(jpg|jpeg|png|gif)$/i,
@@ -2388,9 +2404,9 @@ async function fn(e, t) {
     return console.error("Failed to extract EPUB cover:", n), null;
   }
 }
-async function ln(e, t) {
+async function un(e, t) {
   try {
-    const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), l = await (await n.getDocument({ data: s }).promise).getPage(1), p = l.getViewport({ scale: 1 }), h = Math.min(400 / p.width, 1.5), y = l.getViewport({ scale: h }), S = rt(y.width, y.height), D = S.getContext("2d");
+    const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), l = await (await n.getDocument({ data: s }).promise).getPage(1), p = l.getViewport({ scale: 1 }), h = Math.min(400 / p.width, 1.5), y = l.getViewport({ scale: h }), S = ot(y.width, y.height), D = S.getContext("2d");
     await l.render({
       canvasContext: D,
       viewport: y
@@ -2401,19 +2417,19 @@ async function ln(e, t) {
     return console.error("Failed to extract PDF cover:", n), null;
   }
 }
-function un(e) {
+function dn(e) {
   return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (t, n) => String.fromCharCode(Number(n)));
 }
-async function dn(e) {
+async function En(e) {
   const t = (await Promise.resolve().then(() => Se)).default, r = new t(e).getEntry("word/document.xml");
   if (!r)
     throw new Error("DOCX 内容缺失: word/document.xml");
   return r.getData().toString("utf-8").split(/<\/w:p>/i).map((l) => [...l.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, `
-`).matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((S) => un(S[1])).join("").trim()).filter(Boolean).join(`
+`).matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((S) => dn(S[1])).join("").trim()).filter(Boolean).join(`
 
 `);
 }
-async function En(e, t) {
+async function mn(e, t) {
   try {
     if (t === "epub") {
       const n = (await Promise.resolve().then(() => Se)).default, o = new n(e).getEntries().find((l) => l.entryName.endsWith(".opf"));
@@ -2437,7 +2453,7 @@ async function En(e, t) {
   }
   return {};
 }
-function mn(e) {
+function pn(e) {
   if (e)
     try {
       return JSON.parse(e);
@@ -2449,18 +2465,18 @@ function Te(e) {
   const t = e.format || "txt";
   return {
     ...e,
-    progressLocator: mn(e.progressLocator),
+    progressLocator: pn(e.progressLocator),
     progressUpdatedAt: e.progressUpdatedAt ?? void 0,
     documentKind: e.documentKind || Ie(t),
     ingestStatus: e.ingestStatus || "ready",
     sourceFormat: e.sourceFormat || t
   };
 }
-const pn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), gn = H.prepare(`
+const gn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), hn = H.prepare(`
   SELECT * FROM books
   WHERE title LIKE ? OR author LIKE ?
   ORDER BY lastReadAt DESC
-`), hn = H.prepare(`
+`), yn = H.prepare(`
   UPDATE books
   SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
   WHERE id = ?
@@ -2484,17 +2500,17 @@ v.handle("get-cover-url", async (e, t) => {
     return null;
   }
 });
-const Je = T.join(z.getPath("userData"), "backgrounds");
-_.mkdirSync(Je, { recursive: !0 });
+const et = T.join(z.getPath("userData"), "backgrounds");
+_.mkdirSync(et, { recursive: !0 });
 v.handle("select-background-image", async () => {
-  const e = await Be.showOpenDialog({
+  const e = await be.showOpenDialog({
     properties: ["openFile"],
     filters: [
       { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp", "bmp"] }
     ]
   });
   if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = T.extname(t), r = `background-${be.randomUUID()}${n}`, s = T.join(Je, r);
+  const t = e.filePaths[0], n = T.extname(t), r = `background-${Me.randomUUID()}${n}`, s = T.join(et, r);
   try {
     return await _.promises.copyFile(t, s), s;
   } catch (o) {
@@ -2510,31 +2526,31 @@ v.handle("get-background-image-url", async (e, t) => {
   }
 });
 v.handle("open-file-dialog", async () => {
-  const e = await Be.showOpenDialog({
+  const e = await be.showOpenDialog({
     properties: ["openFile"],
     filters: [
-      { name: "Books", extensions: [...sn()] }
+      { name: "Books", extensions: [...an()] }
     ]
   });
   if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = T.extname(t).toLowerCase(), r = pe(n), s = an(r);
+  const t = e.filePaths[0], n = T.extname(t).toLowerCase(), r = pe(n), s = cn(r);
   if (s.capability === "unsupported" || !s.targetFormat || !s.documentKind || !s.ingestStatus)
     return null;
-  const o = T.basename(t, n), l = be.randomUUID(), p = T.join(z.getPath("userData"), "books");
+  const o = T.basename(t, n), l = Me.randomUUID(), p = T.join(z.getPath("userData"), "books");
   await _.promises.mkdir(p, { recursive: !0 });
   let h;
   if (s.requiresConversion && s.sourceFormat === "docx") {
     const a = `${o}-${l}.docx`, u = T.join(p, a);
     await _.promises.copyFile(t, u);
-    const c = await dn(u), d = `${o}-${l}.md`;
+    const c = await En(u), d = `${o}-${l}.md`;
     h = T.join(p, d), await _.promises.writeFile(h, c, "utf-8");
   } else {
     const a = `${o}-${l}${n}`;
     h = T.join(p, a), await _.promises.copyFile(t, h);
   }
-  const y = await En(h, s.targetFormat), S = y.title || o, D = y.author || null;
+  const y = await mn(h, s.targetFormat), S = y.title || o, D = y.author || null;
   let C = null;
-  s.targetFormat === "epub" || s.targetFormat === "mobi" || s.targetFormat === "azw3" ? C = await fn(h, l) : s.targetFormat === "pdf" && (C = await ln(h, l));
+  s.targetFormat === "epub" || s.targetFormat === "mobi" || s.targetFormat === "azw3" ? C = await ln(h, l) : s.targetFormat === "pdf" && (C = await un(h, l));
   try {
     const u = H.prepare(`
       INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) 
@@ -2556,14 +2572,14 @@ v.handle("open-file-dialog", async () => {
     return console.error("DB Insert Error:", a), null;
   }
 });
-v.handle("get-library", () => pn.all().map(Te));
+v.handle("get-library", () => gn.all().map(Te));
 v.handle("search-library", (e, t) => {
   const n = `%${t}%`;
-  return gn.all(n, n).map(Te);
+  return hn.all(n, n).map(Te);
 });
 v.handle("update-progress", (e, t, n, r, s) => {
   const o = typeof s == "number" ? s : Date.now(), l = r ? JSON.stringify(r) : null;
-  hn.run(n, l, o, t);
+  yn.run(n, l, o, t);
 });
 v.handle("delete-book", (e, t) => {
   try {
@@ -2616,18 +2632,18 @@ v.handle("credentials-save", async (e, t) => {
 v.handle("credentials-load", async () => ne());
 v.handle("credentials-clear", async () => {
   try {
-    return Ht(), { success: !0 };
+    return $t(), { success: !0 };
   } catch (e) {
     return { success: !1, error: e instanceof Error ? e.message : String(e) };
   }
 });
-v.handle("credentials-has", async () => $t());
-const yn = Ne(import.meta.url), et = V.dirname(yn);
-process.env.DIST = V.join(et, "../dist");
+v.handle("credentials-has", async () => zt());
+const In = Ne(import.meta.url), tt = V.dirname(In);
+process.env.DIST = V.join(tt, "../dist");
 process.env.VITE_PUBLIC = z.isPackaged ? process.env.DIST : V.join(process.env.DIST, "../public");
 let k;
 const ye = process.env.VITE_DEV_SERVER_URL;
-function In(e) {
+function Nn(e) {
   e.webContents.on(
     "did-fail-load",
     (t, n, r, s, o) => {
@@ -2640,15 +2656,15 @@ function In(e) {
     console.error("[main] render-process-gone", JSON.stringify(n));
   });
 }
-function tt() {
-  if (k = new Me({
+function nt() {
+  if (k = new Be({
     icon: V.join(process.env.VITE_PUBLIC, "vite.svg"),
     webPreferences: {
-      preload: V.join(et, "preload.mjs"),
+      preload: V.join(tt, "preload.mjs"),
       contextIsolation: !0,
       nodeIntegration: !1
     }
-  }), In(k), k.webContents.on("did-finish-load", () => {
+  }), Nn(k), k.webContents.on("did-finish-load", () => {
     k == null || k.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   }), ye)
     console.log("[main] loading dev url:", ye), k.loadURL(ye), k.webContents.openDevTools({ mode: "detach" });
@@ -2661,6 +2677,6 @@ z.on("window-all-closed", () => {
   process.platform !== "darwin" && z.quit();
 });
 z.on("activate", () => {
-  Me.getAllWindows().length === 0 && tt();
+  Be.getAllWindows().length === 0 && nt();
 });
-z.whenReady().then(tt);
+z.whenReady().then(nt);
