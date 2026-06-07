@@ -46,6 +46,9 @@ export default function Reader() {
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
   const [showQA, setShowQA] = useState(false)
   const [showToc, setShowToc] = useState(false)
+  const [tocData, setTocData] = useState<any[]>([])
+  const [currentTocHref, setCurrentTocHref] = useState<string>()
+  const epubViewRef = useRef<any>(null)
   const pendingProgressRef = useRef<PendingProgressUpdate | null>(null)
   const progressFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastPersistedProgressRef = useRef<{
@@ -631,10 +634,13 @@ export default function Reader() {
           <div className="w-64 h-full border-r flex-shrink-0" style={{ borderColor: dividerColor }}>
             <Suspense fallback={<ReaderFallback label="正在加载目录..." />}>
               <TocPanel
-                toc={[]}
+                toc={tocData}
+                currentHref={currentTocHref}
                 onNavigate={(href) => {
-                  console.log('Navigate to:', href)
-                  // TODO: Implement navigation
+                  // Navigate in EPUB reader
+                  if (epubViewRef.current && typeof epubViewRef.current.goTo === 'function') {
+                    epubViewRef.current.goTo(href).catch((e: Error) => console.error('TOC navigation error:', e))
+                  }
                 }}
                 onClose={() => setShowToc(false)}
                 theme={currentTheme}
@@ -675,6 +681,10 @@ export default function Reader() {
                 initialProgress={book.progress}
                 initialLocator={book.progressLocator}
                 onProgressUpdate={handleProgressUpdate}
+                onTocLoad={(toc) => setTocData(toc)}
+                onViewReady={(view) => {
+                  epubViewRef.current = view
+                }}
                 theme={currentTheme}
                 readerSettings={readerSettings}
               />

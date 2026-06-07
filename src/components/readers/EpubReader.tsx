@@ -4,6 +4,7 @@ import type { Annotation, EpubProgressLocator, ReaderProgressLocator, ReaderProg
 import { DEFAULT_READER_SETTINGS } from '../../types'
 import AnnotationPanel, { HighlightToolbar } from '../AnnotationPanel'
 import { isElectron, OPEN_EXTERNAL_LINKS_KEY } from '../../utils'
+import type { TocItem } from '../TocPanel'
 
 interface FoliateView extends HTMLElement {
   open: (book: Blob | File) => Promise<void>
@@ -13,8 +14,11 @@ interface FoliateView extends HTMLElement {
   getCFI?: (index: number, range: Range) => string
   currentIndex?: number
   renderer?: {
-    setStyles?: (styles: Record<string, string>) => void
+    setStyles?: (styles: string | [string, string]) => void
     setAttribute?: (name: string, value: string) => void
+  }
+  book?: {
+    toc?: TocItem[]
   }
 }
 
@@ -25,6 +29,8 @@ interface EpubReaderProps {
   initialProgress?: number
   initialLocator?: ReaderProgressLocator
   onProgressUpdate?: (update: ReaderProgressUpdate) => void
+  onTocLoad?: (toc: TocItem[]) => void
+  onViewReady?: (view: FoliateView) => void
   theme: ReaderTheme
   readerSettings?: ReaderSettings
 }
@@ -59,15 +65,34 @@ const MIME_TYPE_BY_FORMAT: Record<'epub' | 'mobi' | 'azw3', string> = {
   azw3: 'application/vnd.amazon.mobi8-ebook',
 }
 
-export default function EpubReader({ 
-  filePath, 
-  bookId, 
+function buildReaderCss(settings: ReaderSettings) {
+  return `
+    html, body {
+      font-size: ${settings.fontSize}px !important;
+      line-height: ${settings.lineHeight} !important;
+      font-family: ${settings.fontFamily} !important;
+    }
+  `
+}
+
+function hasRenderableSectionContent(doc?: Document) {
+  if (!doc) return false
+  const text = doc.body?.textContent?.replace(/\s+/g, '') ?? ''
+  if (text.length > 20) return true
+  return doc.querySelector('img, svg, canvas, video, audio') != null
+}
+
+export default function EpubReader({
+  filePath,
+  bookId,
   format,
-  initialProgress = 0, 
+  initialProgress = 0,
   initialLocator,
-  onProgressUpdate, 
+  onProgressUpdate,
+  onTocLoad,
+  onViewReady,
   theme,
-  readerSettings = DEFAULT_READER_SETTINGS 
+  readerSettings = DEFAULT_READER_SETTINGS
 }: EpubReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<FoliateView | null>(null)
@@ -87,6 +112,22 @@ export default function EpubReader({
   const [canNavigate, setCanNavigate] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('Loading eBook...')
+
+  const applyPageMode = useCallback((view: FoliateView, settings: ReaderSettings) => {
+    if (!view.renderer?.setAttribute) return
+
+    view.renderer.setAttribute('flow', settings.pageMode === 'scroll' ? 'scrolled' : 'paginated')
+    view.renderer.setAttribute('max-column-count', settings.pageMode === 'single' ? '1' : '2')
+  }, [])
+
+  const applyReaderSettings = useCallback((view: FoliateView, settings: ReaderSettings) => {
+    view.style.setProperty('--foliate-font-size', `${settings.fontSize}px`)
+    view.style.setProperty('--foliate-line-height', `${settings.lineHeight}`)
+    view.style.setProperty('--foliate-font-family', settings.fontFamily)
+
+    view.renderer?.setStyles?.(buildReaderCss(settings))
+    applyPageMode(view, settings)
+  }, [applyPageMode])
 
   useEffect(() => {
     progressCallbackRef.current = onProgressUpdate
@@ -118,20 +159,8 @@ export default function EpubReader({
     if (!viewRef.current) return
     const view = viewRef.current
 
-    // Apply font and reading styles via CSS custom properties
-    view.style.setProperty('--foliate-font-size', `${readerSettings.fontSize}px`)
-    view.style.setProperty('--foliate-line-height', `${readerSettings.lineHeight}`)
-    view.style.setProperty('--foliate-font-family', readerSettings.fontFamily)
-
-    // Try to apply styles via renderer if available
-    if (view.renderer?.setStyles) {
-      view.renderer.setStyles({
-        fontSize: `${readerSettings.fontSize}px`,
-        lineHeight: `${readerSettings.lineHeight}`,
-        fontFamily: readerSettings.fontFamily,
-      })
-    }
-  }, [readerSettings.fontFamily, readerSettings.fontSize, readerSettings.lineHeight])
+    applyReaderSettings(view, readerSettings)
+  }, [applyReaderSettings, readerSettings])
 
   useEffect(() => {
     let mounted = true
@@ -160,6 +189,8 @@ export default function EpubReader({
         const view = document.createElement('foliate-view') as FoliateView
         view.style.width = '100%'
         view.style.height = '100%'
+        let shouldSkipEmptyOpeningSection = !initialLocatorSnapshot && initialProgressSnapshot <= 0
+        let skippedOpeningSections = 0
 
         view.addEventListener('external-link', async (event) => {
           const customEvent = event as CustomEvent<{ href?: string }>
@@ -182,6 +213,23 @@ export default function EpubReader({
           }
         })
 
+        view.addEventListener('load', (event) => {
+          if (!shouldSkipEmptyOpeningSection || skippedOpeningSections >= 5) return
+
+          const customEvent = event as CustomEvent<{ doc?: Document }>
+          if (hasRenderableSectionContent(customEvent.detail?.doc)) {
+            shouldSkipEmptyOpeningSection = false
+            return
+          }
+
+          skippedOpeningSections += 1
+          window.setTimeout(() => {
+            if (mounted) {
+              void view.next()
+            }
+          }, 50)
+        })
+
         containerElement.innerHTML = ''
         containerElement.appendChild(view)
         viewRef.current = view
@@ -190,7 +238,6 @@ export default function EpubReader({
         view.style.setProperty('--foliate-background', themeSnapshot.customBgImage ? `url(${themeSnapshot.customBgImage})` : themeSnapshot.bg)
         view.style.setProperty('--foliate-color', themeSnapshot.text)
         
-        // Apply reader settings
         view.style.setProperty('--foliate-font-size', `${readerSettingsSnapshot.fontSize}px`)
         view.style.setProperty('--foliate-line-height', `${readerSettingsSnapshot.lineHeight}`)
         view.style.setProperty('--foliate-font-family', readerSettingsSnapshot.fontFamily)
@@ -217,6 +264,11 @@ export default function EpubReader({
           await withTimeout(view.open(fallbackFile), 20000, 'Open ebook fallback')
         }
         if (!mounted) return
+        requestAnimationFrame(() => {
+          if (mounted) {
+            applyReaderSettings(view, readerSettingsRef.current)
+          }
+        })
 
         // Restoring previous position should not fail the whole book loading flow.
         try {
@@ -228,9 +280,25 @@ export default function EpubReader({
             }
           } else if (initialProgressSnapshot > 0) {
             await view.goTo({ fraction: initialProgressSnapshot })
+          } else {
+            await view.goTo({ fraction: 0 })
           }
         } catch (restoreErr) {
           console.warn('Failed to restore EPUB position, fallback to chapter start:', restoreErr)
+        }
+
+        // Extract TOC if available
+        try {
+          if (onTocLoad && (view as any).book?.toc) {
+            onTocLoad((view as any).book.toc)
+          }
+        } catch (tocErr) {
+          console.warn('Failed to extract TOC:', tocErr)
+        }
+
+        // Expose view to parent component
+        if (onViewReady) {
+          onViewReady(view)
         }
 
         // Handle relocate events
@@ -288,7 +356,7 @@ export default function EpubReader({
       }
       viewRef.current = null
     }
-  }, [filePath, format])
+  }, [applyReaderSettings, filePath, format])
 
   useEffect(() => {
     if (!viewRef.current) return
