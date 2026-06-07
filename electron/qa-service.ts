@@ -153,7 +153,21 @@ async function chatOpenAICompatible(
   messages: { role: string; content: string }[],
   signal?: AbortSignal
 ): Promise<string> {
-  const baseUrl = trimTrailingSlash(getBaseUrl());
+  let baseUrl = trimTrailingSlash(getBaseUrl());
+
+  // Handle different URL formats
+  let endpoint: string;
+  if (baseUrl.includes('/chat/completions')) {
+    // Already a complete endpoint
+    endpoint = baseUrl;
+  } else if (baseUrl.includes('/v1')) {
+    // Has /v1, just add /chat/completions
+    endpoint = `${baseUrl}/chat/completions`;
+  } else {
+    // No /v1, add both
+    endpoint = `${baseUrl}/v1/chat/completions`;
+  }
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Authorization": `Bearer ${getApiKey()}`
@@ -165,7 +179,7 @@ async function chatOpenAICompatible(
     headers["X-Title"] = "UniversalReader";
   }
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await fetch(endpoint, {
     method: "POST",
     headers,
     signal,
