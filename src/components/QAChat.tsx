@@ -109,7 +109,9 @@ export default function QAChat({ bookPath, bookFormat, bookTitle, isOpen, onTogg
 
   const clearChat = () => {
     setMessages([])
-    window.ipcRenderer.invoke('qa-clear')
+    window.ipcRenderer.invoke('qa-clear').catch(e => {
+      console.error('Failed to clear QA state:', e)
+    })
     setQaStatus('idle')
     setError(null)
   }

@@ -200,7 +200,11 @@ export default function Reader() {
       safeSetItem(WEB_LIBRARY_KEY, updatedBooks)
     } else if (isDesktop) {
       // Electron mode
-      window.ipcRenderer.invoke('update-progress', pending.bookId, progress, progressLocator, progressUpdatedAt)
+      window.ipcRenderer
+        .invoke('update-progress', pending.bookId, progress, progressLocator, progressUpdatedAt)
+        .catch(err => {
+          console.error('Failed to persist reader progress:', err)
+        })
     }
 
     lastPersistedProgressRef.current = {
