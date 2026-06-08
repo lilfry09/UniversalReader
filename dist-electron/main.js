@@ -2012,7 +2012,7 @@ u.mkdirSync(Z, { recursive: !0 }), i.handle("select-background-image", async () 
 	if (!J(t)) throw Error("Invalid book id");
 	if (typeof n != "number" || !Number.isFinite(n)) throw Error("Invalid progress");
 	if (!Y.get(t)) throw Error("Book not found");
-	let a = Math.min(100, Math.max(0, n)), o = typeof i == "number" ? i : Date.now(), s = r ? JSON.stringify(r) : null;
+	let a = Math.min(1, Math.max(0, n)), o = typeof i == "number" ? i : Date.now(), s = r ? JSON.stringify(r) : null;
 	it.run(a, s, o, t);
 }), i.handle("delete-book", (e, t) => {
 	if (!J(t)) return !1;

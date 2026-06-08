@@ -559,7 +559,7 @@ ipcMain.handle('update-progress', (_, bookId: number, progress: number, locator?
     throw new Error('Book not found')
   }
 
-  const normalizedProgress = Math.min(100, Math.max(0, progress))
+  const normalizedProgress = Math.min(1, Math.max(0, progress))
   const timestamp = typeof updatedAt === 'number' ? updatedAt : Date.now()
   const serializedLocator = locator ? JSON.stringify(locator) : null
   updateProgressStmt.run(normalizedProgress, serializedLocator, timestamp, bookId)
