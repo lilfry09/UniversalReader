@@ -319,6 +319,24 @@ function isAllowedExternalUrl(rawUrl: string) {
   }
 }
 
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+}
+
+function assertString(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`Invalid ${label}`)
+  }
+  return value
+}
+
+function isPathInsideDirectory(filePath: string, directory: string): boolean {
+  const resolvedPath = path.resolve(filePath)
+  const resolvedDirectory = path.resolve(directory)
+  const relativePath = path.relative(resolvedDirectory, resolvedPath)
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
+}
+
 const selectLibraryStmt = db.prepare('SELECT * FROM books ORDER BY lastReadAt DESC')
 const searchLibraryStmt = db.prepare(`
   SELECT * FROM books
@@ -330,20 +348,47 @@ const updateProgressStmt = db.prepare(`
   SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
   WHERE id = ?
 `)
+const selectBookByPathStmt = db.prepare('SELECT * FROM books WHERE path = ?')
+const selectBookByCoverPathStmt = db.prepare('SELECT id FROM books WHERE coverPath = ?')
+const selectBookByIdStmt = db.prepare('SELECT * FROM books WHERE id = ?')
+const selectAnnotationByIdStmt = db.prepare('SELECT id FROM annotations WHERE id = ?')
+
+function getKnownBookByPath(filePath: unknown): BookRow | null {
+  if (typeof filePath !== 'string' || filePath.trim() === '') return null
+  const book = selectBookByPathStmt.get(filePath) as BookRow | undefined
+  return book ?? null
+}
+
+function requireKnownBookPath(filePath: unknown): string {
+  assertString(filePath, 'book path')
+  const book = getKnownBookByPath(filePath)
+  if (!book) {
+    throw new Error('Book path is not in the library')
+  }
+  return book.path
+}
+
+function isKnownCoverPath(coverPath: unknown): coverPath is string {
+  if (typeof coverPath !== 'string' || coverPath.trim() === '') return false
+  return Boolean(selectBookByCoverPathStmt.get(coverPath))
+}
 
 // ============ File Handlers ============
 
 ipcMain.handle('read-file', async (_, filePath) => {
-  return fs.promises.readFile(filePath)
+  return fs.promises.readFile(requireKnownBookPath(filePath))
 })
 
 ipcMain.handle('read-file-buffer', async (_, filePath) => {
-  return fs.promises.readFile(filePath)
+  return fs.promises.readFile(requireKnownBookPath(filePath))
 })
 
 ipcMain.handle('file-exists', async (_, filePath) => {
+  const book = getKnownBookByPath(filePath)
+  if (!book) return false
+
   try {
-    await fs.promises.access(filePath, fs.constants.F_OK)
+    await fs.promises.access(book.path, fs.constants.F_OK)
     return true
   } catch {
     return false
@@ -364,7 +409,7 @@ ipcMain.handle('open-user-data-folder', async () => {
 
 ipcMain.handle('get-cover-url', async (_, coverPath: string) => {
   // Return file:// URL for local cover image
-  if (!coverPath) return null
+  if (!isKnownCoverPath(coverPath)) return null
   try {
     await fs.promises.access(coverPath, fs.constants.F_OK)
     return `file://${coverPath.replace(/\\/g, '/')}`
@@ -402,7 +447,7 @@ ipcMain.handle('select-background-image', async () => {
 })
 
 ipcMain.handle('get-background-image-url', async (_, imagePath: string) => {
-  if (!imagePath) return null
+  if (typeof imagePath !== 'string' || !isPathInsideDirectory(imagePath, backgroundsDir)) return null
   try {
     await fs.promises.access(imagePath, fs.constants.F_OK)
     return `file://${imagePath.replace(/\\/g, '/')}`
@@ -498,21 +543,34 @@ ipcMain.handle('get-library', () => {
 })
 
 ipcMain.handle('search-library', (_, query: string) => {
-  const searchTerm = `%${query}%`
+  const searchTerm = `%${typeof query === 'string' ? query : ''}%`
   const books = searchLibraryStmt.all(searchTerm, searchTerm) as BookRow[]
   return books.map(normalizeBookRow)
 })
 
 ipcMain.handle('update-progress', (_, bookId: number, progress: number, locator?: ReaderProgressLocator, updatedAt?: number) => {
+  if (!isPositiveInteger(bookId)) {
+    throw new Error('Invalid book id')
+  }
+  if (typeof progress !== 'number' || !Number.isFinite(progress)) {
+    throw new Error('Invalid progress')
+  }
+  if (!selectBookByIdStmt.get(bookId)) {
+    throw new Error('Book not found')
+  }
+
+  const normalizedProgress = Math.min(100, Math.max(0, progress))
   const timestamp = typeof updatedAt === 'number' ? updatedAt : Date.now()
   const serializedLocator = locator ? JSON.stringify(locator) : null
-  updateProgressStmt.run(progress, serializedLocator, timestamp, bookId)
+  updateProgressStmt.run(normalizedProgress, serializedLocator, timestamp, bookId)
 })
 
 ipcMain.handle('delete-book', (_, bookId: number) => {
+  if (!isPositiveInteger(bookId)) return false
+
   try {
     // Get book info first to delete cover
-    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(bookId) as { coverPath?: string; path?: string } | undefined
+    const book = selectBookByIdStmt.get(bookId) as { coverPath?: string; path?: string } | undefined
     if (book) {
       // Delete cover file if exists
       if (book.coverPath) {
@@ -536,6 +594,7 @@ ipcMain.handle('delete-book', (_, bookId: number) => {
 // ============ Annotation Handlers ============
 
 ipcMain.handle('get-annotations', (_, bookId: number) => {
+  if (!isPositiveInteger(bookId)) return []
   return db.prepare('SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC').all(bookId)
 })
 
@@ -548,6 +607,16 @@ ipcMain.handle('add-annotation', (_, annotation: {
   note?: string
   color?: string
 }) => {
+  if (!annotation || !isPositiveInteger(annotation.bookId)) {
+    throw new Error('Invalid annotation book id')
+  }
+  if (!selectBookByIdStmt.get(annotation.bookId)) {
+    throw new Error('Book not found')
+  }
+  if (annotation.type !== 'highlight' && annotation.type !== 'note') {
+    throw new Error('Invalid annotation type')
+  }
+
   const stmt = db.prepare(`
     INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -565,6 +634,9 @@ ipcMain.handle('add-annotation', (_, annotation: {
 })
 
 ipcMain.handle('update-annotation', (_, id: number, updates: { note?: string; color?: string }) => {
+  if (!isPositiveInteger(id) || !selectAnnotationByIdStmt.get(id)) return null
+  if (!updates || typeof updates !== 'object') return null
+
   const fields: string[] = []
   const values: (string | number)[] = []
   
@@ -587,6 +659,8 @@ ipcMain.handle('update-annotation', (_, id: number, updates: { note?: string; co
 })
 
 ipcMain.handle('delete-annotation', (_, id: number) => {
+  if (!isPositiveInteger(id)) return false
+
   try {
     db.prepare('DELETE FROM annotations WHERE id = ?').run(id)
     return true
@@ -599,10 +673,17 @@ ipcMain.handle('delete-annotation', (_, id: number) => {
 // ============ QA Handlers ============
 
 ipcMain.handle('qa-load-book', async (_, bookPath: string, format: string) => {
-  return qaService.loadBookForQA(bookPath, format)
+  const book = getKnownBookByPath(bookPath)
+  if (!book) {
+    return { success: false, error: 'Book path is not in the library' }
+  }
+  return qaService.loadBookForQA(book.path, book.format || format)
 })
 
 ipcMain.handle('qa-ask', async (_, question: string) => {
+  if (typeof question !== 'string' || question.trim() === '') {
+    throw new Error('Invalid question')
+  }
   return qaService.askQuestion(question)
 })
 
