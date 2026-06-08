@@ -1,5 +1,6 @@
 import { ipcMain, app, dialog, shell } from 'electron'
 import Database from 'better-sqlite3'
+import AdmZip from 'adm-zip'
 import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
@@ -85,7 +86,6 @@ fs.mkdirSync(coversDir, { recursive: true })
 
 async function extractEpubCover(filePath: string, bookId: string): Promise<string | null> {
   try {
-    const AdmZip = (await import('adm-zip')).default
     const zip = new AdmZip(filePath)
     const entries = zip.getEntries()
 
@@ -211,7 +211,6 @@ function decodeXmlEntities(input: string): string {
 }
 
 async function convertDocxToMarkdown(filePath: string): Promise<string> {
-  const AdmZip = (await import('adm-zip')).default
   const zip = new AdmZip(filePath)
   const documentEntry = zip.getEntry('word/document.xml')
   if (!documentEntry) {
@@ -237,7 +236,6 @@ async function convertDocxToMarkdown(filePath: string): Promise<string> {
 async function extractMetadata(filePath: string, format: DocumentFormat): Promise<{ title?: string; author?: string }> {
   try {
     if (format === 'epub') {
-      const AdmZip = (await import('adm-zip')).default
       const zip = new AdmZip(filePath)
       const entries = zip.getEntries()
       

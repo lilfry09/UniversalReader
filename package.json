@@ -17,7 +17,7 @@
   "dependencies": {
     "@langchain/openai": "^1.4.7",
     "adm-zip": "^0.5.17",
-    "better-sqlite3": "^11.10.0",
+    "better-sqlite3": "^12.10.0",
     "clsx": "^2.1.1",
     "foliate-js": "^1.0.1",
     "langchain": "^1.4.4",
@@ -43,7 +43,7 @@
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/ui": "^4.1.8",
     "autoprefixer": "^10.5.0",
-    "electron": "^34.5.8",
+    "electron": "^39.8.10",
     "electron-builder": "^26.15.2",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.1.1",

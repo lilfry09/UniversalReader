@@ -3,21 +3,21 @@ import { BrowserWindow as t, app as n, dialog as r, ipcMain as i, safeStorage as
 import s from "node:path";
 import { fileURLToPath as c } from "node:url";
 import l from "better-sqlite3";
-import u from "node:crypto";
-import d from "fs";
-import f from "path";
+import u from "fs";
+import d from "path";
+import f from "node:crypto";
 import { createCanvas as p } from "canvas";
 //#region \0rolldown/runtime.js
-var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescriptor, _ = Object.getOwnPropertyNames, v = Object.getPrototypeOf, y = Object.prototype.hasOwnProperty, b = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), x = (e, t, n, r) => {
+var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescriptor, _ = Object.getOwnPropertyNames, v = Object.getPrototypeOf, y = Object.prototype.hasOwnProperty, b = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), ee = (e, t, n, r) => {
 	if (t && typeof t == "object" || typeof t == "function") for (var i = _(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !y.call(e, s) && s !== n && h(e, s, {
 		get: ((e) => t[e]).bind(null, s),
 		enumerable: !(r = g(t, s)) || r.enumerable
 	});
 	return e;
-}, S = (e, t, n) => (n = e == null ? {} : m(v(e)), x(t || !e || !e.__esModule ? h(n, "default", {
+}, x = (e, t, n) => (n = e == null ? {} : m(v(e)), ee(t || !e || !e.__esModule ? h(n, "default", {
 	value: e,
 	enumerable: !0
-}) : n, e)), C = /* @__PURE__ */ e(import.meta.url), ee = /* @__PURE__ */ b(((e, t) => {
+}) : n, e)), S = /* @__PURE__ */ e(import.meta.url), te = /* @__PURE__ */ b(((e, t) => {
 	t.exports = {
 		LOCHDR: 30,
 		LOCSIG: 67324752,
@@ -131,7 +131,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		EF_ZIP64_RHO: 16,
 		EF_ZIP64_DSN: 24
 	};
-})), w = /* @__PURE__ */ b(((e) => {
+})), C = /* @__PURE__ */ b(((e) => {
 	var t = {
 		INVALID_LOC: "Invalid LOC header (bad signature)",
 		INVALID_CEN: "Invalid CEN header (bad signature)",
@@ -174,8 +174,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		};
 	}
 	for (let r of Object.keys(t)) e[r] = n(t[r]);
-})), te = /* @__PURE__ */ b(((e, t) => {
-	var n = C("fs"), r = C("path"), i = ee(), a = w(), o = typeof process == "object" && process.platform === "win32", s = (e) => typeof e == "object" && !!e, c = new Uint32Array(256).map((e, t) => {
+})), ne = /* @__PURE__ */ b(((e, t) => {
+	var n = S("fs"), r = S("path"), i = te(), a = C(), o = typeof process == "object" && process.platform === "win32", s = (e) => typeof e == "object" && !!e, c = new Uint32Array(256).map((e, t) => {
 		for (let e = 0; e < 8; e++) t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
 		return t >>> 0;
 	});
@@ -321,8 +321,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		let t = 0, n = 0;
 		return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
 	}, l.isWin = o, l.crcTable = c;
-})), ne = /* @__PURE__ */ b(((e, t) => {
-	var n = C("path");
+})), re = /* @__PURE__ */ b(((e, t) => {
+	var n = S("path");
 	t.exports = function(e, { fs: t }) {
 		var r = e || "", i = o(), a = null;
 		function o() {
@@ -372,16 +372,16 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), re = /* @__PURE__ */ b(((e, t) => {
+})), ie = /* @__PURE__ */ b(((e, t) => {
 	t.exports = {
 		efs: !0,
 		encode: (e) => Buffer.from(e, "utf8"),
 		decode: (e) => e.toString("utf8")
 	};
-})), T = /* @__PURE__ */ b(((e, t) => {
-	t.exports = te(), t.exports.Constants = ee(), t.exports.Errors = w(), t.exports.FileAttr = ne(), t.exports.decoder = re();
-})), ie = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = n.Constants;
+})), w = /* @__PURE__ */ b(((e, t) => {
+	t.exports = ne(), t.exports.Constants = te(), t.exports.Errors = C(), t.exports.FileAttr = re(), t.exports.decoder = ie();
+})), ae = /* @__PURE__ */ b(((e, t) => {
+	var n = w(), r = n.Constants;
 	t.exports = function() {
 		var e = 20, t = 10, i = 0, a = 0, o = 0, s = 0, c = 0, l = 0, u = 0, d = 0, f = 0, p = 0, m = 0, h = 0, g = 0;
 		e |= n.isWin ? 2560 : 768, i |= r.FLG_EFS;
@@ -571,8 +571,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), ae = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = n.Constants;
+})), oe = /* @__PURE__ */ b(((e, t) => {
+	var n = w(), r = n.Constants;
 	t.exports = function() {
 		var e = 0, t = 0, i = 0, a = 0, o = 0;
 		return {
@@ -635,11 +635,11 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), oe = /* @__PURE__ */ b(((e) => {
-	e.EntryHeader = ie(), e.MainHeader = ae();
+})), T = /* @__PURE__ */ b(((e) => {
+	e.EntryHeader = ae(), e.MainHeader = oe();
 })), se = /* @__PURE__ */ b(((e, t) => {
 	t.exports = function(e) {
-		var t = C("zlib"), n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
+		var t = S("zlib"), n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
 		return {
 			deflate: function() {
 				return t.deflateRawSync(e, n);
@@ -663,7 +663,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 })), ce = /* @__PURE__ */ b(((e, t) => {
 	var n = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
 	t.exports = function(e, t) {
-		var r = C("zlib");
+		var r = S("zlib");
 		let i = n >= 15 && t > 0 ? { maxOutputLength: t } : {};
 		return {
 			inflate: function() {
@@ -686,7 +686,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		};
 	};
 })), le = /* @__PURE__ */ b(((e, t) => {
-	var { randomFillSync: n } = C("crypto"), r = w(), i = new Uint32Array(256).map((e, t) => {
+	var { randomFillSync: n } = S("crypto"), r = C(), i = new Uint32Array(256).map((e, t) => {
 		for (let e = 0; e < 8; e++) t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
 		return t >>> 0;
 	}), a = (e, t) => Math.imul(e, t) >>> 0, o = (e, t) => i[(e ^ t) & 255] ^ e >>> 8, s = () => typeof n == "function" ? n(Buffer.alloc(12)) : s.node();
@@ -757,7 +757,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 })), ue = /* @__PURE__ */ b(((e) => {
 	e.Deflater = se(), e.Inflater = ce(), e.ZipCrypto = le();
 })), de = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = oe(), i = n.Constants, a = ue();
+	var n = w(), r = T(), i = n.Constants, a = ue();
 	t.exports = function(e, t) {
 		var o = new r.EntryHeader(), s = Buffer.alloc(0), c = Buffer.alloc(0), l = !1, u = null, d = Buffer.alloc(0), f = Buffer.alloc(0), p = !0;
 		let m = e, h = typeof m.decoder == "object" ? m.decoder : n.decoder;
@@ -830,14 +830,14 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		function b(e, t) {
 			return n.readBigUInt64LE(e, t);
 		}
-		function x(e) {
+		function ee(e) {
 			try {
-				for (var t = 0, r, a, o; t + 4 < e.length;) r = e.readUInt16LE(t), t += 2, a = e.readUInt16LE(t), t += 2, o = e.slice(t, t + a), t += a, i.ID_ZIP64 === r && S(o);
+				for (var t = 0, r, a, o; t + 4 < e.length;) r = e.readUInt16LE(t), t += 2, a = e.readUInt16LE(t), t += 2, o = e.slice(t, t + a), t += a, i.ID_ZIP64 === r && x(o);
 			} catch {
 				throw n.Errors.EXTRA_FIELD_PARSE_ERROR();
 			}
 		}
-		function S(e) {
+		function x(e) {
 			var t, n, r, a;
 			e.length >= i.EF_ZIP64_SCOMP && (t = b(e, i.EF_ZIP64_SUNCOMP), o.size === i.EF_ZIP64_OR_32 && (o.size = t)), e.length >= i.EF_ZIP64_RHO && (n = b(e, i.EF_ZIP64_SCOMP), o.compressedSize === i.EF_ZIP64_OR_32 && (o.compressedSize = n)), e.length >= i.EF_ZIP64_DSN && (r = b(e, i.EF_ZIP64_RHO), o.offset === i.EF_ZIP64_OR_32 && (o.offset = r)), e.length >= i.EF_ZIP64_DSN + 4 && (a = e.readUInt32LE(i.EF_ZIP64_DSN), o.diskNumStart === i.EF_ZIP64_OR_16 && (o.diskNumStart = a));
 		}
@@ -860,7 +860,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 				return d;
 			},
 			set extra(e) {
-				d = e, o.extraLength = e.length, x(e);
+				d = e, o.extraLength = e.length, ee(e);
 			},
 			get comment() {
 				return h.decode(c);
@@ -933,7 +933,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		};
 	};
 })), fe = /* @__PURE__ */ b(((e, t) => {
-	var n = de(), r = oe(), i = T();
+	var n = de(), r = T(), i = w();
 	t.exports = function(e, t) {
 		var a = [], o = {}, s = Buffer.alloc(0), c = new r.MainHeader(), l = !1;
 		let u = /* @__PURE__ */ new Set(), d = t, { noSort: f, decoder: p } = d;
@@ -1084,8 +1084,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), E = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = C("path"), i = de(), a = fe(), o = (...e) => n.findLast(e, (e) => typeof e == "boolean"), s = (...e) => n.findLast(e, (e) => typeof e == "string"), c = (...e) => n.findLast(e, (e) => typeof e == "function"), l = {
+})), E = /* @__PURE__ */ x((/* @__PURE__ */ b(((e, t) => {
+	var n = w(), r = S("path"), i = de(), a = fe(), o = (...e) => n.findLast(e, (e) => typeof e == "boolean"), s = (...e) => n.findLast(e, (e) => typeof e == "string"), c = (...e) => n.findLast(e, (e) => typeof e == "function"), l = {
 		noSort: !1,
 		readEntries: !1,
 		method: n.Constants.NONE,
@@ -1407,24 +1407,24 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), pe = /* @__PURE__ */ S(E(), 1), me = c(import.meta.url), he = f.dirname(me);
+})))(), 1), pe = c(import.meta.url), me = d.dirname(pe);
 function D() {
-	return process.env.NODE_ENV === "test" ? f.join(he, "../tmp-test-credentials.enc") : f.join(n.getPath("userData"), "credentials.enc");
+	return process.env.NODE_ENV === "test" ? d.join(me, "../tmp-test-credentials.enc") : d.join(n.getPath("userData"), "credentials.enc");
 }
-async function ge(e) {
+async function he(e) {
 	if (!a.isEncryptionAvailable()) throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), Error("Encryption not available on this system");
 	try {
 		let t = JSON.stringify(e), n = a.encryptString(t);
-		d.writeFileSync(D(), n), console.log("[SecureStore] Credentials saved securely");
+		u.writeFileSync(D(), n), console.log("[SecureStore] Credentials saved securely");
 	} catch (e) {
 		throw console.error("[SecureStore] Failed to save credentials:", e), Error("Failed to save credentials securely");
 	}
 }
 function O() {
 	let e = D();
-	if (d.existsSync(e)) try {
+	if (u.existsSync(e)) try {
 		if (!a.isEncryptionAvailable()) return console.warn("[SecureStore] Encryption not available, cannot decrypt credentials"), null;
-		let t = d.readFileSync(e), n = a.decryptString(t), r = JSON.parse(n);
+		let t = u.readFileSync(e), n = a.decryptString(t), r = JSON.parse(n);
 		return console.log("[SecureStore] Credentials loaded from secure storage"), r;
 	} catch (e) {
 		return console.error("[SecureStore] Failed to load credentials:", e), null;
@@ -1435,7 +1435,7 @@ function k() {
 	let e = O();
 	return e?.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
 }
-function A(e) {
+function ge(e) {
 	let t = O();
 	return t?.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
 }
@@ -1444,7 +1444,7 @@ function _e(e, t) {
 }
 function ve(e) {
 	let t = O();
-	return t?.qaModel ? t.qaModel : process.env.QA_MODEL ? process.env.QA_MODEL : _e(e, t?.qaBaseUrl || A(e));
+	return t?.qaModel ? t.qaModel : process.env.QA_MODEL ? process.env.QA_MODEL : _e(e, t?.qaBaseUrl || ge(e));
 }
 function ye() {
 	let e = O();
@@ -1453,7 +1453,7 @@ function ye() {
 function be() {
 	try {
 		let e = D();
-		d.existsSync(e) && (d.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
+		u.existsSync(e) && (u.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
 	} catch (e) {
 		console.error("[SecureStore] Failed to clear credentials:", e);
 	}
@@ -1463,20 +1463,20 @@ function xe() {
 }
 //#endregion
 //#region electron/qa-service.ts
-var Se = c(import.meta.url), j = f.dirname(Se);
-function M() {
+var Se = c(import.meta.url), A = d.dirname(Se);
+function j() {
 	return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : ye();
 }
-function N() {
+function M() {
 	return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : k();
 }
+function N() {
+	return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : j() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : ge(j());
+}
 function P() {
-	return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : M() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : A(M());
+	return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : j() === "anthropic" ? "MiniMax-M2.7" : N().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : ve(j());
 }
-function F() {
-	return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : M() === "anthropic" ? "MiniMax-M2.7" : P().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : ve(M());
-}
-function I(e) {
+function F(e) {
 	return e.replace(/\/+$/g, "");
 }
 function Ce(e) {
@@ -1487,8 +1487,8 @@ function Ce(e) {
 		return e.split("/").length > 3;
 	}
 }
-var L = [], R = null, z = "idle", B = null, V = 0;
-function H(e) {
+var I = [], L = null, R = "idle", z = null, B = 0;
+function V(e) {
 	return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((e) => e.length > 2);
 }
 function we(e, t, n) {
@@ -1501,7 +1501,7 @@ function we(e, t, n) {
 	return r;
 }
 function Te(e) {
-	let t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((e) => H(e));
+	let t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((e) => V(e));
 	for (let e of r) {
 		let t = new Set(e);
 		for (let e of t) n.set(e, (n.get(e) || 0) + 1);
@@ -1516,18 +1516,18 @@ function Te(e) {
 	};
 }
 function Ee(e, t) {
-	let n = new Set(H(e));
+	let n = new Set(V(e));
 	if (n.size === 0) return 0;
-	let r = new Set(H(t)), i = 0;
+	let r = new Set(V(t)), i = 0;
 	for (let e of n) r.has(e) && i++;
 	return i / n.size;
 }
 async function De(e, t) {
-	let n = I(P()), r;
+	let n = F(N()), r;
 	r = n.endsWith("/chat/completions") ? n : n.endsWith("/api/v1") || n.endsWith("/v1") || Ce(n) ? `${n}/chat/completions` : `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
 	let i = {
 		"Content-Type": "application/json",
-		Authorization: `Bearer ${N()}`
+		Authorization: `Bearer ${M()}`
 	};
 	n.includes("openrouter.ai") && (i["HTTP-Referer"] = "https://github.com", i["X-Title"] = "UniversalReader");
 	let a = await fetch(r, {
@@ -1535,7 +1535,7 @@ async function De(e, t) {
 		headers: i,
 		signal: t,
 		body: JSON.stringify({
-			model: F(),
+			model: P(),
 			messages: e,
 			temperature: .7
 		})
@@ -1547,16 +1547,16 @@ async function De(e, t) {
 	return (await a.json()).choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 }
 async function Oe(e, t) {
-	let n = I(P()), r = await fetch(`${n}/v1/messages`, {
+	let n = F(N()), r = await fetch(`${n}/v1/messages`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			"x-api-key": N(),
+			"x-api-key": M(),
 			"anthropic-version": "2023-06-01"
 		},
 		signal: t,
 		body: JSON.stringify({
-			model: F(),
+			model: P(),
 			max_tokens: 1024,
 			messages: e
 		})
@@ -1569,7 +1569,7 @@ async function Oe(e, t) {
 }
 async function ke(e, t = 3) {
 	for (let n = 0; n < t; n++) try {
-		let t = new AbortController(), n = setTimeout(() => t.abort(), 6e4), r = M() === "anthropic" ? await Oe(e, t.signal) : await De(e, t.signal);
+		let t = new AbortController(), n = setTimeout(() => t.abort(), 6e4), r = j() === "anthropic" ? await Oe(e, t.signal) : await De(e, t.signal);
 		return clearTimeout(n), r;
 	} catch (e) {
 		let r = n === t - 1, i = e instanceof Error ? e.message : String(e);
@@ -1580,8 +1580,8 @@ async function ke(e, t = 3) {
 	throw Error("Unexpected error in retry loop");
 }
 async function Ae(e, t = 4) {
-	if (L.length === 0) return [];
-	let n = L.map((t, n) => ({
+	if (I.length === 0) return [];
+	let n = I.map((t, n) => ({
 		idx: n,
 		score: Ee(e, t.content),
 		doc: t
@@ -1591,34 +1591,34 @@ async function Ae(e, t = 4) {
 		metadata: e.doc.metadata
 	}));
 }
-function U(e, t) {
-	z = e, B = t || null;
+function H(e, t) {
+	R = e, z = t || null;
 }
 function je() {
 	return {
-		status: z,
-		currentBook: R || void 0,
-		error: B || void 0,
-		chunkCount: V || void 0
+		status: R,
+		currentBook: L || void 0,
+		error: z || void 0,
+		chunkCount: B || void 0
 	};
 }
 async function Me(e, t) {
 	switch (t.toLowerCase()) {
 		case "txt":
-		case "md": return d.promises.readFile(e, "utf-8");
+		case "md": return u.promises.readFile(e, "utf-8");
 		case "pdf": {
 			let t = await import("./pdf-BzLafEDA.js"), n = [
-				f.join(process.cwd(), "public", "pdf.worker.min.mjs"),
-				f.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
-				f.join(j, "..", "dist", "pdf.worker.min.mjs"),
-				f.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
-				f.join(j, "..", "dist-electron", "pdf.worker.mjs")
+				d.join(process.cwd(), "public", "pdf.worker.min.mjs"),
+				d.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
+				d.join(A, "..", "dist", "pdf.worker.min.mjs"),
+				d.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
+				d.join(A, "..", "dist-electron", "pdf.worker.mjs")
 			];
-			for (let e of n) if (d.existsSync(e)) {
+			for (let e of n) if (u.existsSync(e)) {
 				t.GlobalWorkerOptions.workerSrc = e;
 				break;
 			}
-			let r = await d.promises.readFile(e), i = new Uint8Array(r), a = await t.getDocument({ data: i }).promise, o = [];
+			let r = await u.promises.readFile(e), i = new Uint8Array(r), a = await t.getDocument({ data: i }).promise, o = [];
 			for (let e = 1; e <= a.numPages; e++) {
 				let t = (await (await a.getPage(e)).getTextContent()).items.map((e) => typeof e == "object" && e && "str" in e ? e.str : "").join(" ");
 				o.push(t);
@@ -1626,7 +1626,7 @@ async function Me(e, t) {
 			return o.join("\n\n");
 		}
 		case "epub": {
-			let t = new pe.default(e).getEntries(), n = [];
+			let t = new E.default(e).getEntries(), n = [];
 			for (let e of t) if (e.entryName.endsWith(".html") || e.entryName.endsWith(".xhtml") || e.entryName.endsWith(".htm")) {
 				let t = e.getData().toString("utf-8");
 				n.push(t);
@@ -1641,15 +1641,15 @@ async function Me(e, t) {
 }
 async function Ne(e, t) {
 	try {
-		L = [], R = null, V = 0, U("loading");
+		I = [], L = null, B = 0, H("loading");
 		let n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
 		if (console.log(`[QA] Memory before load: ${r}MB heap used`), n.heapUsed > 500 * 1024 * 1024) if (console.warn(`[QA] High memory usage (${r}MB), attempting GC...`), global.gc) {
 			global.gc();
 			let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
 			console.log(`[QA] Memory after GC: ${t}MB heap used`);
 		} else console.warn("[QA] GC not available (run with --expose-gc flag)");
-		if (!N()) throw Error("QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment.");
-		if (!d.existsSync(e)) throw Error(`File not found: ${e}`);
+		if (!M()) throw Error("QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment.");
+		if (!u.existsSync(e)) throw Error(`File not found: ${e}`);
 		console.log(`[QA] Extracting text from ${e}`);
 		let i = await Me(e, t);
 		if (!i || i.trim().length === 0) throw Error("No text content extracted from file");
@@ -1658,19 +1658,19 @@ async function Ne(e, t) {
 		for (let e = 0; e < i.length; e += a) o.push(i.slice(e, e + a));
 		console.log(`[QA] Created ${o.length} text chunks`);
 		let { vocab: s, idf: c } = Te(o);
-		L = o.map((t, n) => ({
+		I = o.map((t, n) => ({
 			content: t,
-			embedding: we(H(t), s, c),
+			embedding: we(V(t), s, c),
 			metadata: {
-				source: f.basename(e),
+				source: d.basename(e),
 				chunkIndex: n
 			}
-		})), V = o.length, R = e, U("ready");
-		let l = process.memoryUsage(), u = Math.round(l.heapUsed / 1024 / 1024);
-		return console.log(`[QA] Ready with ${V} chunks, memory: ${u}MB`), { success: !0 };
+		})), B = o.length, L = e, H("ready");
+		let l = process.memoryUsage(), f = Math.round(l.heapUsed / 1024 / 1024);
+		return console.log(`[QA] Ready with ${B} chunks, memory: ${f}MB`), { success: !0 };
 	} catch (e) {
 		let t = e instanceof Error ? e.message : "Unknown error";
-		return console.error("[QA] Load error:", t), U("error", t), {
+		return console.error("[QA] Load error:", t), H("error", t), {
 			success: !1,
 			error: t
 		};
@@ -1679,8 +1679,8 @@ async function Ne(e, t) {
 async function Pe(e) {
 	let t = e.trim();
 	if (!t) throw Error("Question cannot be empty.");
-	if (L.length === 0) throw Error("No book loaded. Please load a book first.");
-	if (z !== "ready") throw Error("QA service not ready. Please wait.");
+	if (I.length === 0) throw Error("No book loaded. Please load a book first.");
+	if (R !== "ready") throw Error("QA service not ready. Please wait.");
 	console.log(`[QA] Question: ${t}`);
 	let n = await Ae(t, 3), r = n.map((e) => e.pageContent.slice(0, 1500)).join("\n\n");
 	console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
@@ -1704,23 +1704,23 @@ Answer:`
 	};
 }
 function Fe() {
-	L = [], R = null, V = 0, U("idle");
+	I = [], L = null, B = 0, H("idle");
 	let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
 	console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
 }
-var W = {
+var U = {
 	loadBookForQA: Ne,
 	askQuestion: Pe,
 	clearQA: Fe,
 	getStatus: je
-}, Ie = [
+}, W = [
 	"pdf",
 	"epub",
 	"mobi",
 	"azw3",
 	"txt",
 	"md"
-], Le = ["docx"], Re = new Set([
+], Ie = ["docx"], Le = new Set([
 	"epub",
 	"mobi",
 	"azw3",
@@ -1730,38 +1730,38 @@ var W = {
 function G(e) {
 	return e.trim().toLowerCase().replace(/^\./, "");
 }
+function Re(e) {
+	let t = G(e);
+	return W.includes(t);
+}
 function ze(e) {
 	let t = G(e);
 	return Ie.includes(t);
 }
 function Be(e) {
-	let t = G(e);
-	return Le.includes(t);
-}
-function Ve(e) {
-	return ze(e) ? "supported" : Be(e) ? "convertible" : "unsupported";
+	return Re(e) ? "supported" : ze(e) ? "convertible" : "unsupported";
 }
 function K(e) {
-	return Re.has(e) ? "flow" : "paged";
+	return Le.has(e) ? "flow" : "paged";
 }
 //#endregion
 //#region src/services/importService.ts
-function He() {
-	return [...Ie, ...Le];
+function Ve() {
+	return [...W, ...Ie];
 }
-function Ue(e) {
+function He(e) {
 	return e === "docx" ? "md" : e;
 }
-function We(e) {
-	let t = G(e), n = Ve(t);
+function Ue(e) {
+	let t = G(e), n = Be(t);
 	if (n === "unsupported") return {
 		capability: n,
 		sourceFormat: t,
 		requiresConversion: !1,
 		reason: "unsupported_format"
 	};
-	if (ze(t)) {
-		let e = Ue(t);
+	if (Re(t)) {
+		let e = He(t);
 		return {
 			capability: n,
 			sourceFormat: t,
@@ -1771,7 +1771,7 @@ function We(e) {
 			requiresConversion: !1
 		};
 	}
-	let r = Ue(t);
+	let r = He(t);
 	return {
 		capability: n,
 		sourceFormat: t,
@@ -1783,88 +1783,88 @@ function We(e) {
 }
 //#endregion
 //#region electron/handlers.ts
-var q = new l(f.join(n.getPath("userData"), "library.db"));
+var q = new l(d.join(n.getPath("userData"), "library.db"));
 q.exec("\n  CREATE TABLE IF NOT EXISTS books (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    author TEXT,\n    path TEXT NOT NULL UNIQUE,\n    format TEXT NOT NULL,\n    coverPath TEXT,\n    addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    lastReadAt DATETIME,\n    progress REAL DEFAULT 0,\n    progressLocator TEXT,\n    progressUpdatedAt INTEGER,\n    documentKind TEXT,\n    ingestStatus TEXT,\n    sourceFormat TEXT\n  );\n");
 var J = (e, t) => {
 	q.prepare("PRAGMA table_info(books)").all().some((t) => t.name === e) || q.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
 };
 J("progressLocator", "TEXT"), J("progressUpdatedAt", "INTEGER"), J("documentKind", "TEXT"), J("ingestStatus", "TEXT"), J("sourceFormat", "TEXT"), q.exec("\n  CREATE TABLE IF NOT EXISTS annotations (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bookId INTEGER NOT NULL,\n    type TEXT NOT NULL,\n    cfi TEXT,\n    pageNumber INTEGER,\n    text TEXT,\n    note TEXT,\n    color TEXT DEFAULT '#ffeb3b',\n    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE\n  );\n"), q.exec("\n  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);\n  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);\n  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);\n  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);\n");
-var Y = f.join(n.getPath("userData"), "covers");
-d.mkdirSync(Y, { recursive: !0 });
-async function Ge(e, t) {
+var Y = d.join(n.getPath("userData"), "covers");
+u.mkdirSync(Y, { recursive: !0 });
+async function We(e, t) {
 	try {
-		let n = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, r = new n(e).getEntries(), i = [
+		let n = new E.default(e).getEntries(), r = [
 			/cover\.(jpg|jpeg|png|gif)$/i,
 			/cover-image\.(jpg|jpeg|png|gif)$/i,
 			/images\/cover\.(jpg|jpeg|png|gif)$/i,
 			/OEBPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
 			/OPS\/images\/cover\.(jpg|jpeg|png|gif)$/i
-		], a = r.find((e) => e.entryName.endsWith(".opf"));
-		if (a) {
-			let e = a.getData().toString("utf-8"), n = e.match(/name="cover"\s+content="([^"]+)"/) || e.match(/properties="cover-image"[^>]*href="([^"]+)"/);
-			if (n) {
-				let i = n[1], o = e.match(RegExp(`id="${i}"[^>]*href="([^"]+)"`)) || e.match(RegExp(`href="([^"]+)"[^>]*id="${i}"`));
+		], i = n.find((e) => e.entryName.endsWith(".opf"));
+		if (i) {
+			let e = i.getData().toString("utf-8"), r = e.match(/name="cover"\s+content="([^"]+)"/) || e.match(/properties="cover-image"[^>]*href="([^"]+)"/);
+			if (r) {
+				let a = r[1], o = e.match(RegExp(`id="${a}"[^>]*href="([^"]+)"`)) || e.match(RegExp(`href="([^"]+)"[^>]*id="${a}"`));
 				if (o) {
-					let e = o[1], n = f.dirname(a.entryName), i = n ? `${n}/${e}` : e, s = r.find((t) => t.entryName === i || t.entryName.endsWith(e));
+					let e = o[1], r = d.dirname(i.entryName), a = r ? `${r}/${e}` : e, s = n.find((t) => t.entryName === a || t.entryName.endsWith(e));
 					if (s) {
-						let e = s.getData(), n = `${t}${f.extname(s.entryName) || ".jpg"}`, r = f.join(Y, n);
-						return await d.promises.writeFile(r, e), r;
+						let e = s.getData(), n = `${t}${d.extname(s.entryName) || ".jpg"}`, r = d.join(Y, n);
+						return await u.promises.writeFile(r, e), r;
 					}
 				}
 			}
 		}
-		for (let e of i) {
-			let n = r.find((t) => e.test(t.entryName));
-			if (n) {
-				let e = n.getData(), r = `${t}${f.extname(n.entryName) || ".jpg"}`, i = f.join(Y, r);
-				return await d.promises.writeFile(i, e), i;
+		for (let e of r) {
+			let r = n.find((t) => e.test(t.entryName));
+			if (r) {
+				let e = r.getData(), n = `${t}${d.extname(r.entryName) || ".jpg"}`, i = d.join(Y, n);
+				return await u.promises.writeFile(i, e), i;
 			}
 		}
-		let o = r.find((e) => /\.(jpg|jpeg|png|gif)$/i.test(e.entryName) && (e.entryName.toLowerCase().includes("cover") || e.entryName.toLowerCase().includes("title")));
-		if (o) {
-			let e = o.getData(), n = `${t}${f.extname(o.entryName) || ".jpg"}`, r = f.join(Y, n);
-			return await d.promises.writeFile(r, e), r;
+		let a = n.find((e) => /\.(jpg|jpeg|png|gif)$/i.test(e.entryName) && (e.entryName.toLowerCase().includes("cover") || e.entryName.toLowerCase().includes("title")));
+		if (a) {
+			let e = a.getData(), n = `${t}${d.extname(a.entryName) || ".jpg"}`, r = d.join(Y, n);
+			return await u.promises.writeFile(r, e), r;
 		}
 		return null;
 	} catch (e) {
 		return console.error("Failed to extract EPUB cover:", e), null;
 	}
 }
-async function Ke(e, t) {
+async function Ge(e, t) {
 	try {
-		let n = await import("./pdf-BzLafEDA.js"), r = await d.promises.readFile(e), i = new Uint8Array(r), a = await (await n.getDocument({ data: i }).promise).getPage(1), o = a.getViewport({ scale: 1 }), s = Math.min(400 / o.width, 1.5), c = a.getViewport({ scale: s }), l = p(c.width, c.height), u = l.getContext("2d");
+		let n = await import("./pdf-BzLafEDA.js"), r = await u.promises.readFile(e), i = new Uint8Array(r), a = await (await n.getDocument({ data: i }).promise).getPage(1), o = a.getViewport({ scale: 1 }), s = Math.min(400 / o.width, 1.5), c = a.getViewport({ scale: s }), l = p(c.width, c.height), f = l.getContext("2d");
 		await a.render({
-			canvasContext: u,
+			canvasContext: f,
 			viewport: c
 		}).promise;
-		let m = `${t}.png`, h = f.join(Y, m), g = l.toBuffer("image/png");
-		return await d.promises.writeFile(h, g), h;
+		let m = `${t}.png`, h = d.join(Y, m), g = l.toBuffer("image/png");
+		return await u.promises.writeFile(h, g), h;
 	} catch (e) {
 		return console.error("Failed to extract PDF cover:", e), null;
 	}
 }
-function qe(e) {
+function Ke(e) {
 	return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'").replace(/&#(\d+);/g, (e, t) => String.fromCharCode(Number(t)));
 }
-async function Je(e) {
-	let t = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, n = new t(e).getEntry("word/document.xml");
-	if (!n) throw Error("DOCX 内容缺失: word/document.xml");
-	return n.getData().toString("utf-8").split(/<\/w:p>/i).map((e) => [...e.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, "\n").matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((e) => qe(e[1])).join("").trim()).filter(Boolean).join("\n\n");
+async function qe(e) {
+	let t = new E.default(e).getEntry("word/document.xml");
+	if (!t) throw Error("DOCX 内容缺失: word/document.xml");
+	return t.getData().toString("utf-8").split(/<\/w:p>/i).map((e) => [...e.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, "\n").matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((e) => Ke(e[1])).join("").trim()).filter(Boolean).join("\n\n");
 }
-async function Ye(e, t) {
+async function Je(e, t) {
 	try {
 		if (t === "epub") {
-			let t = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, n = new t(e).getEntries().find((e) => e.entryName.endsWith(".opf"));
-			if (n) {
-				let e = n.getData().toString("utf-8"), t = e.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), r = e.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
+			let t = new E.default(e).getEntries().find((e) => e.entryName.endsWith(".opf"));
+			if (t) {
+				let e = t.getData().toString("utf-8"), n = e.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), r = e.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
 				return {
-					title: t ? t[1].trim() : void 0,
+					title: n ? n[1].trim() : void 0,
 					author: r ? r[1].trim() : void 0
 				};
 			}
 		}
 		if (t === "pdf") {
-			let t = await import("./pdf-BzLafEDA.js"), n = await d.promises.readFile(e), r = new Uint8Array(n), i = (await (await t.getDocument({ data: r }).promise).getMetadata()).info;
+			let t = await import("./pdf-BzLafEDA.js"), n = await u.promises.readFile(e), r = new Uint8Array(n), i = (await (await t.getDocument({ data: r }).promise).getMetadata()).info;
 			return {
 				title: i?.Title || void 0,
 				author: i?.Author || void 0
@@ -1875,7 +1875,7 @@ async function Ye(e, t) {
 	}
 	return {};
 }
-function Xe(e) {
+function Ye(e) {
 	if (e) try {
 		return JSON.parse(e);
 	} catch {
@@ -1886,14 +1886,14 @@ function X(e) {
 	let t = e.format || "txt";
 	return {
 		...e,
-		progressLocator: Xe(e.progressLocator),
+		progressLocator: Ye(e.progressLocator),
 		progressUpdatedAt: e.progressUpdatedAt ?? void 0,
 		documentKind: e.documentKind || K(t),
 		ingestStatus: e.ingestStatus || "ready",
 		sourceFormat: e.sourceFormat || t
 	};
 }
-function Ze(e) {
+function Xe(e) {
 	try {
 		let t = new URL(e);
 		return t.protocol === "http:" || t.protocol === "https:" || t.protocol === "mailto:";
@@ -1901,26 +1901,26 @@ function Ze(e) {
 		return !1;
 	}
 }
-var Qe = q.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), $e = q.prepare("\n  SELECT * FROM books\n  WHERE title LIKE ? OR author LIKE ?\n  ORDER BY lastReadAt DESC\n"), et = q.prepare("\n  UPDATE books\n  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP\n  WHERE id = ?\n");
-i.handle("read-file", async (e, t) => d.promises.readFile(t)), i.handle("read-file-buffer", async (e, t) => d.promises.readFile(t)), i.handle("file-exists", async (e, t) => {
+var Ze = q.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), Qe = q.prepare("\n  SELECT * FROM books\n  WHERE title LIKE ? OR author LIKE ?\n  ORDER BY lastReadAt DESC\n"), $e = q.prepare("\n  UPDATE books\n  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP\n  WHERE id = ?\n");
+i.handle("read-file", async (e, t) => u.promises.readFile(t)), i.handle("read-file-buffer", async (e, t) => u.promises.readFile(t)), i.handle("file-exists", async (e, t) => {
 	try {
-		return await d.promises.access(t, d.constants.F_OK), !0;
+		return await u.promises.access(t, u.constants.F_OK), !0;
 	} catch {
 		return !1;
 	}
 }), i.handle("open-external", async (e, t) => {
-	if (typeof t != "string" || !Ze(t)) throw Error("Invalid external URL");
+	if (typeof t != "string" || !Xe(t)) throw Error("Invalid external URL");
 	return o.openExternal(t);
 }), i.handle("open-user-data-folder", async () => o.openPath(n.getPath("userData"))), i.handle("get-cover-url", async (e, t) => {
 	if (!t) return null;
 	try {
-		return await d.promises.access(t, d.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+		return await u.promises.access(t, u.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
 	} catch {
 		return null;
 	}
 });
-var tt = f.join(n.getPath("userData"), "backgrounds");
-d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async () => {
+var et = d.join(n.getPath("userData"), "backgrounds");
+u.mkdirSync(et, { recursive: !0 }), i.handle("select-background-image", async () => {
 	let e = await r.showOpenDialog({
 		properties: ["openFile"],
 		filters: [{
@@ -1936,16 +1936,16 @@ d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async ()
 		}]
 	});
 	if (e.canceled || e.filePaths.length === 0) return null;
-	let t = e.filePaths[0], n = f.extname(t), i = `background-${u.randomUUID()}${n}`, a = f.join(tt, i);
+	let t = e.filePaths[0], n = d.extname(t), i = `background-${f.randomUUID()}${n}`, a = d.join(et, i);
 	try {
-		return await d.promises.copyFile(t, a), a;
+		return await u.promises.copyFile(t, a), a;
 	} catch (e) {
 		return console.error("Failed to copy background image:", e), null;
 	}
 }), i.handle("get-background-image-url", async (e, t) => {
 	if (!t) return null;
 	try {
-		return await d.promises.access(t, d.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+		return await u.promises.access(t, u.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
 	} catch {
 		return null;
 	}
@@ -1954,42 +1954,42 @@ d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async ()
 		properties: ["openFile"],
 		filters: [{
 			name: "Books",
-			extensions: [...He()]
+			extensions: [...Ve()]
 		}]
 	});
 	if (e.canceled || e.filePaths.length === 0) return null;
-	let t = e.filePaths[0], i = f.extname(t).toLowerCase(), a = We(G(i));
+	let t = e.filePaths[0], i = d.extname(t).toLowerCase(), a = Ue(G(i));
 	if (a.capability === "unsupported" || !a.targetFormat || !a.documentKind || !a.ingestStatus) return null;
-	let o = f.basename(t, i), s = u.randomUUID(), c = f.join(n.getPath("userData"), "books");
-	await d.promises.mkdir(c, { recursive: !0 });
+	let o = d.basename(t, i), s = f.randomUUID(), c = d.join(n.getPath("userData"), "books");
+	await u.promises.mkdir(c, { recursive: !0 });
 	let l;
 	if (a.requiresConversion && a.sourceFormat === "docx") {
-		let e = `${o}-${s}.docx`, n = f.join(c, e);
-		await d.promises.copyFile(t, n);
-		let r = await Je(n), i = `${o}-${s}.md`;
-		l = f.join(c, i), await d.promises.writeFile(l, r, "utf-8");
+		let e = `${o}-${s}.docx`, n = d.join(c, e);
+		await u.promises.copyFile(t, n);
+		let r = await qe(n), i = `${o}-${s}.md`;
+		l = d.join(c, i), await u.promises.writeFile(l, r, "utf-8");
 	} else {
 		let e = `${o}-${s}${i}`;
-		l = f.join(c, e), await d.promises.copyFile(t, l);
+		l = d.join(c, e), await u.promises.copyFile(t, l);
 	}
-	let p = await Ye(l, a.targetFormat), m = p.title || o, h = p.author || null, g = null;
-	a.targetFormat === "epub" || a.targetFormat === "mobi" || a.targetFormat === "azw3" ? g = await Ge(l, s) : a.targetFormat === "pdf" && (g = await Ke(l, s));
+	let p = await Je(l, a.targetFormat), m = p.title || o, h = p.author || null, g = null;
+	a.targetFormat === "epub" || a.targetFormat === "mobi" || a.targetFormat === "azw3" ? g = await We(l, s) : a.targetFormat === "pdf" && (g = await Ge(l, s));
 	try {
 		let e = q.prepare("\n      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) \n      VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n      ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP\n      RETURNING *\n    ").get(m, h, l, a.targetFormat, a.sourceFormat, a.documentKind, a.ingestStatus, g);
 		return e ? X(e) : null;
 	} catch (e) {
 		return console.error("DB Insert Error:", e), null;
 	}
-}), i.handle("get-library", () => Qe.all().map(X)), i.handle("search-library", (e, t) => {
+}), i.handle("get-library", () => Ze.all().map(X)), i.handle("search-library", (e, t) => {
 	let n = `%${t}%`;
-	return $e.all(n, n).map(X);
+	return Qe.all(n, n).map(X);
 }), i.handle("update-progress", (e, t, n, r, i) => {
 	let a = typeof i == "number" ? i : Date.now(), o = r ? JSON.stringify(r) : null;
-	et.run(n, o, a, t);
+	$e.run(n, o, a, t);
 }), i.handle("delete-book", (e, t) => {
 	try {
 		let e = q.prepare("SELECT * FROM books WHERE id = ?").get(t);
-		return e && (e.coverPath && d.promises.unlink(e.coverPath).catch(() => {}), e.path && d.promises.unlink(e.path).catch(() => {})), q.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
+		return e && (e.coverPath && u.promises.unlink(e.coverPath).catch(() => {}), e.path && u.promises.unlink(e.path).catch(() => {})), q.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
 	} catch (e) {
 		return console.error("Delete book error:", e), !1;
 	}
@@ -2002,11 +2002,11 @@ d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async ()
 	} catch (e) {
 		return console.error("Delete annotation error:", e), !1;
 	}
-}), i.handle("qa-load-book", async (e, t, n) => W.loadBookForQA(t, n)), i.handle("qa-ask", async (e, t) => W.askQuestion(t)), i.handle("qa-clear", async () => {
-	W.clearQA();
-}), i.handle("qa-get-status", async () => W.getStatus()), i.handle("credentials-save", async (e, t) => {
+}), i.handle("qa-load-book", async (e, t, n) => U.loadBookForQA(t, n)), i.handle("qa-ask", async (e, t) => U.askQuestion(t)), i.handle("qa-clear", async () => {
+	U.clearQA();
+}), i.handle("qa-get-status", async () => U.getStatus()), i.handle("credentials-save", async (e, t) => {
 	try {
-		return await ge(t), { success: !0 };
+		return await he(t), { success: !0 };
 	} catch (e) {
 		return {
 			success: !1,
@@ -2025,10 +2025,10 @@ d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async ()
 }), i.handle("credentials-has", async () => xe());
 //#endregion
 //#region electron/main.ts
-var nt = c(import.meta.url), rt = s.dirname(nt);
-process.env.DIST = s.join(rt, "../dist"), process.env.VITE_PUBLIC = n.isPackaged ? process.env.DIST : s.join(process.env.DIST, "../public");
+var tt = c(import.meta.url), nt = s.dirname(tt);
+process.env.DIST = s.join(nt, "../dist"), process.env.VITE_PUBLIC = n.isPackaged ? process.env.DIST : s.join(process.env.DIST, "../public");
 var Z, Q = process.env.VITE_DEV_SERVER_URL;
-function it(e) {
+function rt(e) {
 	e.webContents.on("did-fail-load", (e, t, n, r, i) => {
 		i && console.error("[main] did-fail-load", JSON.stringify({
 			errorCode: t,
@@ -2043,11 +2043,11 @@ function $() {
 	if (Z = new t({
 		icon: s.join(process.env.VITE_PUBLIC, "vite.svg"),
 		webPreferences: {
-			preload: s.join(rt, "preload.mjs"),
+			preload: s.join(nt, "preload.mjs"),
 			contextIsolation: !0,
 			nodeIntegration: !1
 		}
-	}), it(Z), Z.webContents.on("did-finish-load", () => {
+	}), rt(Z), Z.webContents.on("did-finish-load", () => {
 		Z?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
 	}), Q) console.log("[main] loading dev url:", Q), Z.loadURL(Q), Z.webContents.openDevTools({ mode: "detach" });
 	else {
