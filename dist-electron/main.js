@@ -292,13 +292,13 @@ var Q = { exports: {} }, He = {
   for (const r of Object.keys(t))
     e[r] = n(t[r]);
 })(le);
-const ct = _, B = T, Ae = He, ft = le, lt = typeof process == "object" && process.platform === "win32", we = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
+const ct = _, B = T, we = He, ft = le, lt = typeof process == "object" && process.platform === "win32", Ae = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
   for (let n = 0; n < 8; n++)
     t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
   return t >>> 0;
 });
 function b(e) {
-  this.sep = B.sep, this.fs = ct, we(e) && we(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
+  this.sep = B.sep, this.fs = ct, Ae(e) && Ae(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
 }
 var ut = b;
 b.prototype.makeDir = function(e) {
@@ -423,9 +423,9 @@ b.crc32 = function(e) {
 };
 b.methodToString = function(e) {
   switch (e) {
-    case Ae.STORED:
+    case we.STORED:
       return "STORED (" + e + ")";
-    case Ae.DEFLATED:
+    case we.DEFLATED:
       return "DEFLATED (" + e + ")";
     default:
       return "UNSUPPORTED (" + e + ")";
@@ -909,13 +909,13 @@ function Tt(e, t, n, r = !1) {
   const l = Buffer.alloc(e.length + 12);
   return s(o, l), s(e, l, 12);
 }
-var At = { decrypt: Ct, encrypt: Tt, _salter: _t };
+var wt = { decrypt: Ct, encrypt: Tt, _salter: _t };
 de.Deflater = ht;
 de.Inflater = It;
-de.ZipCrypto = At;
-var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
-  var n = new wt.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
-  const S = e, D = typeof S.decoder == "object" ? S.decoder : w.decoder;
+de.ZipCrypto = wt;
+var A = te, At = ue, U = A.Constants, he = de, ke = function(e, t) {
+  var n = new At.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
+  const S = e, D = typeof S.decoder == "object" ? S.decoder : A.decoder;
   y = D.hasOwnProperty("efs") ? D.efs : !1;
   function C() {
     return !t || !(t instanceof Uint8Array) ? Buffer.alloc(0) : (h = n.loadLocalHeaderFromBinary(t), t.slice(n.realDataOffset, n.realDataOffset + n.compressedSize));
@@ -924,52 +924,52 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
     if (n.flags_desc) {
       const E = {}, g = n.realDataOffset + n.compressedSize;
       if (t.readUInt32LE(g) == U.LOCSIG || t.readUInt32LE(g) == U.CENSIG)
-        throw w.Errors.DESCRIPTOR_NOT_EXIST();
+        throw A.Errors.DESCRIPTOR_NOT_EXIST();
       if (t.readUInt32LE(g) == U.EXTSIG)
         E.crc = t.readUInt32LE(g + U.EXTCRC), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ), E.size = t.readUInt32LE(g + U.EXTLEN);
       else if (t.readUInt16LE(g + 12) === 19280)
         E.crc = t.readUInt32LE(g + U.EXTCRC - 4), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ - 4), E.size = t.readUInt32LE(g + U.EXTLEN - 4);
       else
-        throw w.Errors.DESCRIPTOR_UNKNOWN();
+        throw A.Errors.DESCRIPTOR_UNKNOWN();
       if (E.compressedSize !== n.compressedSize || E.size !== n.size || E.crc !== n.crc)
-        throw w.Errors.DESCRIPTOR_FAULTY();
-      if (w.crc32(f) !== E.crc)
+        throw A.Errors.DESCRIPTOR_FAULTY();
+      if (A.crc32(f) !== E.crc)
         return !1;
-    } else if (w.crc32(f) !== n.localHeader.crc)
+    } else if (A.crc32(f) !== n.localHeader.crc)
       return !1;
     return !0;
   }
   function u(f, E, g) {
     if (typeof E > "u" && typeof f == "string" && (g = f, f = void 0), o)
-      return f && E && E(Buffer.alloc(0), w.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
+      return f && E && E(Buffer.alloc(0), A.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
     var N = C();
     if (N.length === 0)
       return f && E && E(N), N;
     if (n.encrypted) {
       if (typeof g != "string" && !Buffer.isBuffer(g))
-        throw w.Errors.INVALID_PASS_PARAM();
+        throw A.Errors.INVALID_PASS_PARAM();
       N = he.ZipCrypto.decrypt(N, n, g);
     }
     var L = Buffer.alloc(n.size);
     switch (n.method) {
-      case w.Constants.STORED:
+      case A.Constants.STORED:
         if (N.copy(L), a(L))
           return f && E && E(L), L;
-        throw f && E && E(L, w.Errors.BAD_CRC()), w.Errors.BAD_CRC();
-      case w.Constants.DEFLATED:
+        throw f && E && E(L, A.Errors.BAD_CRC()), A.Errors.BAD_CRC();
+      case A.Constants.DEFLATED:
         var O = new he.Inflater(N, n.size);
         if (f)
-          O.inflateAsync(function(A) {
-            A.copy(A, 0), E && (a(A) ? E(A) : E(A, w.Errors.BAD_CRC()));
+          O.inflateAsync(function(w) {
+            w.copy(w, 0), E && (a(w) ? E(w) : E(w, A.Errors.BAD_CRC()));
           });
         else {
           if (O.inflate(L).copy(L, 0), !a(L))
-            throw w.Errors.BAD_CRC(`"${D.decode(r)}"`);
+            throw A.Errors.BAD_CRC(`"${D.decode(r)}"`);
           return L;
         }
         break;
       default:
-        throw f && E && E(Buffer.alloc(0), w.Errors.UNKNOWN_METHOD()), w.Errors.UNKNOWN_METHOD();
+        throw f && E && E(Buffer.alloc(0), A.Errors.UNKNOWN_METHOD()), A.Errors.UNKNOWN_METHOD();
     }
   }
   function c(f, E) {
@@ -978,10 +978,10 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
     if (l.length && !o) {
       var g;
       switch (n.method) {
-        case w.Constants.STORED:
+        case A.Constants.STORED:
           return n.compressedSize = n.size, g = Buffer.alloc(l.length), l.copy(g), f && E && E(g), g;
         default:
-        case w.Constants.DEFLATED:
+        case A.Constants.DEFLATED:
           var N = new he.Deflater(l);
           if (f)
             N.deflateAsync(function(O) {
@@ -1007,7 +1007,7 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
       for (var E = 0, g, N, L; E + 4 < f.length; )
         g = f.readUInt16LE(E), E += 2, N = f.readUInt16LE(E), E += 2, L = f.slice(E, E + N), E += N, U.ID_ZIP64 === g && i(L);
     } catch {
-      throw w.Errors.EXTRA_FIELD_PARSE_ERROR();
+      throw A.Errors.EXTRA_FIELD_PARSE_ERROR();
     }
   }
   function i(f) {
@@ -1022,7 +1022,7 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
       return r;
     },
     set entryName(f) {
-      r = w.toBuffer(f, D.encode);
+      r = A.toBuffer(f, D.encode);
       var E = r[r.length - 1];
       o = E === 47 || E === 92, n.fileNameLength = r.length;
     },
@@ -1039,7 +1039,7 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
       return D.decode(s);
     },
     set comment(f) {
-      if (s = w.toBuffer(f, D.encode), n.commentLength = s.length, s.length > 65535) throw w.Errors.COMMENT_TOO_LONG();
+      if (s = A.toBuffer(f, D.encode), n.commentLength = s.length, s.length > 65535) throw A.Errors.COMMENT_TOO_LONG();
     },
     get name() {
       var f = D.decode(r);
@@ -1055,7 +1055,7 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
       c(!0, f);
     },
     setData: function(f) {
-      l = w.toBuffer(f, w.decoder.encode), !o && l.length ? (n.size = l.length, n.method = w.Constants.DEFLATED, n.crc = w.crc32(f), n.changed = !0) : n.method = w.Constants.STORED;
+      l = A.toBuffer(f, A.decoder.encode), !o && l.length ? (n.size = l.length, n.method = A.Constants.DEFLATED, n.crc = A.crc32(f), n.changed = !0) : n.method = A.Constants.STORED;
     },
     getData: function(f) {
       return n.changed ? l : u(!1, null, f);
@@ -1077,7 +1077,7 @@ var w = te, wt = ue, U = w.Constants, he = de, ke = function(e, t) {
     },
     packCentralHeader: function() {
       n.flags_efs = this.efs, n.extraLength = p.length;
-      var f = n.centralHeaderToBinary(), E = w.Constants.CENHDR;
+      var f = n.centralHeaderToBinary(), E = A.Constants.CENHDR;
       return r.copy(f, E), E += r.length, p.copy(f, E), E += n.extraLength, s.copy(f, E), f;
     },
     packLocalHeader: function() {
@@ -1267,10 +1267,10 @@ var Rt = function(e, t) {
       for (const N of this.entries) {
         const L = N.getCompressedData();
         N.header.offset = i;
-        const O = N.packLocalHeader(), A = O.length + L.length;
-        i += A, c.push(O), c.push(L);
+        const O = N.packLocalHeader(), w = O.length + L.length;
+        i += w, c.push(O), c.push(L);
         const R = N.packCentralHeader();
-        d.push(R), o.size += R.length, m += A + R.length, f++;
+        d.push(R), o.size += R.length, m += w + R.length, f++;
       }
       m += o.mainHeaderSize, o.offset = i, o.totalEntries = f, i = 0;
       const E = Buffer.alloc(m);
@@ -1287,15 +1287,15 @@ var Rt = function(e, t) {
         const f = [], E = [];
         let g = 0, N = 0, L = 0;
         o.size = 0, o.offset = 0;
-        const O = function(A) {
-          if (A.length > 0) {
-            const R = A.shift(), j = R.entryName + R.extra.toString();
+        const O = function(w) {
+          if (w.length > 0) {
+            const R = w.shift(), j = R.entryName + R.extra.toString();
             m && m(j), R.getCompressedDataAsync(function($) {
               i && i(j), R.header.offset = N;
               const X = R.packLocalHeader(), oe = X.length + $.length;
               N += oe, f.push(X), f.push($);
               const ge = R.packCentralHeader();
-              E.push(ge), o.size += ge.length, g += oe + ge.length, L++, O(A);
+              E.push(ge), o.size += ge.length, g += oe + ge.length, L++, O(w);
             });
           } else {
             g += o.mainHeaderSize, o.offset = N, o.totalEntries = L, N = 0;
@@ -1583,10 +1583,10 @@ var Ze = function(e, t) {
           var f = s.findFiles(a), E = -1, g = function() {
             if (E += 1, E < f.length) {
               var N = f[E], L = C(a, N).split("\\").join("/");
-              L = L.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), d(L) ? s.fs.stat(N, function(O, A) {
-                O && u(void 0, O), A.isFile() ? s.fs.readFile(N, function(R, j) {
-                  R ? u(void 0, R) : (m.addFile(c + L, j, "", A), g());
-                }) : (m.addFile(c + L + "/", Buffer.alloc(0), "", A), g());
+              L = L.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), d(L) ? s.fs.stat(N, function(O, w) {
+                O && u(void 0, O), w.isFile() ? s.fs.readFile(N, function(R, j) {
+                  R ? u(void 0, R) : (m.addFile(c + L, j, "", w), g());
+                }) : (m.addFile(c + L + "/", Buffer.alloc(0), "", w), g());
               }) : process.nextTick(() => {
                 g();
               });
@@ -1624,14 +1624,14 @@ var Ze = function(e, t) {
         g && g.code === "ENOENT" ? u(void 0, F.Errors.FILE_NOT_FOUND(localPath)) : g ? u(void 0, g) : s.findFilesAsync(localPath, function(N, L) {
           if (N) return u(N);
           L = L.filter((O) => m(f(O))), L.length || u(void 0, !1), setImmediate(
-            L.reverse().reduce(function(O, A) {
+            L.reverse().reduce(function(O, w) {
               return function(R, j) {
                 if (R || j === !1) return setImmediate(O, R, !1);
                 c.addLocalFileAsync(
                   {
-                    localPath: A,
-                    zipPath: P.dirname(f(A)),
-                    zipName: E(A)
+                    localPath: w,
+                    zipPath: P.dirname(f(w)),
+                    zipName: E(w)
                   },
                   O
                 );
@@ -1723,13 +1723,13 @@ var Ze = function(e, t) {
       var E = l(f.entryName), g = p(u, i && !f.isDirectory ? i : c ? E : P.basename(E));
       if (f.isDirectory) {
         var N = o.getEntryChildren(f);
-        return N.forEach(function(A) {
-          if (A.isDirectory) return;
-          var R = A.getData();
+        return N.forEach(function(w) {
+          if (w.isDirectory) return;
+          var R = w.getData();
           if (!R)
             throw F.Errors.CANT_EXTRACT_FILE();
-          var j = l(A.entryName), $ = p(u, c ? j : P.basename(j));
-          const X = m ? A.header.fileAttr : void 0;
+          var j = l(w.entryName), $ = p(u, c ? j : P.basename(j));
+          const X = m ? w.header.fileAttr : void 0;
           s.writeFileTo($, R, d, X);
         }), !0;
       }
@@ -1828,7 +1828,7 @@ var Ze = function(e, t) {
           if (L)
             g(L);
           else {
-            const O = P.normalize(l(N.entryName)), A = p(a, O);
+            const O = P.normalize(l(N.entryName)), w = p(a, O);
             N.getDataAsync(function(R, j) {
               if (j)
                 g(j);
@@ -1836,9 +1836,9 @@ var Ze = function(e, t) {
                 g(F.Errors.CANT_EXTRACT_FILE());
               else {
                 const $ = c ? N.header.fileAttr : void 0;
-                s.writeFileToAsync(A, R, u, $, function(X) {
-                  X || g(i("Unable to write file", A)), s.fs.utimes(A, N.header.time, N.header.time, function(oe) {
-                    oe ? g(i("Unable to set times", A)) : g();
+                s.writeFileToAsync(w, R, u, $, function(X) {
+                  X || g(i("Unable to write file", w)), s.fs.utimes(w, N.header.time, N.header.time, function(oe) {
+                    oe ? g(i("Unable to set times", w)) : g();
                   });
                 });
               }
@@ -2472,11 +2472,19 @@ function Te(e) {
     sourceFormat: e.sourceFormat || t
   };
 }
-const gn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), hn = H.prepare(`
+function gn(e) {
+  try {
+    const t = new URL(e);
+    return t.protocol === "http:" || t.protocol === "https:" || t.protocol === "mailto:";
+  } catch {
+    return !1;
+  }
+}
+const hn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), yn = H.prepare(`
   SELECT * FROM books
   WHERE title LIKE ? OR author LIKE ?
   ORDER BY lastReadAt DESC
-`), yn = H.prepare(`
+`), In = H.prepare(`
   UPDATE books
   SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
   WHERE id = ?
@@ -2490,7 +2498,11 @@ v.handle("file-exists", async (e, t) => {
     return !1;
   }
 });
-v.handle("open-external", async (e, t) => Pe.openExternal(t));
+v.handle("open-external", async (e, t) => {
+  if (typeof t != "string" || !gn(t))
+    throw new Error("Invalid external URL");
+  return Pe.openExternal(t);
+});
 v.handle("open-user-data-folder", async () => Pe.openPath(z.getPath("userData")));
 v.handle("get-cover-url", async (e, t) => {
   if (!t) return null;
@@ -2572,14 +2584,14 @@ v.handle("open-file-dialog", async () => {
     return console.error("DB Insert Error:", a), null;
   }
 });
-v.handle("get-library", () => gn.all().map(Te));
+v.handle("get-library", () => hn.all().map(Te));
 v.handle("search-library", (e, t) => {
   const n = `%${t}%`;
-  return hn.all(n, n).map(Te);
+  return yn.all(n, n).map(Te);
 });
 v.handle("update-progress", (e, t, n, r, s) => {
   const o = typeof s == "number" ? s : Date.now(), l = r ? JSON.stringify(r) : null;
-  yn.run(n, l, o, t);
+  In.run(n, l, o, t);
 });
 v.handle("delete-book", (e, t) => {
   try {
@@ -2638,12 +2650,12 @@ v.handle("credentials-clear", async () => {
   }
 });
 v.handle("credentials-has", async () => zt());
-const In = Ne(import.meta.url), tt = V.dirname(In);
+const Nn = Ne(import.meta.url), tt = V.dirname(Nn);
 process.env.DIST = V.join(tt, "../dist");
 process.env.VITE_PUBLIC = z.isPackaged ? process.env.DIST : V.join(process.env.DIST, "../public");
 let k;
 const ye = process.env.VITE_DEV_SERVER_URL;
-function Nn(e) {
+function Sn(e) {
   e.webContents.on(
     "did-fail-load",
     (t, n, r, s, o) => {
@@ -2664,7 +2676,7 @@ function nt() {
       contextIsolation: !0,
       nodeIntegration: !1
     }
-  }), Nn(k), k.webContents.on("did-finish-load", () => {
+  }), Sn(k), k.webContents.on("did-finish-load", () => {
     k == null || k.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   }), ye)
     console.log("[main] loading dev url:", ye), k.loadURL(ye), k.webContents.openDevTools({ mode: "detach" });

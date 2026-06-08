@@ -168,6 +168,11 @@ export default function EpubReader({
   }, [applyReaderSettings, readerSettings])
 
   useEffect(() => {
+    if (!viewRef.current) return
+    applyPageMode(viewRef.current, readerSettings)
+  }, [applyPageMode, readerSettings])
+
+  useEffect(() => {
     let mounted = true
     const containerElement = containerRef.current
     const themeSnapshot = themeRef.current
@@ -354,7 +359,7 @@ export default function EpubReader({
       }
       viewRef.current = null
     }
-  }, [applyPageMode, applyReaderSettings, filePath, format, readerSettings.pageMode])
+  }, [applyPageMode, applyReaderSettings, filePath, format])
 
   useEffect(() => {
     if (!viewRef.current) return

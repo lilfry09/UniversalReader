@@ -4,6 +4,7 @@ import type { Book } from '../types'
 import { useNavigate } from 'react-router-dom'
 import { buildImportPlan, getAllowedImportExtensions } from '../services/importService'
 import { normalizeExtension } from '../domain/document'
+import { safeGetItem, safeSetItem, WEB_LIBRARY_KEY } from '../utils'
 
 export default function Library() {
   const [books, setBooks] = useState<Book[]>([])
@@ -29,7 +30,7 @@ export default function Library() {
         library = await window.ipcRenderer.invoke('get-library')
       } else {
         // Web: get books from localStorage
-        library = JSON.parse(localStorage.getItem('web-library') || '[]')
+        library = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
       }
 
       setBooks(library)
@@ -174,9 +175,9 @@ export default function Library() {
       }
 
       // Store in localStorage
-      const existingBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+      const existingBooks = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
       existingBooks.push(webBook)
-      localStorage.setItem('web-library', JSON.stringify(existingBooks))
+      safeSetItem(WEB_LIBRARY_KEY, existingBooks)
 
       await loadBooks()
     } catch (err) {
@@ -199,14 +200,14 @@ export default function Library() {
           }
         } else {
           // Web: delete from localStorage
-          const webBooks = JSON.parse(localStorage.getItem('web-library') || '[]')
+          const webBooks = safeGetItem<Book[]>(WEB_LIBRARY_KEY, [])
           const bookToDelete = webBooks.find((b: Book) => b.id === bookId)
           if (bookToDelete) {
             // Revoke the blob URL to free memory
             URL.revokeObjectURL(bookToDelete.path)
           }
           const updatedBooks = webBooks.filter((b: Book) => b.id !== bookId)
-          localStorage.setItem('web-library', JSON.stringify(updatedBooks))
+          safeSetItem(WEB_LIBRARY_KEY, updatedBooks)
           await loadBooks()
         }
         delete coverUrlCacheRef.current[bookId]

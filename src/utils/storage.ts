@@ -1,11 +1,15 @@
 // Safe localStorage utilities
 
 export function safeGetItem<T>(key: string, defaultValue: T): T {
+  const item = localStorage.getItem(key)
+  if (item === null) return defaultValue
+
   try {
-    const item = localStorage.getItem(key)
-    if (item === null) return defaultValue
     return JSON.parse(item) as T
   } catch {
+    if (typeof defaultValue === 'string' || defaultValue === null) {
+      return item as T
+    }
     return defaultValue
   }
 }

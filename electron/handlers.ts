@@ -312,6 +312,15 @@ function normalizeBookRow(book: BookRow) {
   }
 }
 
+function isAllowedExternalUrl(rawUrl: string) {
+  try {
+    const url = new URL(rawUrl)
+    return url.protocol === 'http:' || url.protocol === 'https:' || url.protocol === 'mailto:'
+  } catch {
+    return false
+  }
+}
+
 const selectLibraryStmt = db.prepare('SELECT * FROM books ORDER BY lastReadAt DESC')
 const searchLibraryStmt = db.prepare(`
   SELECT * FROM books
@@ -344,6 +353,10 @@ ipcMain.handle('file-exists', async (_, filePath) => {
 })
 
 ipcMain.handle('open-external', async (_, url: string) => {
+  if (typeof url !== 'string' || !isAllowedExternalUrl(url)) {
+    throw new Error('Invalid external URL')
+  }
+
   return shell.openExternal(url)
 })
 

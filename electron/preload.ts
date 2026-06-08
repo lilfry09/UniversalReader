@@ -1,20 +1,39 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
+const allowedInvokeChannels = new Set([
+  'open-file-dialog',
+  'get-library',
+  'search-library',
+  'file-exists',
+  'open-external',
+  'open-user-data-folder',
+  'read-file',
+  'read-file-buffer',
+  'get-cover-url',
+  'update-progress',
+  'delete-book',
+  'get-annotations',
+  'add-annotation',
+  'update-annotation',
+  'delete-annotation',
+  'select-background-image',
+  'get-background-image-url',
+  'qa-load-book',
+  'qa-ask',
+  'qa-clear',
+  'qa-get-status',
+  'credentials-save',
+  'credentials-load',
+  'credentials-clear',
+  'credentials-has',
+])
+
 contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
+  invoke(channel: string, ...args: unknown[]) {
+    if (!allowedInvokeChannels.has(channel)) {
+      throw new Error(`IPC channel is not allowed: ${channel}`)
+    }
+
+    return ipcRenderer.invoke(channel, ...args)
   },
 })

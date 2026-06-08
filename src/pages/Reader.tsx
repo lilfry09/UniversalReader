@@ -23,6 +23,22 @@ interface PendingProgressUpdate {
   update: ReaderProgressUpdate
 }
 
+function readThemeMode() {
+  const mode = safeGetItem<ThemeMode>(READER_THEME_KEY, 'light')
+  return mode in THEMES ? mode : 'light'
+}
+
+function readReaderSettings() {
+  const saved = safeGetItem<Partial<ReaderSettings>>(READER_SETTINGS_KEY, {})
+  return {
+    ...DEFAULT_READER_SETTINGS,
+    ...saved,
+    pageMode: saved.pageMode === 'scroll' || saved.pageMode === 'paginated' || saved.pageMode === 'single'
+      ? saved.pageMode
+      : DEFAULT_READER_SETTINGS.pageMode,
+  }
+}
+
 function ReaderFallback({ label }: { label: string }) {
   return (
     <div className="flex items-center justify-center h-full text-gray-500">
@@ -39,7 +55,7 @@ export default function Reader() {
   const [loading, setLoading] = useState(true)
   const [fileExists, setFileExists] = useState<boolean | null>(null)
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    return safeGetItem<ThemeMode>(READER_THEME_KEY, 'light')
+    return readThemeMode()
   })
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [customBgImage, setCustomBgImage] = useState<string | null>(() => {
@@ -61,7 +77,7 @@ export default function Reader() {
 
   // Reader settings
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
-    return safeGetItem<ReaderSettings>(READER_SETTINGS_KEY, DEFAULT_READER_SETTINGS)
+    return readReaderSettings()
   })
 
   // Load custom background image URL
@@ -230,6 +246,27 @@ export default function Reader() {
       return
     }
 
+    const shouldFlushImmediately = normalizedUpdate.progress <= 0 || normalizedUpdate.progress >= 0.999
+    const pendingProgress = pendingProgressRef.current
+    const isTinyQueuedUpdate = pendingProgress != null
+      && !shouldFlushImmediately
+      && pendingProgress.bookId === book.id
+      && Math.abs(normalizedUpdate.progress - pendingProgress.update.progress) < PROGRESS_SKIP_DELTA
+      && (normalizedUpdate.updatedAt ?? 0) - (pendingProgress.update.updatedAt ?? 0) < PROGRESS_FLUSH_INTERVAL_MS
+    if (isTinyQueuedUpdate) {
+      pendingProgressRef.current = {
+        ...pendingProgress,
+        update: normalizedUpdate,
+      }
+
+      if (!progressFlushTimerRef.current) {
+        progressFlushTimerRef.current = setTimeout(() => {
+          flushPendingProgress()
+        }, PROGRESS_FLUSH_INTERVAL_MS)
+      }
+      return
+    }
+
     setBook(prev => prev
       ? {
           ...prev,
@@ -246,7 +283,7 @@ export default function Reader() {
       update: normalizedUpdate,
     }
 
-    if (normalizedUpdate.progress <= 0 || normalizedUpdate.progress >= 0.999) {
+    if (shouldFlushImmediately) {
       flushPendingProgress()
       return
     }

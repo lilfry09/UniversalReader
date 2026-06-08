@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, AlertCircle, MessageSquare } from 'lucide-react'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
@@ -43,6 +43,28 @@ interface PdfHighlightLocator {
   kind: 'pdf-highlight'
   version: 1
   rects: PdfHighlightRect[]
+}
+
+const parsePdfHighlightLocator = (raw?: string): PdfHighlightLocator | null => {
+  if (!raw) return null
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<PdfHighlightLocator>
+    if (parsed.kind !== 'pdf-highlight' || parsed.version !== 1 || !Array.isArray(parsed.rects)) {
+      return null
+    }
+
+    const rects = parsed.rects.filter((rect): rect is PdfHighlightRect => (
+      typeof rect.left === 'number'
+      && typeof rect.top === 'number'
+      && typeof rect.width === 'number'
+      && typeof rect.height === 'number'
+    ))
+
+    return rects.length > 0 ? { kind: 'pdf-highlight', version: 1, rects } : null
+  } catch {
+    return null
+  }
 }
 
 export default function PdfReader({ 
@@ -170,28 +192,6 @@ export default function PdfReader({
 
   const changeScale = (delta: number) => {
     setScale(prev => Math.min(Math.max(0.5, prev + delta), 3.0))
-  }
-
-  const parsePdfHighlightLocator = (raw?: string): PdfHighlightLocator | null => {
-    if (!raw) return null
-
-    try {
-      const parsed = JSON.parse(raw) as Partial<PdfHighlightLocator>
-      if (parsed.kind !== 'pdf-highlight' || parsed.version !== 1 || !Array.isArray(parsed.rects)) {
-        return null
-      }
-
-      const rects = parsed.rects.filter((rect): rect is PdfHighlightRect => (
-        typeof rect.left === 'number'
-        && typeof rect.top === 'number'
-        && typeof rect.width === 'number'
-        && typeof rect.height === 'number'
-      ))
-
-      return rects.length > 0 ? { kind: 'pdf-highlight', version: 1, rects } : null
-    } catch {
-      return null
-    }
   }
 
   // Handle text selection
@@ -425,6 +425,23 @@ export default function PdfReader({
     }
   }
 
+  const highlightsByPage = useMemo(() => {
+    const grouped = new Map<number, Array<{ annotation: Annotation; locator: PdfHighlightLocator }>>()
+
+    for (const annotation of annotations) {
+      if (!annotation.cfi || !annotation.pageNumber) continue
+
+      const locator = parsePdfHighlightLocator(annotation.cfi)
+      if (!locator) continue
+
+      const pageHighlights = grouped.get(annotation.pageNumber) ?? []
+      pageHighlights.push({ annotation, locator })
+      grouped.set(annotation.pageNumber, pageHighlights)
+    }
+
+    return grouped
+  }, [annotations])
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-red-600 p-8">
@@ -445,14 +462,6 @@ export default function PdfReader({
     )
   }
 
-  const pageHighlights = annotations
-    .filter(annotation => annotation.cfi)
-    .map(annotation => ({
-      annotation,
-      locator: parsePdfHighlightLocator(annotation.cfi),
-    }))
-    .filter((item): item is { annotation: Annotation; locator: PdfHighlightLocator } => item.locator != null)
-
   // Compute background style for custom background image
   const backgroundStyle: React.CSSProperties = theme.customBgImage
     ? {
@@ -464,7 +473,7 @@ export default function PdfReader({
     : { backgroundColor: theme.bg }
 
   const renderPage = (page: number) => {
-    const highlights = pageHighlights.filter(({ annotation }) => annotation.pageNumber === page)
+    const highlights = highlightsByPage.get(page) ?? []
 
     return (
       <div

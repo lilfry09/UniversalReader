@@ -8,7 +8,9 @@ import {
   OPEN_EXTERNAL_LINKS_KEY,
   READER_CUSTOM_BG_KEY,
   READER_SETTINGS_KEY,
-  READER_THEME_KEY
+  READER_THEME_KEY,
+  safeGetItem,
+  safeSetItem
 } from '../utils'
 import APIConfig from '../components/APIConfig'
 
@@ -18,6 +20,22 @@ function readBool(key: string, defaultValue: boolean) {
   return raw === 'true'
 }
 
+function readThemeMode() {
+  const mode = safeGetItem<ThemeMode>(READER_THEME_KEY, 'light')
+  return mode in THEMES ? mode : 'light'
+}
+
+function readReaderSettings() {
+  const saved = safeGetItem<Partial<ReaderSettings>>(READER_SETTINGS_KEY, {})
+  return {
+    ...DEFAULT_READER_SETTINGS,
+    ...saved,
+    pageMode: saved.pageMode === 'scroll' || saved.pageMode === 'paginated' || saved.pageMode === 'single'
+      ? saved.pageMode
+      : DEFAULT_READER_SETTINGS.pageMode,
+  }
+}
+
 export default function Settings() {
   const isDesktop = isElectron()
   const [openExternalLinks, setOpenExternalLinks] = useState<boolean>(() =>
@@ -25,16 +43,15 @@ export default function Settings() {
   )
 
   const [defaultTheme, setDefaultTheme] = useState<ThemeMode>(() => {
-    return (localStorage.getItem(READER_THEME_KEY) as ThemeMode) || 'light'
+    return readThemeMode()
   })
 
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
-    const saved = localStorage.getItem(READER_SETTINGS_KEY)
-    return saved ? { ...DEFAULT_READER_SETTINGS, ...JSON.parse(saved) } : DEFAULT_READER_SETTINGS
+    return readReaderSettings()
   })
 
   const [customBgImage, setCustomBgImage] = useState<string | null>(() => {
-    return localStorage.getItem(READER_CUSTOM_BG_KEY) || null
+    return safeGetItem<string | null>(READER_CUSTOM_BG_KEY, null)
   })
 
   const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
@@ -63,11 +80,11 @@ export default function Settings() {
   }, [openExternalLinks])
 
   useEffect(() => {
-    localStorage.setItem(READER_THEME_KEY, defaultTheme)
+    safeSetItem(READER_THEME_KEY, defaultTheme)
   }, [defaultTheme])
 
   useEffect(() => {
-    localStorage.setItem(READER_SETTINGS_KEY, JSON.stringify(readerSettings))
+    safeSetItem(READER_SETTINGS_KEY, readerSettings)
   }, [readerSettings])
 
   const themeModes = useMemo(() => (Object.keys(THEMES) as ThemeMode[]).filter(m => m !== 'custom'), [])
@@ -77,7 +94,7 @@ export default function Settings() {
     const imagePath = await window.ipcRenderer.invoke('select-background-image')
     if (imagePath) {
       setCustomBgImage(imagePath)
-      localStorage.setItem(READER_CUSTOM_BG_KEY, imagePath)
+      safeSetItem(READER_CUSTOM_BG_KEY, imagePath)
     }
   }
 
