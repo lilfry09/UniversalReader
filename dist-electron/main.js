@@ -1,2694 +1,2064 @@
-import { safeStorage as ae, app as z, ipcMain as v, shell as Pe, dialog as be, BrowserWindow as Be } from "electron";
-import V from "node:path";
-import { fileURLToPath as Ne } from "node:url";
-import rt from "better-sqlite3";
-import Me from "node:crypto";
-import _ from "fs";
-import T from "path";
-import { createCanvas as ot } from "canvas";
-import je from "zlib";
-import st from "crypto";
-function it(e, t) {
-  for (var n = 0; n < t.length; n++) {
-    const r = t[n];
-    if (typeof r != "string" && !Array.isArray(r)) {
-      for (const s in r)
-        if (s !== "default" && !(s in e)) {
-          const o = Object.getOwnPropertyDescriptor(r, s);
-          o && Object.defineProperty(e, s, o.get ? o : {
-            enumerable: !0,
-            get: () => r[s]
-          });
-        }
-    }
-  }
-  return Object.freeze(Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }));
+import { createRequire as e } from "node:module";
+import { BrowserWindow as t, app as n, dialog as r, ipcMain as i, safeStorage as a, shell as o } from "electron";
+import s from "node:path";
+import { fileURLToPath as c } from "node:url";
+import l from "better-sqlite3";
+import u from "node:crypto";
+import d from "fs";
+import f from "path";
+import { createCanvas as p } from "canvas";
+//#region \0rolldown/runtime.js
+var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescriptor, _ = Object.getOwnPropertyNames, v = Object.getPrototypeOf, y = Object.prototype.hasOwnProperty, b = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), x = (e, t, n, r) => {
+	if (t && typeof t == "object" || typeof t == "function") for (var i = _(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !y.call(e, s) && s !== n && h(e, s, {
+		get: ((e) => t[e]).bind(null, s),
+		enumerable: !(r = g(t, s)) || r.enumerable
+	});
+	return e;
+}, S = (e, t, n) => (n = e == null ? {} : m(v(e)), x(t || !e || !e.__esModule ? h(n, "default", {
+	value: e,
+	enumerable: !0
+}) : n, e)), C = /* @__PURE__ */ e(import.meta.url), ee = /* @__PURE__ */ b(((e, t) => {
+	t.exports = {
+		LOCHDR: 30,
+		LOCSIG: 67324752,
+		LOCVER: 4,
+		LOCFLG: 6,
+		LOCHOW: 8,
+		LOCTIM: 10,
+		LOCCRC: 14,
+		LOCSIZ: 18,
+		LOCLEN: 22,
+		LOCNAM: 26,
+		LOCEXT: 28,
+		EXTSIG: 134695760,
+		EXTHDR: 16,
+		EXTCRC: 4,
+		EXTSIZ: 8,
+		EXTLEN: 12,
+		CENHDR: 46,
+		CENSIG: 33639248,
+		CENVEM: 4,
+		CENVER: 6,
+		CENFLG: 8,
+		CENHOW: 10,
+		CENTIM: 12,
+		CENCRC: 16,
+		CENSIZ: 20,
+		CENLEN: 24,
+		CENNAM: 28,
+		CENEXT: 30,
+		CENCOM: 32,
+		CENDSK: 34,
+		CENATT: 36,
+		CENATX: 38,
+		CENOFF: 42,
+		ENDHDR: 22,
+		ENDSIG: 101010256,
+		ENDSUB: 8,
+		ENDTOT: 10,
+		ENDSIZ: 12,
+		ENDOFF: 16,
+		ENDCOM: 20,
+		END64HDR: 20,
+		END64SIG: 117853008,
+		END64START: 4,
+		END64OFF: 8,
+		END64NUMDISKS: 16,
+		ZIP64SIG: 101075792,
+		ZIP64HDR: 56,
+		ZIP64LEAD: 12,
+		ZIP64SIZE: 4,
+		ZIP64VEM: 12,
+		ZIP64VER: 14,
+		ZIP64DSK: 16,
+		ZIP64DSKDIR: 20,
+		ZIP64SUB: 24,
+		ZIP64TOT: 32,
+		ZIP64SIZB: 40,
+		ZIP64OFF: 48,
+		ZIP64EXTRA: 56,
+		STORED: 0,
+		SHRUNK: 1,
+		REDUCED1: 2,
+		REDUCED2: 3,
+		REDUCED3: 4,
+		REDUCED4: 5,
+		IMPLODED: 6,
+		DEFLATED: 8,
+		ENHANCED_DEFLATED: 9,
+		PKWARE: 10,
+		BZIP2: 12,
+		LZMA: 14,
+		IBM_TERSE: 18,
+		IBM_LZ77: 19,
+		AES_ENCRYPT: 99,
+		FLG_ENC: 1,
+		FLG_COMP1: 2,
+		FLG_COMP2: 4,
+		FLG_DESC: 8,
+		FLG_ENH: 16,
+		FLG_PATCH: 32,
+		FLG_STR: 64,
+		FLG_EFS: 2048,
+		FLG_MSK: 4096,
+		FILE: 2,
+		BUFFER: 1,
+		NONE: 0,
+		EF_ID: 0,
+		EF_SIZE: 2,
+		ID_ZIP64: 1,
+		ID_AVINFO: 7,
+		ID_PFS: 8,
+		ID_OS2: 9,
+		ID_NTFS: 10,
+		ID_OPENVMS: 12,
+		ID_UNIX: 13,
+		ID_FORK: 14,
+		ID_PATCH: 15,
+		ID_X509_PKCS7: 20,
+		ID_X509_CERTID_F: 21,
+		ID_X509_CERTID_C: 22,
+		ID_STRONGENC: 23,
+		ID_RECORD_MGT: 24,
+		ID_X509_PKCS7_RL: 25,
+		ID_IBM1: 101,
+		ID_IBM2: 102,
+		ID_POSZIP: 18064,
+		EF_ZIP64_OR_32: 4294967295,
+		EF_ZIP64_OR_16: 65535,
+		EF_ZIP64_SUNCOMP: 0,
+		EF_ZIP64_SCOMP: 8,
+		EF_ZIP64_RHO: 16,
+		EF_ZIP64_DSN: 24
+	};
+})), w = /* @__PURE__ */ b(((e) => {
+	var t = {
+		INVALID_LOC: "Invalid LOC header (bad signature)",
+		INVALID_CEN: "Invalid CEN header (bad signature)",
+		INVALID_END: "Invalid END header (bad signature)",
+		DESCRIPTOR_NOT_EXIST: "No descriptor present",
+		DESCRIPTOR_UNKNOWN: "Unknown descriptor format",
+		DESCRIPTOR_FAULTY: "Descriptor data is malformed",
+		NO_DATA: "Nothing to decompress",
+		BAD_CRC: "CRC32 checksum failed {0}",
+		FILE_IN_THE_WAY: "There is a file in the way: {0}",
+		UNKNOWN_METHOD: "Invalid/unsupported compression method",
+		AVAIL_DATA: "inflate::Available inflate data did not terminate",
+		INVALID_DISTANCE: "inflate::Invalid literal/length or distance code in fixed or dynamic block",
+		TO_MANY_CODES: "inflate::Dynamic block code description: too many length or distance codes",
+		INVALID_REPEAT_LEN: "inflate::Dynamic block code description: repeat more than specified lengths",
+		INVALID_REPEAT_FIRST: "inflate::Dynamic block code description: repeat lengths with no first length",
+		INCOMPLETE_CODES: "inflate::Dynamic block code description: code lengths codes incomplete",
+		INVALID_DYN_DISTANCE: "inflate::Dynamic block code description: invalid distance code lengths",
+		INVALID_CODES_LEN: "inflate::Dynamic block code description: invalid literal/length code lengths",
+		INVALID_STORE_BLOCK: "inflate::Stored block length did not match one's complement",
+		INVALID_BLOCK_TYPE: "inflate::Invalid block type (type == 3)",
+		CANT_EXTRACT_FILE: "Could not extract the file",
+		CANT_OVERRIDE: "Target file already exists",
+		DISK_ENTRY_TOO_LARGE: "Number of disk entries is too large",
+		NO_ZIP: "No zip file was loaded",
+		NO_ENTRY: "Entry doesn't exist",
+		DIRECTORY_CONTENT_ERROR: "A directory cannot have content",
+		FILE_NOT_FOUND: "File not found: \"{0}\"",
+		NOT_IMPLEMENTED: "Not implemented",
+		INVALID_FILENAME: "Invalid filename",
+		INVALID_FORMAT: "Invalid or unsupported zip format. No END header found",
+		INVALID_PASS_PARAM: "Incompatible password parameter",
+		WRONG_PASSWORD: "Wrong Password",
+		COMMENT_TOO_LONG: "Comment is too long",
+		EXTRA_FIELD_PARSE_ERROR: "Extra field parsing error"
+	};
+	function n(e) {
+		return function(...t) {
+			return t.length && (e = e.replace(/\{(\d)\}/g, (e, n) => t[n] || "")), /* @__PURE__ */ Error("ADM-ZIP: " + e);
+		};
+	}
+	for (let r of Object.keys(t)) e[r] = n(t[r]);
+})), te = /* @__PURE__ */ b(((e, t) => {
+	var n = C("fs"), r = C("path"), i = ee(), a = w(), o = typeof process == "object" && process.platform === "win32", s = (e) => typeof e == "object" && !!e, c = new Uint32Array(256).map((e, t) => {
+		for (let e = 0; e < 8; e++) t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
+		return t >>> 0;
+	});
+	function l(e) {
+		this.sep = r.sep, this.fs = n, s(e) && s(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
+	}
+	t.exports = l, l.prototype.makeDir = function(e) {
+		let t = this;
+		function n(e) {
+			let n = e.split(t.sep)[0];
+			e.split(t.sep).forEach(function(e) {
+				if (!(!e || e.substr(-1, 1) === ":")) {
+					n += t.sep + e;
+					var r;
+					try {
+						r = t.fs.statSync(n);
+					} catch (e) {
+						if (e.message && e.message.startsWith("ENOENT")) t.fs.mkdirSync(n);
+						else throw e;
+					}
+					if (r && r.isFile()) throw a.FILE_IN_THE_WAY(`"${n}"`);
+				}
+			});
+		}
+		n(e);
+	}, l.prototype.writeFileTo = function(e, t, n, i) {
+		let a = this;
+		if (a.fs.existsSync(e) && (!n || a.fs.statSync(e).isDirectory())) return !1;
+		var o = r.dirname(e);
+		a.fs.existsSync(o) || a.makeDir(o);
+		var s;
+		try {
+			s = a.fs.openSync(e, "w", 438);
+		} catch {
+			a.fs.chmodSync(e, 438), s = a.fs.openSync(e, "w", 438);
+		}
+		if (s) try {
+			a.fs.writeSync(s, t, 0, t.length, 0);
+		} finally {
+			a.fs.closeSync(s);
+		}
+		return a.fs.chmodSync(e, i || 438), !0;
+	}, l.prototype.writeFileToAsync = function(e, t, n, i, a) {
+		typeof i == "function" && (a = i, i = void 0);
+		let o = this;
+		o.fs.exists(e, function(s) {
+			if (s && !n) return a(!1);
+			o.fs.stat(e, function(n, c) {
+				if (s && c.isDirectory()) return a(!1);
+				var l = r.dirname(e);
+				o.fs.exists(l, function(n) {
+					n || o.makeDir(l), o.fs.open(e, "w", 438, function(n, r) {
+						n ? o.fs.chmod(e, 438, function() {
+							o.fs.open(e, "w", 438, function(n, r) {
+								o.fs.write(r, t, 0, t.length, 0, function() {
+									o.fs.close(r, function() {
+										o.fs.chmod(e, i || 438, function() {
+											a(!0);
+										});
+									});
+								});
+							});
+						}) : r ? o.fs.write(r, t, 0, t.length, 0, function() {
+							o.fs.close(r, function() {
+								o.fs.chmod(e, i || 438, function() {
+									a(!0);
+								});
+							});
+						}) : o.fs.chmod(e, i || 438, function() {
+							a(!0);
+						});
+					});
+				});
+			});
+		});
+	}, l.prototype.findFiles = function(e) {
+		let t = this;
+		function n(e, i, a) {
+			typeof i == "boolean" && (a = i, i = void 0);
+			let o = [];
+			return t.fs.readdirSync(e).forEach(function(s) {
+				let c = r.join(e, s), l = t.fs.statSync(c);
+				(!i || i.test(c)) && o.push(r.normalize(c) + (l.isDirectory() ? t.sep : "")), l.isDirectory() && a && (o = o.concat(n(c, i, a)));
+			}), o;
+		}
+		return n(e, void 0, !0);
+	}, l.prototype.findFilesAsync = function(e, t) {
+		let n = this, i = [];
+		n.fs.readdir(e, function(a, o) {
+			if (a) return t(a);
+			let s = o.length;
+			if (!s) return t(null, i);
+			o.forEach(function(a) {
+				a = r.join(e, a), n.fs.stat(a, function(e, o) {
+					if (e) return t(e);
+					o && (i.push(r.normalize(a) + (o.isDirectory() ? n.sep : "")), o.isDirectory() ? n.findFilesAsync(a, function(e, n) {
+						if (e) return t(e);
+						i = i.concat(n), --s || t(null, i);
+					}) : --s || t(null, i));
+				});
+			});
+		});
+	}, l.prototype.getAttributes = function() {}, l.prototype.setAttributes = function() {}, l.crc32update = function(e, t) {
+		return c[(e ^ t) & 255] ^ e >>> 8;
+	}, l.crc32 = function(e) {
+		typeof e == "string" && (e = Buffer.from(e, "utf8"));
+		let t = e.length, n = -1;
+		for (let r = 0; r < t;) n = l.crc32update(n, e[r++]);
+		return ~n >>> 0;
+	}, l.methodToString = function(e) {
+		switch (e) {
+			case i.STORED: return "STORED (" + e + ")";
+			case i.DEFLATED: return "DEFLATED (" + e + ")";
+			default: return "UNSUPPORTED (" + e + ")";
+		}
+	}, l.canonical = function(e) {
+		if (!e) return "";
+		let t = r.posix.normalize("/" + e.split("\\").join("/"));
+		return r.join(".", t);
+	}, l.zipnamefix = function(e) {
+		if (!e) return "";
+		let t = r.posix.normalize("/" + e.split("\\").join("/"));
+		return r.posix.join(".", t);
+	}, l.findLast = function(e, t) {
+		if (!Array.isArray(e)) throw TypeError("arr is not array");
+		let n = e.length >>> 0;
+		for (let r = n - 1; r >= 0; r--) if (t(e[r], r, e)) return e[r];
+	}, l.sanitize = function(e, t) {
+		e = r.resolve(r.normalize(e));
+		for (var n = t.split("/"), i = 0, a = n.length; i < a; i++) {
+			var o = r.normalize(r.join(e, n.slice(i, a).join(r.sep)));
+			if (o.indexOf(e) === 0) return o;
+		}
+		return r.normalize(r.join(e, r.basename(t)));
+	}, l.toBuffer = function(e, t) {
+		return Buffer.isBuffer(e) ? e : e instanceof Uint8Array ? Buffer.from(e) : typeof e == "string" ? t(e) : Buffer.alloc(0);
+	}, l.readBigUInt64LE = function(e, t) {
+		let n = e.readUInt32LE(t);
+		return e.readUInt32LE(t + 4) * 4294967296 + n;
+	}, l.fromDOS2Date = function(e) {
+		return new Date((e >> 25 & 127) + 1980, Math.max((e >> 21 & 15) - 1, 0), Math.max(e >> 16 & 31, 1), e >> 11 & 31, e >> 5 & 63, (e & 31) << 1);
+	}, l.fromDate2DOS = function(e) {
+		let t = 0, n = 0;
+		return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
+	}, l.isWin = o, l.crcTable = c;
+})), ne = /* @__PURE__ */ b(((e, t) => {
+	var n = C("path");
+	t.exports = function(e, { fs: t }) {
+		var r = e || "", i = o(), a = null;
+		function o() {
+			return {
+				directory: !1,
+				readonly: !1,
+				hidden: !1,
+				executable: !1,
+				mtime: 0,
+				atime: 0
+			};
+		}
+		return r && t.existsSync(r) ? (a = t.statSync(r), i.directory = a.isDirectory(), i.mtime = a.mtime, i.atime = a.atime, i.executable = (73 & a.mode) != 0, i.readonly = (128 & a.mode) == 0, i.hidden = n.basename(r)[0] === ".") : console.warn("Invalid path: " + r), {
+			get directory() {
+				return i.directory;
+			},
+			get readOnly() {
+				return i.readonly;
+			},
+			get hidden() {
+				return i.hidden;
+			},
+			get mtime() {
+				return i.mtime;
+			},
+			get atime() {
+				return i.atime;
+			},
+			get executable() {
+				return i.executable;
+			},
+			decodeAttributes: function() {},
+			encodeAttributes: function() {},
+			toJSON: function() {
+				return {
+					path: r,
+					isDirectory: i.directory,
+					isReadOnly: i.readonly,
+					isHidden: i.hidden,
+					isExecutable: i.executable,
+					mTime: i.mtime,
+					aTime: i.atime
+				};
+			},
+			toString: function() {
+				return JSON.stringify(this.toJSON(), null, "	");
+			}
+		};
+	};
+})), re = /* @__PURE__ */ b(((e, t) => {
+	t.exports = {
+		efs: !0,
+		encode: (e) => Buffer.from(e, "utf8"),
+		decode: (e) => e.toString("utf8")
+	};
+})), T = /* @__PURE__ */ b(((e, t) => {
+	t.exports = te(), t.exports.Constants = ee(), t.exports.Errors = w(), t.exports.FileAttr = ne(), t.exports.decoder = re();
+})), ie = /* @__PURE__ */ b(((e, t) => {
+	var n = T(), r = n.Constants;
+	t.exports = function() {
+		var e = 20, t = 10, i = 0, a = 0, o = 0, s = 0, c = 0, l = 0, u = 0, d = 0, f = 0, p = 0, m = 0, h = 0, g = 0;
+		e |= n.isWin ? 2560 : 768, i |= r.FLG_EFS;
+		let _ = { extraLen: 0 }, v = (e) => Math.max(0, e) >>> 0, y = (e) => Math.max(0, e) & 255;
+		return o = n.fromDate2DOS(/* @__PURE__ */ new Date()), {
+			get made() {
+				return e;
+			},
+			set made(t) {
+				e = t;
+			},
+			get version() {
+				return t;
+			},
+			set version(e) {
+				t = e;
+			},
+			get flags() {
+				return i;
+			},
+			set flags(e) {
+				i = e;
+			},
+			get flags_efs() {
+				return (i & r.FLG_EFS) > 0;
+			},
+			set flags_efs(e) {
+				e ? i |= r.FLG_EFS : i &= ~r.FLG_EFS;
+			},
+			get flags_desc() {
+				return (i & r.FLG_DESC) > 0;
+			},
+			set flags_desc(e) {
+				e ? i |= r.FLG_DESC : i &= ~r.FLG_DESC;
+			},
+			get method() {
+				return a;
+			},
+			set method(e) {
+				switch (e) {
+					case r.STORED: this.version = 10;
+					case r.DEFLATED:
+					default: this.version = 20;
+				}
+				a = e;
+			},
+			get time() {
+				return n.fromDOS2Date(this.timeval);
+			},
+			set time(e) {
+				e = new Date(e), this.timeval = n.fromDate2DOS(e);
+			},
+			get timeval() {
+				return o;
+			},
+			set timeval(e) {
+				o = v(e);
+			},
+			get timeHighByte() {
+				return y(o >>> 8);
+			},
+			get crc() {
+				return s;
+			},
+			set crc(e) {
+				s = v(e);
+			},
+			get compressedSize() {
+				return c;
+			},
+			set compressedSize(e) {
+				c = v(e);
+			},
+			get size() {
+				return l;
+			},
+			set size(e) {
+				l = v(e);
+			},
+			get fileNameLength() {
+				return u;
+			},
+			set fileNameLength(e) {
+				u = e;
+			},
+			get extraLength() {
+				return d;
+			},
+			set extraLength(e) {
+				d = e;
+			},
+			get extraLocalLength() {
+				return _.extraLen;
+			},
+			set extraLocalLength(e) {
+				_.extraLen = e;
+			},
+			get commentLength() {
+				return f;
+			},
+			set commentLength(e) {
+				f = e;
+			},
+			get diskNumStart() {
+				return p;
+			},
+			set diskNumStart(e) {
+				p = v(e);
+			},
+			get inAttr() {
+				return m;
+			},
+			set inAttr(e) {
+				m = v(e);
+			},
+			get attr() {
+				return h;
+			},
+			set attr(e) {
+				h = v(e);
+			},
+			get fileAttr() {
+				return (h || 0) >> 16 & 4095;
+			},
+			get offset() {
+				return g;
+			},
+			set offset(e) {
+				g = v(e);
+			},
+			get encrypted() {
+				return (i & r.FLG_ENC) === r.FLG_ENC;
+			},
+			get centralHeaderSize() {
+				return r.CENHDR + u + d + f;
+			},
+			get realDataOffset() {
+				return g + r.LOCHDR + _.fnameLen + _.extraLen;
+			},
+			get localHeader() {
+				return _;
+			},
+			loadLocalHeaderFromBinary: function(e) {
+				var t = e.slice(g, g + r.LOCHDR);
+				if (t.readUInt32LE(0) !== r.LOCSIG) throw n.Errors.INVALID_LOC();
+				_.version = t.readUInt16LE(r.LOCVER), _.flags = t.readUInt16LE(r.LOCFLG), _.flags_desc = (_.flags & r.FLG_DESC) > 0, _.method = t.readUInt16LE(r.LOCHOW), _.time = t.readUInt32LE(r.LOCTIM), _.crc = t.readUInt32LE(r.LOCCRC), _.compressedSize = t.readUInt32LE(r.LOCSIZ), _.size = t.readUInt32LE(r.LOCLEN), _.fnameLen = t.readUInt16LE(r.LOCNAM), _.extraLen = t.readUInt16LE(r.LOCEXT);
+				let i = g + r.LOCHDR + _.fnameLen, a = i + _.extraLen;
+				return e.slice(i, a);
+			},
+			loadFromBinary: function(_) {
+				if (_.length !== r.CENHDR || _.readUInt32LE(0) !== r.CENSIG) throw n.Errors.INVALID_CEN();
+				e = _.readUInt16LE(r.CENVEM), t = _.readUInt16LE(r.CENVER), i = _.readUInt16LE(r.CENFLG), a = _.readUInt16LE(r.CENHOW), o = _.readUInt32LE(r.CENTIM), s = _.readUInt32LE(r.CENCRC), c = _.readUInt32LE(r.CENSIZ), l = _.readUInt32LE(r.CENLEN), u = _.readUInt16LE(r.CENNAM), d = _.readUInt16LE(r.CENEXT), f = _.readUInt16LE(r.CENCOM), p = _.readUInt16LE(r.CENDSK), m = _.readUInt16LE(r.CENATT), h = _.readUInt32LE(r.CENATX), g = _.readUInt32LE(r.CENOFF);
+			},
+			localHeaderToBinary: function() {
+				var e = Buffer.alloc(r.LOCHDR);
+				return e.writeUInt32LE(r.LOCSIG, 0), e.writeUInt16LE(t, r.LOCVER), e.writeUInt16LE(i, r.LOCFLG), e.writeUInt16LE(a, r.LOCHOW), e.writeUInt32LE(o, r.LOCTIM), e.writeUInt32LE(s, r.LOCCRC), e.writeUInt32LE(c, r.LOCSIZ), e.writeUInt32LE(l, r.LOCLEN), e.writeUInt16LE(u, r.LOCNAM), e.writeUInt16LE(_.extraLen, r.LOCEXT), e;
+			},
+			centralHeaderToBinary: function() {
+				var n = Buffer.alloc(r.CENHDR + u + d + f);
+				return n.writeUInt32LE(r.CENSIG, 0), n.writeUInt16LE(e, r.CENVEM), n.writeUInt16LE(t, r.CENVER), n.writeUInt16LE(i, r.CENFLG), n.writeUInt16LE(a, r.CENHOW), n.writeUInt32LE(o, r.CENTIM), n.writeUInt32LE(s, r.CENCRC), n.writeUInt32LE(c, r.CENSIZ), n.writeUInt32LE(l, r.CENLEN), n.writeUInt16LE(u, r.CENNAM), n.writeUInt16LE(d, r.CENEXT), n.writeUInt16LE(f, r.CENCOM), n.writeUInt16LE(p, r.CENDSK), n.writeUInt16LE(m, r.CENATT), n.writeUInt32LE(h, r.CENATX), n.writeUInt32LE(g, r.CENOFF), n;
+			},
+			toJSON: function() {
+				let o = function(e) {
+					return e + " bytes";
+				};
+				return {
+					made: e,
+					version: t,
+					flags: i,
+					method: n.methodToString(a),
+					time: this.time,
+					crc: "0x" + s.toString(16).toUpperCase(),
+					compressedSize: o(c),
+					size: o(l),
+					fileNameLength: o(u),
+					extraLength: o(d),
+					commentLength: o(f),
+					diskNumStart: p,
+					inAttr: m,
+					attr: h,
+					offset: g,
+					centralHeaderSize: o(r.CENHDR + u + d + f)
+				};
+			},
+			toString: function() {
+				return JSON.stringify(this.toJSON(), null, "	");
+			}
+		};
+	};
+})), ae = /* @__PURE__ */ b(((e, t) => {
+	var n = T(), r = n.Constants;
+	t.exports = function() {
+		var e = 0, t = 0, i = 0, a = 0, o = 0;
+		return {
+			get diskEntries() {
+				return e;
+			},
+			set diskEntries(n) {
+				e = t = n;
+			},
+			get totalEntries() {
+				return t;
+			},
+			set totalEntries(n) {
+				t = e = n;
+			},
+			get size() {
+				return i;
+			},
+			set size(e) {
+				i = e;
+			},
+			get offset() {
+				return a;
+			},
+			set offset(e) {
+				a = e;
+			},
+			get commentLength() {
+				return o;
+			},
+			set commentLength(e) {
+				o = e;
+			},
+			get mainHeaderSize() {
+				return r.ENDHDR + o;
+			},
+			loadFromBinary: function(s) {
+				if ((s.length !== r.ENDHDR || s.readUInt32LE(0) !== r.ENDSIG) && (s.length < r.ZIP64HDR || s.readUInt32LE(0) !== r.ZIP64SIG)) throw n.Errors.INVALID_END();
+				s.readUInt32LE(0) === r.ENDSIG ? (e = s.readUInt16LE(r.ENDSUB), t = s.readUInt16LE(r.ENDTOT), i = s.readUInt32LE(r.ENDSIZ), a = s.readUInt32LE(r.ENDOFF), o = s.readUInt16LE(r.ENDCOM)) : (e = n.readBigUInt64LE(s, r.ZIP64SUB), t = n.readBigUInt64LE(s, r.ZIP64TOT), i = n.readBigUInt64LE(s, r.ZIP64SIZE), a = n.readBigUInt64LE(s, r.ZIP64OFF), o = 0);
+			},
+			toBinary: function() {
+				var n = Buffer.alloc(r.ENDHDR + o);
+				return n.writeUInt32LE(r.ENDSIG, 0), n.writeUInt32LE(0, 4), n.writeUInt16LE(e, r.ENDSUB), n.writeUInt16LE(t, r.ENDTOT), n.writeUInt32LE(i, r.ENDSIZ), n.writeUInt32LE(a, r.ENDOFF), n.writeUInt16LE(o, r.ENDCOM), n.fill(" ", r.ENDHDR), n;
+			},
+			toJSON: function() {
+				return {
+					diskEntries: e,
+					totalEntries: t,
+					size: i + " bytes",
+					offset: function(e, t) {
+						let n = e.toString(16).toUpperCase();
+						for (; n.length < t;) n = "0" + n;
+						return "0x" + n;
+					}(a, 4),
+					commentLength: o
+				};
+			},
+			toString: function() {
+				return JSON.stringify(this.toJSON(), null, "	");
+			}
+		};
+	};
+})), oe = /* @__PURE__ */ b(((e) => {
+	e.EntryHeader = ie(), e.MainHeader = ae();
+})), se = /* @__PURE__ */ b(((e, t) => {
+	t.exports = function(e) {
+		var t = C("zlib"), n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
+		return {
+			deflate: function() {
+				return t.deflateRawSync(e, n);
+			},
+			deflateAsync: function(r) {
+				var i = t.createDeflateRaw(n), a = [], o = 0;
+				i.on("data", function(e) {
+					a.push(e), o += e.length;
+				}), i.on("end", function() {
+					var e = Buffer.alloc(o), t = 0;
+					e.fill(0);
+					for (var n = 0; n < a.length; n++) {
+						var i = a[n];
+						i.copy(e, t), t += i.length;
+					}
+					r && r(e);
+				}), i.end(e);
+			}
+		};
+	};
+})), ce = /* @__PURE__ */ b(((e, t) => {
+	var n = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
+	t.exports = function(e, t) {
+		var r = C("zlib");
+		let i = n >= 15 && t > 0 ? { maxOutputLength: t } : {};
+		return {
+			inflate: function() {
+				return r.inflateRawSync(e, i);
+			},
+			inflateAsync: function(t) {
+				var n = r.createInflateRaw(i), a = [], o = 0;
+				n.on("data", function(e) {
+					a.push(e), o += e.length;
+				}), n.on("end", function() {
+					var e = Buffer.alloc(o), n = 0;
+					e.fill(0);
+					for (var r = 0; r < a.length; r++) {
+						var i = a[r];
+						i.copy(e, n), n += i.length;
+					}
+					t && t(e);
+				}), n.end(e);
+			}
+		};
+	};
+})), le = /* @__PURE__ */ b(((e, t) => {
+	var { randomFillSync: n } = C("crypto"), r = w(), i = new Uint32Array(256).map((e, t) => {
+		for (let e = 0; e < 8; e++) t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
+		return t >>> 0;
+	}), a = (e, t) => Math.imul(e, t) >>> 0, o = (e, t) => i[(e ^ t) & 255] ^ e >>> 8, s = () => typeof n == "function" ? n(Buffer.alloc(12)) : s.node();
+	s.node = () => {
+		let e = Buffer.alloc(12), t = e.length;
+		for (let n = 0; n < t; n++) e[n] = Math.random() * 256 & 255;
+		return e;
+	};
+	var c = { genSalt: s };
+	function l(e) {
+		let t = Buffer.isBuffer(e) ? e : Buffer.from(e);
+		this.keys = new Uint32Array([
+			305419896,
+			591751049,
+			878082192
+		]);
+		for (let e = 0; e < t.length; e++) this.updateKeys(t[e]);
+	}
+	l.prototype.updateKeys = function(e) {
+		let t = this.keys;
+		return t[0] = o(t[0], e), t[1] += t[0] & 255, t[1] = a(t[1], 134775813) + 1, t[2] = o(t[2], t[1] >>> 24), e;
+	}, l.prototype.next = function() {
+		let e = (this.keys[2] | 2) >>> 0;
+		return a(e, e ^ 1) >> 8 & 255;
+	};
+	function u(e) {
+		let t = new l(e);
+		return function(e) {
+			let n = Buffer.alloc(e.length), r = 0;
+			for (let i of e) n[r++] = t.updateKeys(i ^ t.next());
+			return n;
+		};
+	}
+	function d(e) {
+		let t = new l(e);
+		return function(e, n, r = 0) {
+			n ||= Buffer.alloc(e.length);
+			for (let i of e) {
+				let e = t.next();
+				n[r++] = i ^ e, t.updateKeys(i);
+			}
+			return n;
+		};
+	}
+	function f(e, t, n) {
+		if (!e || !Buffer.isBuffer(e) || e.length < 12) return Buffer.alloc(0);
+		let i = u(n), a = i(e.slice(0, 12)), o = (t.flags & 8) == 8 ? t.timeHighByte : t.crc >>> 24;
+		if (a[11] !== o) throw r.WRONG_PASSWORD();
+		return i(e.slice(12));
+	}
+	function p(e) {
+		Buffer.isBuffer(e) && e.length >= 12 ? c.genSalt = function() {
+			return e.slice(0, 12);
+		} : e === "node" ? c.genSalt = s.node : c.genSalt = s;
+	}
+	function m(e, t, n, r = !1) {
+		e ??= Buffer.alloc(0), Buffer.isBuffer(e) || (e = Buffer.from(e.toString()));
+		let i = d(n), a = c.genSalt();
+		a[11] = t.crc >>> 24 & 255, r && (a[10] = t.crc >>> 16 & 255);
+		let o = Buffer.alloc(e.length + 12);
+		return i(a, o), i(e, o, 12);
+	}
+	t.exports = {
+		decrypt: f,
+		encrypt: m,
+		_salter: p
+	};
+})), ue = /* @__PURE__ */ b(((e) => {
+	e.Deflater = se(), e.Inflater = ce(), e.ZipCrypto = le();
+})), de = /* @__PURE__ */ b(((e, t) => {
+	var n = T(), r = oe(), i = n.Constants, a = ue();
+	t.exports = function(e, t) {
+		var o = new r.EntryHeader(), s = Buffer.alloc(0), c = Buffer.alloc(0), l = !1, u = null, d = Buffer.alloc(0), f = Buffer.alloc(0), p = !0;
+		let m = e, h = typeof m.decoder == "object" ? m.decoder : n.decoder;
+		p = h.hasOwnProperty("efs") ? h.efs : !1;
+		function g() {
+			return !t || !(t instanceof Uint8Array) ? Buffer.alloc(0) : (f = o.loadLocalHeaderFromBinary(t), t.slice(o.realDataOffset, o.realDataOffset + o.compressedSize));
+		}
+		function _(e) {
+			if (!o.flags_desc && !o.localHeader.flags_desc) {
+				if (n.crc32(e) !== o.localHeader.crc) return !1;
+			} else {
+				let r = {}, a = o.realDataOffset + o.compressedSize;
+				if (t.readUInt32LE(a) == i.LOCSIG || t.readUInt32LE(a) == i.CENSIG) throw n.Errors.DESCRIPTOR_NOT_EXIST();
+				if (t.readUInt32LE(a) == i.EXTSIG) r.crc = t.readUInt32LE(a + i.EXTCRC), r.compressedSize = t.readUInt32LE(a + i.EXTSIZ), r.size = t.readUInt32LE(a + i.EXTLEN);
+				else if (t.readUInt16LE(a + 12) === 19280) r.crc = t.readUInt32LE(a + i.EXTCRC - 4), r.compressedSize = t.readUInt32LE(a + i.EXTSIZ - 4), r.size = t.readUInt32LE(a + i.EXTLEN - 4);
+				else throw n.Errors.DESCRIPTOR_UNKNOWN();
+				if (r.compressedSize !== o.compressedSize || r.size !== o.size || r.crc !== o.crc) throw n.Errors.DESCRIPTOR_FAULTY();
+				if (n.crc32(e) !== r.crc) return !1;
+			}
+			return !0;
+		}
+		function v(e, t, r) {
+			if (t === void 0 && typeof e == "string" && (r = e, e = void 0), l) return e && t && t(Buffer.alloc(0), n.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
+			var i = g();
+			if (i.length === 0) return e && t && t(i), i;
+			if (o.encrypted) {
+				if (typeof r != "string" && !Buffer.isBuffer(r)) throw n.Errors.INVALID_PASS_PARAM();
+				i = a.ZipCrypto.decrypt(i, o, r);
+			}
+			var c = Buffer.alloc(o.size);
+			switch (o.method) {
+				case n.Constants.STORED:
+					if (i.copy(c), _(c)) return e && t && t(c), c;
+					throw e && t && t(c, n.Errors.BAD_CRC()), n.Errors.BAD_CRC();
+				case n.Constants.DEFLATED:
+					var u = new a.Inflater(i, o.size);
+					if (e) u.inflateAsync(function(e) {
+						e.copy(e, 0), t && (_(e) ? t(e) : t(e, n.Errors.BAD_CRC()));
+					});
+					else {
+						if (u.inflate(c).copy(c, 0), !_(c)) throw n.Errors.BAD_CRC(`"${h.decode(s)}"`);
+						return c;
+					}
+					break;
+				default: throw e && t && t(Buffer.alloc(0), n.Errors.UNKNOWN_METHOD()), n.Errors.UNKNOWN_METHOD();
+			}
+		}
+		function y(e, r) {
+			if ((!u || !u.length) && Buffer.isBuffer(t)) return e && r && r(g()), g();
+			if (u.length && !l) {
+				var i;
+				switch (o.method) {
+					case n.Constants.STORED: return o.compressedSize = o.size, i = Buffer.alloc(u.length), u.copy(i), e && r && r(i), i;
+					default:
+					case n.Constants.DEFLATED:
+						var s = new a.Deflater(u);
+						if (e) s.deflateAsync(function(e) {
+							i = Buffer.alloc(e.length), o.compressedSize = e.length, e.copy(i), r && r(i);
+						});
+						else {
+							var c = s.deflate();
+							return o.compressedSize = c.length, c;
+						}
+						s = null;
+						break;
+				}
+			} else if (e && r) r(Buffer.alloc(0));
+			else return Buffer.alloc(0);
+		}
+		function b(e, t) {
+			return n.readBigUInt64LE(e, t);
+		}
+		function x(e) {
+			try {
+				for (var t = 0, r, a, o; t + 4 < e.length;) r = e.readUInt16LE(t), t += 2, a = e.readUInt16LE(t), t += 2, o = e.slice(t, t + a), t += a, i.ID_ZIP64 === r && S(o);
+			} catch {
+				throw n.Errors.EXTRA_FIELD_PARSE_ERROR();
+			}
+		}
+		function S(e) {
+			var t, n, r, a;
+			e.length >= i.EF_ZIP64_SCOMP && (t = b(e, i.EF_ZIP64_SUNCOMP), o.size === i.EF_ZIP64_OR_32 && (o.size = t)), e.length >= i.EF_ZIP64_RHO && (n = b(e, i.EF_ZIP64_SCOMP), o.compressedSize === i.EF_ZIP64_OR_32 && (o.compressedSize = n)), e.length >= i.EF_ZIP64_DSN && (r = b(e, i.EF_ZIP64_RHO), o.offset === i.EF_ZIP64_OR_32 && (o.offset = r)), e.length >= i.EF_ZIP64_DSN + 4 && (a = e.readUInt32LE(i.EF_ZIP64_DSN), o.diskNumStart === i.EF_ZIP64_OR_16 && (o.diskNumStart = a));
+		}
+		return {
+			get entryName() {
+				return h.decode(s);
+			},
+			get rawEntryName() {
+				return s;
+			},
+			set entryName(e) {
+				s = n.toBuffer(e, h.encode);
+				var t = s[s.length - 1];
+				l = t === 47 || t === 92, o.fileNameLength = s.length;
+			},
+			get efs() {
+				return typeof p == "function" ? p(this.entryName) : p;
+			},
+			get extra() {
+				return d;
+			},
+			set extra(e) {
+				d = e, o.extraLength = e.length, x(e);
+			},
+			get comment() {
+				return h.decode(c);
+			},
+			set comment(e) {
+				if (c = n.toBuffer(e, h.encode), o.commentLength = c.length, c.length > 65535) throw n.Errors.COMMENT_TOO_LONG();
+			},
+			get name() {
+				var e = h.decode(s);
+				return l ? e.substr(e.length - 1).split("/").pop() : e.split("/").pop();
+			},
+			get isDirectory() {
+				return l;
+			},
+			getCompressedData: function() {
+				return y(!1, null);
+			},
+			getCompressedDataAsync: function(e) {
+				y(!0, e);
+			},
+			setData: function(e) {
+				u = n.toBuffer(e, n.decoder.encode), !l && u.length ? (o.size = u.length, o.method = n.Constants.DEFLATED, o.crc = n.crc32(e), o.changed = !0) : o.method = n.Constants.STORED;
+			},
+			getData: function(e) {
+				return o.changed ? u : v(!1, null, e);
+			},
+			getDataAsync: function(e, t) {
+				o.changed ? e(u) : v(!0, e, t);
+			},
+			set attr(e) {
+				o.attr = e;
+			},
+			get attr() {
+				return o.attr;
+			},
+			set header(e) {
+				o.loadFromBinary(e);
+			},
+			get header() {
+				return o;
+			},
+			packCentralHeader: function() {
+				o.flags_efs = this.efs, o.extraLength = d.length;
+				var e = o.centralHeaderToBinary(), t = n.Constants.CENHDR;
+				return s.copy(e, t), t += s.length, d.copy(e, t), t += o.extraLength, c.copy(e, t), e;
+			},
+			packLocalHeader: function() {
+				let e = 0;
+				o.flags_efs = this.efs, o.extraLocalLength = f.length;
+				let t = o.localHeaderToBinary(), n = Buffer.alloc(t.length + s.length + o.extraLocalLength);
+				return t.copy(n, e), e += t.length, s.copy(n, e), e += s.length, f.copy(n, e), e += f.length, n;
+			},
+			toJSON: function() {
+				let e = function(e) {
+					return "<" + (e && e.length + " bytes buffer" || "null") + ">";
+				};
+				return {
+					entryName: this.entryName,
+					name: this.name,
+					comment: this.comment,
+					isDirectory: this.isDirectory,
+					header: o.toJSON(),
+					compressedData: e(t),
+					data: e(u)
+				};
+			},
+			toString: function() {
+				return JSON.stringify(this.toJSON(), null, "	");
+			}
+		};
+	};
+})), fe = /* @__PURE__ */ b(((e, t) => {
+	var n = de(), r = oe(), i = T();
+	t.exports = function(e, t) {
+		var a = [], o = {}, s = Buffer.alloc(0), c = new r.MainHeader(), l = !1;
+		let u = /* @__PURE__ */ new Set(), d = t, { noSort: f, decoder: p } = d;
+		e ? g(d.readEntries) : l = !0;
+		function m() {
+			let e = /* @__PURE__ */ new Set();
+			for (let t of Object.keys(o)) {
+				let n = t.split("/");
+				if (n.pop(), n.length) for (let t = 0; t < n.length; t++) {
+					let r = n.slice(0, t + 1).join("/") + "/";
+					e.add(r);
+				}
+			}
+			for (let t of e) if (!(t in o)) {
+				let e = new n(d);
+				e.entryName = t, e.attr = 16, e.temporary = !0, a.push(e), o[e.entryName] = e, u.add(e);
+			}
+		}
+		function h() {
+			if (l = !0, o = {}, c.diskEntries > (e.length - c.offset) / i.Constants.CENHDR) throw i.Errors.DISK_ENTRY_TOO_LARGE();
+			a = Array(c.diskEntries);
+			for (var t = c.offset, r = 0; r < a.length; r++) {
+				var s = t, f = new n(d, e);
+				f.header = e.slice(s, s += i.Constants.CENHDR), f.entryName = e.slice(s, s += f.header.fileNameLength), f.header.extraLength && (f.extra = e.slice(s, s += f.header.extraLength)), f.header.commentLength && (f.comment = e.slice(s, s + f.header.commentLength)), t += f.header.centralHeaderSize, a[r] = f, o[f.entryName] = f;
+			}
+			u.clear(), m();
+		}
+		function g(t) {
+			var n = e.length - i.Constants.ENDHDR, r = Math.max(0, n - 65535), a = r, o = e.length, l = -1, u = 0;
+			for (typeof d.trailingSpace == "boolean" && d.trailingSpace && (r = 0); n >= a; n--) if (e[n] === 80) {
+				if (e.readUInt32LE(n) === i.Constants.ENDSIG) {
+					l = n, u = n, o = n + i.Constants.ENDHDR, a = n - i.Constants.END64HDR;
+					continue;
+				}
+				if (e.readUInt32LE(n) === i.Constants.END64SIG) {
+					a = r;
+					continue;
+				}
+				if (e.readUInt32LE(n) === i.Constants.ZIP64SIG) {
+					l = n, o = n + i.readBigUInt64LE(e, n + i.Constants.ZIP64SIZE) + i.Constants.ZIP64LEAD;
+					break;
+				}
+			}
+			if (l == -1) throw i.Errors.INVALID_FORMAT();
+			c.loadFromBinary(e.slice(l, o)), c.commentLength && (s = e.slice(u + i.Constants.ENDHDR)), t && h();
+		}
+		function _() {
+			a.length > 1 && !f && a.sort((e, t) => e.entryName.toLowerCase().localeCompare(t.entryName.toLowerCase()));
+		}
+		return {
+			get entries() {
+				return l || h(), a.filter((e) => !u.has(e));
+			},
+			get comment() {
+				return p.decode(s);
+			},
+			set comment(e) {
+				s = i.toBuffer(e, p.encode), c.commentLength = s.length;
+			},
+			getEntryCount: function() {
+				return l ? a.length : c.diskEntries;
+			},
+			forEach: function(e) {
+				this.entries.forEach(e);
+			},
+			getEntry: function(e) {
+				return l || h(), o[e] || null;
+			},
+			setEntry: function(e) {
+				l || h(), a.push(e), o[e.entryName] = e, c.totalEntries = a.length;
+			},
+			deleteFile: function(e, t = !0) {
+				l || h();
+				let n = o[e];
+				this.getEntryChildren(n, t).map((e) => e.entryName).forEach(this.deleteEntry);
+			},
+			deleteEntry: function(e) {
+				l || h();
+				let t = o[e], n = a.indexOf(t);
+				n >= 0 && (a.splice(n, 1), delete o[e], c.totalEntries = a.length);
+			},
+			getEntryChildren: function(e, t = !0) {
+				if (l || h(), typeof e == "object") if (e.isDirectory && t) {
+					let t = [], n = e.entryName;
+					for (let e of a) e.entryName.startsWith(n) && t.push(e);
+					return t;
+				} else return [e];
+				return [];
+			},
+			getChildCount: function(e) {
+				if (e && e.isDirectory) {
+					let t = this.getEntryChildren(e);
+					return t.includes(e) ? t.length - 1 : t.length;
+				}
+				return 0;
+			},
+			compressToBuffer: function() {
+				l || h(), _();
+				let t = [], n = [], r = 0, a = 0;
+				c.size = 0, c.offset = 0;
+				let o = 0;
+				for (let e of this.entries) {
+					let i = e.getCompressedData();
+					e.header.offset = a;
+					let s = e.packLocalHeader(), l = s.length + i.length;
+					a += l, t.push(s), t.push(i);
+					let u = e.packCentralHeader();
+					n.push(u), c.size += u.length, r += l + u.length, o++;
+				}
+				r += c.mainHeaderSize, c.offset = a, c.totalEntries = o, a = 0;
+				let u = Buffer.alloc(r);
+				for (let e of t) e.copy(u, a), a += e.length;
+				for (let e of n) e.copy(u, a), a += e.length;
+				let d = c.toBinary();
+				return s && s.copy(d, i.Constants.ENDHDR), d.copy(u, a), e = u, l = !1, u;
+			},
+			toAsyncBuffer: function(t, n, r, a) {
+				try {
+					l || h(), _();
+					let n = [], o = [], u = 0, d = 0, f = 0;
+					c.size = 0, c.offset = 0;
+					let p = function(m) {
+						if (m.length > 0) {
+							let e = m.shift(), t = e.entryName + e.extra.toString();
+							r && r(t), e.getCompressedDataAsync(function(r) {
+								a && a(t), e.header.offset = d;
+								let i = e.packLocalHeader(), s = i.length + r.length;
+								d += s, n.push(i), n.push(r);
+								let l = e.packCentralHeader();
+								o.push(l), c.size += l.length, u += s + l.length, f++, p(m);
+							});
+						} else {
+							u += c.mainHeaderSize, c.offset = d, c.totalEntries = f, d = 0;
+							let r = Buffer.alloc(u);
+							n.forEach(function(e) {
+								e.copy(r, d), d += e.length;
+							}), o.forEach(function(e) {
+								e.copy(r, d), d += e.length;
+							});
+							let a = c.toBinary();
+							s && s.copy(a, i.Constants.ENDHDR), a.copy(r, d), e = r, l = !1, t(r);
+						}
+					};
+					p(Array.from(this.entries));
+				} catch (e) {
+					n(e);
+				}
+			}
+		};
+	};
+})), E = /* @__PURE__ */ b(((e, t) => {
+	var n = T(), r = C("path"), i = de(), a = fe(), o = (...e) => n.findLast(e, (e) => typeof e == "boolean"), s = (...e) => n.findLast(e, (e) => typeof e == "string"), c = (...e) => n.findLast(e, (e) => typeof e == "function"), l = {
+		noSort: !1,
+		readEntries: !1,
+		method: n.Constants.NONE,
+		fs: null
+	};
+	t.exports = function(e, t) {
+		let u = null, d = Object.assign(Object.create(null), l);
+		e && typeof e == "object" && (e instanceof Uint8Array || (Object.assign(d, e), e = d.input ? d.input : void 0, d.input && delete d.input), Buffer.isBuffer(e) && (u = e, d.method = n.Constants.BUFFER, e = void 0)), Object.assign(d, t);
+		let f = new n(d);
+		if ((typeof d.decoder != "object" || typeof d.decoder.encode != "function" || typeof d.decoder.decode != "function") && (d.decoder = n.decoder), e && typeof e == "string") if (f.fs.existsSync(e)) d.method = n.Constants.FILE, d.filename = e, u = f.fs.readFileSync(e);
+		else throw n.Errors.INVALID_FILENAME();
+		let p = new a(u, d), { canonical: m, sanitize: h, zipnamefix: g } = n;
+		function _(e) {
+			if (e && p) {
+				var t;
+				if (typeof e == "string" && (t = p.getEntry(r.posix.normalize(e))), typeof e == "object" && e.entryName !== void 0 && e.header !== void 0 && (t = p.getEntry(e.entryName)), t) return t;
+			}
+			return null;
+		}
+		function v(e) {
+			let { join: t, normalize: n, sep: i } = r.posix;
+			return t(r.isAbsolute(e) ? "/" : ".", n(i + e.split("\\").join(i) + i));
+		}
+		function y(e) {
+			return e instanceof RegExp ? (function(e) {
+				return function(t) {
+					return e.test(t);
+				};
+			})(e) : typeof e == "function" ? e : () => !0;
+		}
+		let b = (e, t) => {
+			let n = t.slice(-1);
+			return n = n === f.sep ? f.sep : "", r.relative(e, t) + n;
+		};
+		return {
+			readFile: function(e, t) {
+				var n = _(e);
+				return n && n.getData(t) || null;
+			},
+			childCount: function(e) {
+				let t = _(e);
+				if (t) return p.getChildCount(t);
+			},
+			readFileAsync: function(e, t) {
+				var n = _(e);
+				n ? n.getDataAsync(t) : t(null, "getEntry failed for:" + e);
+			},
+			readAsText: function(e, t) {
+				var n = _(e);
+				if (n) {
+					var r = n.getData();
+					if (r && r.length) return r.toString(t || "utf8");
+				}
+				return "";
+			},
+			readAsTextAsync: function(e, t, n) {
+				var r = _(e);
+				r ? r.getDataAsync(function(e, r) {
+					if (r) {
+						t(e, r);
+						return;
+					}
+					e && e.length ? t(e.toString(n || "utf8")) : t("");
+				}) : t("");
+			},
+			deleteFile: function(e, t = !0) {
+				var n = _(e);
+				n && p.deleteFile(n.entryName, t);
+			},
+			deleteEntry: function(e) {
+				var t = _(e);
+				t && p.deleteEntry(t.entryName);
+			},
+			addZipComment: function(e) {
+				p.comment = e;
+			},
+			getZipComment: function() {
+				return p.comment || "";
+			},
+			addZipEntryComment: function(e, t) {
+				var n = _(e);
+				n && (n.comment = t);
+			},
+			getZipEntryComment: function(e) {
+				var t = _(e);
+				return t && t.comment || "";
+			},
+			updateFile: function(e, t) {
+				var n = _(e);
+				n && n.setData(t);
+			},
+			addLocalFile: function(e, t, i, a) {
+				if (f.fs.existsSync(e)) {
+					t = t ? v(t) : "";
+					let n = r.win32.basename(r.win32.normalize(e));
+					t += i || n;
+					let o = f.fs.statSync(e), s = o.isFile() ? f.fs.readFileSync(e) : Buffer.alloc(0);
+					o.isDirectory() && (t += f.sep), this.addFile(t, s, a, o);
+				} else throw n.Errors.FILE_NOT_FOUND(e);
+			},
+			addLocalFileAsync: function(e, t) {
+				e = typeof e == "object" ? e : { localPath: e };
+				let n = r.resolve(e.localPath), { comment: i } = e, { zipPath: a, zipName: o } = e, s = this;
+				f.fs.stat(n, function(e, c) {
+					if (e) return t(e, !1);
+					a = a ? v(a) : "";
+					let l = r.win32.basename(r.win32.normalize(n));
+					if (a += o || l, c.isFile()) f.fs.readFile(n, function(e, n) {
+						return e ? t(e, !1) : (s.addFile(a, n, i, c), setImmediate(t, void 0, !0));
+					});
+					else if (c.isDirectory()) return a += f.sep, s.addFile(a, Buffer.alloc(0), i, c), setImmediate(t, void 0, !0);
+				});
+			},
+			addLocalFolder: function(e, t, i) {
+				if (i = y(i), t = t ? v(t) : "", e = r.normalize(e), f.fs.existsSync(e)) {
+					let n = f.findFiles(e), a = this;
+					if (n.length) for (let o of n) {
+						let n = r.join(t, b(e, o));
+						i(n) && a.addLocalFile(o, r.dirname(n));
+					}
+				} else throw n.Errors.FILE_NOT_FOUND(e);
+			},
+			addLocalFolderAsync: function(e, t, i, a) {
+				a = y(a), i = i ? v(i) : "", e = r.normalize(e);
+				var o = this;
+				f.fs.open(e, "r", function(r) {
+					if (r && r.code === "ENOENT") t(void 0, n.Errors.FILE_NOT_FOUND(e));
+					else if (r) t(void 0, r);
+					else {
+						var s = f.findFiles(e), c = -1, l = function() {
+							if (c += 1, c < s.length) {
+								var n = s[c], r = b(e, n).split("\\").join("/");
+								r = r.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), a(r) ? f.fs.stat(n, function(e, a) {
+									e && t(void 0, e), a.isFile() ? f.fs.readFile(n, function(e, n) {
+										e ? t(void 0, e) : (o.addFile(i + r, n, "", a), l());
+									}) : (o.addFile(i + r + "/", Buffer.alloc(0), "", a), l());
+								}) : process.nextTick(() => {
+									l();
+								});
+							} else t(!0, void 0);
+						};
+						l();
+					}
+				});
+			},
+			addLocalFolderAsync2: function(e, t) {
+				let i = this;
+				e = typeof e == "object" ? e : { localPath: e }, localPath = r.resolve(v(e.localPath));
+				let { zipPath: a, filter: o, namefix: s } = e;
+				o instanceof RegExp ? o = (function(e) {
+					return function(t) {
+						return e.test(t);
+					};
+				})(o) : typeof o != "function" && (o = function() {
+					return !0;
+				}), a = a ? v(a) : "", s == "latin1" && (s = (e) => e.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "")), typeof s != "function" && (s = (e) => e);
+				let c = (e) => r.join(a, s(b(localPath, e))), l = (e) => r.win32.basename(r.win32.normalize(s(e)));
+				f.fs.open(localPath, "r", function(e) {
+					e && e.code === "ENOENT" ? t(void 0, n.Errors.FILE_NOT_FOUND(localPath)) : e ? t(void 0, e) : f.findFilesAsync(localPath, function(e, n) {
+						if (e) return t(e);
+						n = n.filter((e) => o(c(e))), n.length || t(void 0, !1), setImmediate(n.reverse().reduce(function(e, t) {
+							return function(n, a) {
+								if (n || a === !1) return setImmediate(e, n, !1);
+								i.addLocalFileAsync({
+									localPath: t,
+									zipPath: r.dirname(c(t)),
+									zipName: l(t)
+								}, e);
+							};
+						}, t));
+					});
+				});
+			},
+			addLocalFolderPromise: function(e, t) {
+				return new Promise((n, r) => {
+					this.addLocalFolderAsync2(Object.assign({ localPath: e }, t), (e, t) => {
+						e && r(e), t && n(this);
+					});
+				});
+			},
+			addFile: function(e, t, n, r) {
+				e = g(e);
+				let a = _(e), o = a != null;
+				o || (a = new i(d), a.entryName = e), a.comment = n || "";
+				let s = typeof r == "object" && r instanceof f.fs.Stats;
+				s && (a.header.time = r.mtime);
+				var c = a.isDirectory ? 16 : 0;
+				let l = a.isDirectory ? 16384 : 32768;
+				return s ? l |= 4095 & r.mode : typeof r == "number" ? l |= 4095 & r : l |= a.isDirectory ? 493 : 420, c = (c | l << 16) >>> 0, a.attr = c, a.setData(t), o || p.setEntry(a), a;
+			},
+			getEntries: function(e) {
+				return p.password = e, p ? p.entries : [];
+			},
+			getEntry: function(e) {
+				return _(e);
+			},
+			getEntryCount: function() {
+				return p.getEntryCount();
+			},
+			forEach: function(e) {
+				return p.forEach(e);
+			},
+			extractEntryTo: function(e, t, i, a, c, l) {
+				a = o(!1, a), c = o(!1, c), i = o(!0, i), l = s(c, l);
+				var u = _(e);
+				if (!u) throw n.Errors.NO_ENTRY();
+				var d = m(u.entryName), g = h(t, l && !u.isDirectory ? l : i ? d : r.basename(d));
+				if (u.isDirectory) return p.getEntryChildren(u).forEach(function(e) {
+					if (e.isDirectory) return;
+					var o = e.getData();
+					if (!o) throw n.Errors.CANT_EXTRACT_FILE();
+					var s = m(e.entryName), l = h(t, i ? s : r.basename(s));
+					let u = c ? e.header.fileAttr : void 0;
+					f.writeFileTo(l, o, a, u);
+				}), !0;
+				var v = u.getData(p.password);
+				if (!v) throw n.Errors.CANT_EXTRACT_FILE();
+				if (f.fs.existsSync(g) && !a) throw n.Errors.CANT_OVERRIDE();
+				let y = c ? e.header.fileAttr : void 0;
+				return f.writeFileTo(g, v, a, y), !0;
+			},
+			test: function(e) {
+				if (!p) return !1;
+				for (var t in p.entries) try {
+					if (t.isDirectory) continue;
+					if (!p.entries[t].getData(e)) return !1;
+				} catch {
+					return !1;
+				}
+				return !0;
+			},
+			extractAllTo: function(e, t, r, i) {
+				if (r = o(!1, r), i = s(r, i), t = o(!1, t), !p) throw n.Errors.NO_ZIP();
+				p.entries.forEach(function(a) {
+					var o = h(e, m(a.entryName));
+					if (a.isDirectory) {
+						f.makeDir(o);
+						return;
+					}
+					var s = a.getData(i);
+					if (!s) throw n.Errors.CANT_EXTRACT_FILE();
+					let c = r ? a.header.fileAttr : void 0;
+					f.writeFileTo(o, s, t, c);
+					try {
+						f.fs.utimesSync(o, a.header.time, a.header.time);
+					} catch {
+						throw n.Errors.CANT_EXTRACT_FILE();
+					}
+				});
+			},
+			extractAllToAsync: function(e, t, i, a) {
+				if (a = c(t, i, a), i = o(!1, i), t = o(!1, t), !a) return new Promise((n, r) => {
+					this.extractAllToAsync(e, t, i, function(e) {
+						e ? r(e) : n(this);
+					});
+				});
+				if (!p) {
+					a(n.Errors.NO_ZIP());
+					return;
+				}
+				e = r.resolve(e);
+				let s = (t) => h(e, r.normalize(m(t.entryName))), l = (e, t) => /* @__PURE__ */ Error(e + ": \"" + t + "\""), u = [], d = [];
+				p.entries.forEach((e) => {
+					e.isDirectory ? u.push(e) : d.push(e);
+				});
+				for (let e of u) {
+					let t = s(e), n = i ? e.header.fileAttr : void 0;
+					try {
+						f.makeDir(t), n && f.fs.chmodSync(t, n), f.fs.utimesSync(t, e.header.time, e.header.time);
+					} catch {
+						a(l("Unable to create folder", t));
+					}
+				}
+				d.reverse().reduce(function(a, o) {
+					return function(s) {
+						if (s) a(s);
+						else {
+							let s = r.normalize(m(o.entryName)), c = h(e, s);
+							o.getDataAsync(function(e, r) {
+								if (r) a(r);
+								else if (!e) a(n.Errors.CANT_EXTRACT_FILE());
+								else {
+									let n = i ? o.header.fileAttr : void 0;
+									f.writeFileToAsync(c, e, t, n, function(e) {
+										e || a(l("Unable to write file", c)), f.fs.utimes(c, o.header.time, o.header.time, function(e) {
+											e ? a(l("Unable to set times", c)) : a();
+										});
+									});
+								}
+							});
+						}
+					};
+				}, a)();
+			},
+			writeZip: function(e, t) {
+				if (arguments.length === 1 && typeof e == "function" && (t = e, e = ""), !e && d.filename && (e = d.filename), e) {
+					var n = p.compressToBuffer();
+					if (n) {
+						var r = f.writeFileTo(e, n, !0);
+						typeof t == "function" && t(r ? null : /* @__PURE__ */ Error("failed"), "");
+					}
+				}
+			},
+			writeZipPromise: function(e, t) {
+				let { overwrite: n, perm: r } = Object.assign({ overwrite: !0 }, t);
+				return new Promise((t, i) => {
+					!e && d.filename && (e = d.filename), e || i("ADM-ZIP: ZIP File Name Missing"), this.toBufferPromise().then((a) => {
+						f.writeFileToAsync(e, a, n, r, (e) => e ? t(e) : i("ADM-ZIP: Wasn't able to write zip file"));
+					}, i);
+				});
+			},
+			toBufferPromise: function() {
+				return new Promise((e, t) => {
+					p.toAsyncBuffer(e, t);
+				});
+			},
+			toBuffer: function(e, t, n, r) {
+				return typeof e == "function" ? (p.toAsyncBuffer(e, t, n, r), null) : p.compressToBuffer();
+			}
+		};
+	};
+})), pe = /* @__PURE__ */ S(E(), 1), me = c(import.meta.url), he = f.dirname(me);
+function D() {
+	return process.env.NODE_ENV === "test" ? f.join(he, "../tmp-test-credentials.enc") : f.join(n.getPath("userData"), "credentials.enc");
 }
-function at(e) {
-  return e && e.__esModule && Object.prototype.hasOwnProperty.call(e, "default") ? e.default : e;
+async function ge(e) {
+	if (!a.isEncryptionAvailable()) throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), Error("Encryption not available on this system");
+	try {
+		let t = JSON.stringify(e), n = a.encryptString(t);
+		d.writeFileSync(D(), n), console.log("[SecureStore] Credentials saved securely");
+	} catch (e) {
+		throw console.error("[SecureStore] Failed to save credentials:", e), Error("Failed to save credentials securely");
+	}
 }
-var Q = { exports: {} }, He = {
-  /* The local file header */
-  LOCHDR: 30,
-  // LOC header size
-  LOCSIG: 67324752,
-  // "PK\003\004"
-  LOCVER: 4,
-  // version needed to extract
-  LOCFLG: 6,
-  // general purpose bit flag
-  LOCHOW: 8,
-  // compression method
-  LOCTIM: 10,
-  // modification time (2 bytes time, 2 bytes date)
-  LOCCRC: 14,
-  // uncompressed file crc-32 value
-  LOCSIZ: 18,
-  // compressed size
-  LOCLEN: 22,
-  // uncompressed size
-  LOCNAM: 26,
-  // filename length
-  LOCEXT: 28,
-  // extra field length
-  /* The Data descriptor */
-  EXTSIG: 134695760,
-  // "PK\007\008"
-  EXTHDR: 16,
-  // EXT header size
-  EXTCRC: 4,
-  // uncompressed file crc-32 value
-  EXTSIZ: 8,
-  // compressed size
-  EXTLEN: 12,
-  // uncompressed size
-  /* The central directory file header */
-  CENHDR: 46,
-  // CEN header size
-  CENSIG: 33639248,
-  // "PK\001\002"
-  CENVEM: 4,
-  // version made by
-  CENVER: 6,
-  // version needed to extract
-  CENFLG: 8,
-  // encrypt, decrypt flags
-  CENHOW: 10,
-  // compression method
-  CENTIM: 12,
-  // modification time (2 bytes time, 2 bytes date)
-  CENCRC: 16,
-  // uncompressed file crc-32 value
-  CENSIZ: 20,
-  // compressed size
-  CENLEN: 24,
-  // uncompressed size
-  CENNAM: 28,
-  // filename length
-  CENEXT: 30,
-  // extra field length
-  CENCOM: 32,
-  // file comment length
-  CENDSK: 34,
-  // volume number start
-  CENATT: 36,
-  // internal file attributes
-  CENATX: 38,
-  // external file attributes (host system dependent)
-  CENOFF: 42,
-  // LOC header offset
-  /* The entries in the end of central directory */
-  ENDHDR: 22,
-  // END header size
-  ENDSIG: 101010256,
-  // "PK\005\006"
-  ENDSUB: 8,
-  // number of entries on this disk
-  ENDTOT: 10,
-  // total number of entries
-  ENDSIZ: 12,
-  // central directory size in bytes
-  ENDOFF: 16,
-  // offset of first CEN header
-  ENDCOM: 20,
-  // zip file comment length
-  END64HDR: 20,
-  // zip64 END header size
-  END64SIG: 117853008,
-  // zip64 Locator signature, "PK\006\007"
-  END64START: 4,
-  // number of the disk with the start of the zip64
-  END64OFF: 8,
-  // relative offset of the zip64 end of central directory
-  END64NUMDISKS: 16,
-  // total number of disks
-  ZIP64SIG: 101075792,
-  // zip64 signature, "PK\006\006"
-  ZIP64HDR: 56,
-  // zip64 record minimum size
-  ZIP64LEAD: 12,
-  // leading bytes at the start of the record, not counted by the value stored in ZIP64SIZE
-  ZIP64SIZE: 4,
-  // zip64 size of the central directory record
-  ZIP64VEM: 12,
-  // zip64 version made by
-  ZIP64VER: 14,
-  // zip64 version needed to extract
-  ZIP64DSK: 16,
-  // zip64 number of this disk
-  ZIP64DSKDIR: 20,
-  // number of the disk with the start of the record directory
-  ZIP64SUB: 24,
-  // number of entries on this disk
-  ZIP64TOT: 32,
-  // total number of entries
-  ZIP64SIZB: 40,
-  // zip64 central directory size in bytes
-  ZIP64OFF: 48,
-  // offset of start of central directory with respect to the starting disk number
-  ZIP64EXTRA: 56,
-  // extensible data sector
-  /* Compression methods */
-  STORED: 0,
-  // no compression
-  SHRUNK: 1,
-  // shrunk
-  REDUCED1: 2,
-  // reduced with compression factor 1
-  REDUCED2: 3,
-  // reduced with compression factor 2
-  REDUCED3: 4,
-  // reduced with compression factor 3
-  REDUCED4: 5,
-  // reduced with compression factor 4
-  IMPLODED: 6,
-  // imploded
-  // 7 reserved for Tokenizing compression algorithm
-  DEFLATED: 8,
-  // deflated
-  ENHANCED_DEFLATED: 9,
-  // enhanced deflated
-  PKWARE: 10,
-  // PKWare DCL imploded
-  // 11 reserved by PKWARE
-  BZIP2: 12,
-  //  compressed using BZIP2
-  // 13 reserved by PKWARE
-  LZMA: 14,
-  // LZMA
-  // 15-17 reserved by PKWARE
-  IBM_TERSE: 18,
-  // compressed using IBM TERSE
-  IBM_LZ77: 19,
-  // IBM LZ77 z
-  AES_ENCRYPT: 99,
-  // WinZIP AES encryption method
-  /* General purpose bit flag */
-  // values can obtained with expression 2**bitnr
-  FLG_ENC: 1,
-  // Bit 0: encrypted file
-  FLG_COMP1: 2,
-  // Bit 1, compression option
-  FLG_COMP2: 4,
-  // Bit 2, compression option
-  FLG_DESC: 8,
-  // Bit 3, data descriptor
-  FLG_ENH: 16,
-  // Bit 4, enhanced deflating
-  FLG_PATCH: 32,
-  // Bit 5, indicates that the file is compressed patched data.
-  FLG_STR: 64,
-  // Bit 6, strong encryption (patented)
-  // Bits 7-10: Currently unused.
-  FLG_EFS: 2048,
-  // Bit 11: Language encoding flag (EFS)
-  // Bit 12: Reserved by PKWARE for enhanced compression.
-  // Bit 13: encrypted the Central Directory (patented).
-  // Bits 14-15: Reserved by PKWARE.
-  FLG_MSK: 4096,
-  // mask header values
-  /* Load type */
-  FILE: 2,
-  BUFFER: 1,
-  NONE: 0,
-  /* 4.5 Extensible data fields */
-  EF_ID: 0,
-  EF_SIZE: 2,
-  /* Header IDs */
-  ID_ZIP64: 1,
-  ID_AVINFO: 7,
-  ID_PFS: 8,
-  ID_OS2: 9,
-  ID_NTFS: 10,
-  ID_OPENVMS: 12,
-  ID_UNIX: 13,
-  ID_FORK: 14,
-  ID_PATCH: 15,
-  ID_X509_PKCS7: 20,
-  ID_X509_CERTID_F: 21,
-  ID_X509_CERTID_C: 22,
-  ID_STRONGENC: 23,
-  ID_RECORD_MGT: 24,
-  ID_X509_PKCS7_RL: 25,
-  ID_IBM1: 101,
-  ID_IBM2: 102,
-  ID_POSZIP: 18064,
-  EF_ZIP64_OR_32: 4294967295,
-  EF_ZIP64_OR_16: 65535,
-  EF_ZIP64_SUNCOMP: 0,
-  EF_ZIP64_SCOMP: 8,
-  EF_ZIP64_RHO: 16,
-  EF_ZIP64_DSN: 24
-}, le = {};
-(function(e) {
-  const t = {
-    /* Header error messages */
-    INVALID_LOC: "Invalid LOC header (bad signature)",
-    INVALID_CEN: "Invalid CEN header (bad signature)",
-    INVALID_END: "Invalid END header (bad signature)",
-    /* Descriptor */
-    DESCRIPTOR_NOT_EXIST: "No descriptor present",
-    DESCRIPTOR_UNKNOWN: "Unknown descriptor format",
-    DESCRIPTOR_FAULTY: "Descriptor data is malformed",
-    /* ZipEntry error messages*/
-    NO_DATA: "Nothing to decompress",
-    BAD_CRC: "CRC32 checksum failed {0}",
-    FILE_IN_THE_WAY: "There is a file in the way: {0}",
-    UNKNOWN_METHOD: "Invalid/unsupported compression method",
-    /* Inflater error messages */
-    AVAIL_DATA: "inflate::Available inflate data did not terminate",
-    INVALID_DISTANCE: "inflate::Invalid literal/length or distance code in fixed or dynamic block",
-    TO_MANY_CODES: "inflate::Dynamic block code description: too many length or distance codes",
-    INVALID_REPEAT_LEN: "inflate::Dynamic block code description: repeat more than specified lengths",
-    INVALID_REPEAT_FIRST: "inflate::Dynamic block code description: repeat lengths with no first length",
-    INCOMPLETE_CODES: "inflate::Dynamic block code description: code lengths codes incomplete",
-    INVALID_DYN_DISTANCE: "inflate::Dynamic block code description: invalid distance code lengths",
-    INVALID_CODES_LEN: "inflate::Dynamic block code description: invalid literal/length code lengths",
-    INVALID_STORE_BLOCK: "inflate::Stored block length did not match one's complement",
-    INVALID_BLOCK_TYPE: "inflate::Invalid block type (type == 3)",
-    /* ADM-ZIP error messages */
-    CANT_EXTRACT_FILE: "Could not extract the file",
-    CANT_OVERRIDE: "Target file already exists",
-    DISK_ENTRY_TOO_LARGE: "Number of disk entries is too large",
-    NO_ZIP: "No zip file was loaded",
-    NO_ENTRY: "Entry doesn't exist",
-    DIRECTORY_CONTENT_ERROR: "A directory cannot have content",
-    FILE_NOT_FOUND: 'File not found: "{0}"',
-    NOT_IMPLEMENTED: "Not implemented",
-    INVALID_FILENAME: "Invalid filename",
-    INVALID_FORMAT: "Invalid or unsupported zip format. No END header found",
-    INVALID_PASS_PARAM: "Incompatible password parameter",
-    WRONG_PASSWORD: "Wrong Password",
-    /* ADM-ZIP */
-    COMMENT_TOO_LONG: "Comment is too long",
-    // Comment can be max 65535 bytes long (NOTE: some non-US characters may take more space)
-    EXTRA_FIELD_PARSE_ERROR: "Extra field parsing error"
-  };
-  function n(r) {
-    return function(...s) {
-      return s.length && (r = r.replace(/\{(\d)\}/g, (o, l) => s[l] || "")), new Error("ADM-ZIP: " + r);
-    };
-  }
-  for (const r of Object.keys(t))
-    e[r] = n(t[r]);
-})(le);
-const ct = _, B = T, we = He, ft = le, lt = typeof process == "object" && process.platform === "win32", Ae = (e) => typeof e == "object" && e !== null, $e = new Uint32Array(256).map((e, t) => {
-  for (let n = 0; n < 8; n++)
-    t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
-  return t >>> 0;
-});
-function b(e) {
-  this.sep = B.sep, this.fs = ct, Ae(e) && Ae(e.fs) && typeof e.fs.statSync == "function" && (this.fs = e.fs);
+function O() {
+	let e = D();
+	if (d.existsSync(e)) try {
+		if (!a.isEncryptionAvailable()) return console.warn("[SecureStore] Encryption not available, cannot decrypt credentials"), null;
+		let t = d.readFileSync(e), n = a.decryptString(t), r = JSON.parse(n);
+		return console.log("[SecureStore] Credentials loaded from secure storage"), r;
+	} catch (e) {
+		return console.error("[SecureStore] Failed to load credentials:", e), null;
+	}
+	return null;
 }
-var ut = b;
-b.prototype.makeDir = function(e) {
-  const t = this;
-  function n(r) {
-    let s = r.split(t.sep)[0];
-    r.split(t.sep).forEach(function(o) {
-      if (!(!o || o.substr(-1, 1) === ":")) {
-        s += t.sep + o;
-        var l;
-        try {
-          l = t.fs.statSync(s);
-        } catch {
-          t.fs.mkdirSync(s);
-        }
-        if (l && l.isFile()) throw ft.FILE_IN_THE_WAY(`"${s}"`);
-      }
-    });
-  }
-  n(e);
-};
-b.prototype.writeFileTo = function(e, t, n, r) {
-  const s = this;
-  if (s.fs.existsSync(e)) {
-    if (!n) return !1;
-    var o = s.fs.statSync(e);
-    if (o.isDirectory())
-      return !1;
-  }
-  var l = B.dirname(e);
-  s.fs.existsSync(l) || s.makeDir(l);
-  var p;
-  try {
-    p = s.fs.openSync(e, "w", 438);
-  } catch {
-    s.fs.chmodSync(e, 438), p = s.fs.openSync(e, "w", 438);
-  }
-  if (p)
-    try {
-      s.fs.writeSync(p, t, 0, t.length, 0);
-    } finally {
-      s.fs.closeSync(p);
-    }
-  return s.fs.chmodSync(e, r || 438), !0;
-};
-b.prototype.writeFileToAsync = function(e, t, n, r, s) {
-  typeof r == "function" && (s = r, r = void 0);
-  const o = this;
-  o.fs.exists(e, function(l) {
-    if (l && !n) return s(!1);
-    o.fs.stat(e, function(p, h) {
-      if (l && h.isDirectory())
-        return s(!1);
-      var y = B.dirname(e);
-      o.fs.exists(y, function(S) {
-        S || o.makeDir(y), o.fs.open(e, "w", 438, function(D, C) {
-          D ? o.fs.chmod(e, 438, function() {
-            o.fs.open(e, "w", 438, function(a, u) {
-              o.fs.write(u, t, 0, t.length, 0, function() {
-                o.fs.close(u, function() {
-                  o.fs.chmod(e, r || 438, function() {
-                    s(!0);
-                  });
-                });
-              });
-            });
-          }) : C ? o.fs.write(C, t, 0, t.length, 0, function() {
-            o.fs.close(C, function() {
-              o.fs.chmod(e, r || 438, function() {
-                s(!0);
-              });
-            });
-          }) : o.fs.chmod(e, r || 438, function() {
-            s(!0);
-          });
-        });
-      });
-    });
-  });
-};
-b.prototype.findFiles = function(e) {
-  const t = this;
-  function n(r, s, o) {
-    let l = [];
-    return t.fs.readdirSync(r).forEach(function(p) {
-      const h = B.join(r, p), y = t.fs.statSync(h);
-      l.push(B.normalize(h) + (y.isDirectory() ? t.sep : "")), y.isDirectory() && o && (l = l.concat(n(h, s, o)));
-    }), l;
-  }
-  return n(e, void 0, !0);
-};
-b.prototype.findFilesAsync = function(e, t) {
-  const n = this;
-  let r = [];
-  n.fs.readdir(e, function(s, o) {
-    if (s) return t(s);
-    let l = o.length;
-    if (!l) return t(null, r);
-    o.forEach(function(p) {
-      p = B.join(e, p), n.fs.stat(p, function(h, y) {
-        if (h) return t(h);
-        y && (r.push(B.normalize(p) + (y.isDirectory() ? n.sep : "")), y.isDirectory() ? n.findFilesAsync(p, function(S, D) {
-          if (S) return t(S);
-          r = r.concat(D), --l || t(null, r);
-        }) : --l || t(null, r));
-      });
-    });
-  });
-};
-b.prototype.getAttributes = function() {
-};
-b.prototype.setAttributes = function() {
-};
-b.crc32update = function(e, t) {
-  return $e[(e ^ t) & 255] ^ e >>> 8;
-};
-b.crc32 = function(e) {
-  typeof e == "string" && (e = Buffer.from(e, "utf8"));
-  let t = e.length, n = -1;
-  for (let r = 0; r < t; ) n = b.crc32update(n, e[r++]);
-  return ~n >>> 0;
-};
-b.methodToString = function(e) {
-  switch (e) {
-    case we.STORED:
-      return "STORED (" + e + ")";
-    case we.DEFLATED:
-      return "DEFLATED (" + e + ")";
-    default:
-      return "UNSUPPORTED (" + e + ")";
-  }
-};
-b.canonical = function(e) {
-  if (!e) return "";
-  const t = B.posix.normalize("/" + e.split("\\").join("/"));
-  return B.join(".", t);
-};
-b.zipnamefix = function(e) {
-  if (!e) return "";
-  const t = B.posix.normalize("/" + e.split("\\").join("/"));
-  return B.posix.join(".", t);
-};
-b.findLast = function(e, t) {
-  if (!Array.isArray(e)) throw new TypeError("arr is not array");
-  const n = e.length >>> 0;
-  for (let r = n - 1; r >= 0; r--)
-    if (t(e[r], r, e))
-      return e[r];
-};
-b.sanitize = function(e, t) {
-  e = B.resolve(B.normalize(e));
-  for (var n = t.split("/"), r = 0, s = n.length; r < s; r++) {
-    var o = B.normalize(B.join(e, n.slice(r, s).join(B.sep)));
-    if (o.indexOf(e) === 0)
-      return o;
-  }
-  return B.normalize(B.join(e, B.basename(t)));
-};
-b.toBuffer = function(t, n) {
-  return Buffer.isBuffer(t) ? t : t instanceof Uint8Array ? Buffer.from(t) : typeof t == "string" ? n(t) : Buffer.alloc(0);
-};
-b.readBigUInt64LE = function(e, t) {
-  var n = Buffer.from(e.slice(t, t + 8));
-  return n.swap64(), parseInt(`0x${n.toString("hex")}`);
-};
-b.fromDOS2Date = function(e) {
-  return new Date((e >> 25 & 127) + 1980, Math.max((e >> 21 & 15) - 1, 0), Math.max(e >> 16 & 31, 1), e >> 11 & 31, e >> 5 & 63, (e & 31) << 1);
-};
-b.fromDate2DOS = function(e) {
-  let t = 0, n = 0;
-  return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
-};
-b.isWin = lt;
-b.crcTable = $e;
-const dt = T;
-var Et = function(e, { fs: t }) {
-  var n = e || "", r = o(), s = null;
-  function o() {
-    return {
-      directory: !1,
-      readonly: !1,
-      hidden: !1,
-      executable: !1,
-      mtime: 0,
-      atime: 0
-    };
-  }
-  return n && t.existsSync(n) ? (s = t.statSync(n), r.directory = s.isDirectory(), r.mtime = s.mtime, r.atime = s.atime, r.executable = (73 & s.mode) !== 0, r.readonly = (128 & s.mode) === 0, r.hidden = dt.basename(n)[0] === ".") : console.warn("Invalid path: " + n), {
-    get directory() {
-      return r.directory;
-    },
-    get readOnly() {
-      return r.readonly;
-    },
-    get hidden() {
-      return r.hidden;
-    },
-    get mtime() {
-      return r.mtime;
-    },
-    get atime() {
-      return r.atime;
-    },
-    get executable() {
-      return r.executable;
-    },
-    decodeAttributes: function() {
-    },
-    encodeAttributes: function() {
-    },
-    toJSON: function() {
-      return {
-        path: n,
-        isDirectory: r.directory,
-        isReadOnly: r.readonly,
-        isHidden: r.hidden,
-        isExecutable: r.executable,
-        mTime: r.mtime,
-        aTime: r.atime
-      };
-    },
-    toString: function() {
-      return JSON.stringify(this.toJSON(), null, "	");
-    }
-  };
-}, mt = {
-  efs: !0,
-  encode: (e) => Buffer.from(e, "utf8"),
-  decode: (e) => e.toString("utf8")
-};
-Q.exports = ut;
-Q.exports.Constants = He;
-Q.exports.Errors = le;
-Q.exports.FileAttr = Et;
-Q.exports.decoder = mt;
-var te = Q.exports, ue = {}, Z = te, I = Z.Constants, pt = function() {
-  var e = 20, t = 10, n = 0, r = 0, s = 0, o = 0, l = 0, p = 0, h = 0, y = 0, S = 0, D = 0, C = 0, a = 0, u = 0;
-  e |= Z.isWin ? 2560 : 768, n |= I.FLG_EFS;
-  const c = {
-    extraLen: 0
-  }, d = (i) => Math.max(0, i) >>> 0, m = (i) => Math.max(0, i) & 255;
-  return s = Z.fromDate2DOS(/* @__PURE__ */ new Date()), {
-    get made() {
-      return e;
-    },
-    set made(i) {
-      e = i;
-    },
-    get version() {
-      return t;
-    },
-    set version(i) {
-      t = i;
-    },
-    get flags() {
-      return n;
-    },
-    set flags(i) {
-      n = i;
-    },
-    get flags_efs() {
-      return (n & I.FLG_EFS) > 0;
-    },
-    set flags_efs(i) {
-      i ? n |= I.FLG_EFS : n &= ~I.FLG_EFS;
-    },
-    get flags_desc() {
-      return (n & I.FLG_DESC) > 0;
-    },
-    set flags_desc(i) {
-      i ? n |= I.FLG_DESC : n &= ~I.FLG_DESC;
-    },
-    get method() {
-      return r;
-    },
-    set method(i) {
-      switch (i) {
-        case I.STORED:
-          this.version = 10;
-        case I.DEFLATED:
-        default:
-          this.version = 20;
-      }
-      r = i;
-    },
-    get time() {
-      return Z.fromDOS2Date(this.timeval);
-    },
-    set time(i) {
-      this.timeval = Z.fromDate2DOS(i);
-    },
-    get timeval() {
-      return s;
-    },
-    set timeval(i) {
-      s = d(i);
-    },
-    get timeHighByte() {
-      return m(s >>> 8);
-    },
-    get crc() {
-      return o;
-    },
-    set crc(i) {
-      o = d(i);
-    },
-    get compressedSize() {
-      return l;
-    },
-    set compressedSize(i) {
-      l = d(i);
-    },
-    get size() {
-      return p;
-    },
-    set size(i) {
-      p = d(i);
-    },
-    get fileNameLength() {
-      return h;
-    },
-    set fileNameLength(i) {
-      h = i;
-    },
-    get extraLength() {
-      return y;
-    },
-    set extraLength(i) {
-      y = i;
-    },
-    get extraLocalLength() {
-      return c.extraLen;
-    },
-    set extraLocalLength(i) {
-      c.extraLen = i;
-    },
-    get commentLength() {
-      return S;
-    },
-    set commentLength(i) {
-      S = i;
-    },
-    get diskNumStart() {
-      return D;
-    },
-    set diskNumStart(i) {
-      D = d(i);
-    },
-    get inAttr() {
-      return C;
-    },
-    set inAttr(i) {
-      C = d(i);
-    },
-    get attr() {
-      return a;
-    },
-    set attr(i) {
-      a = d(i);
-    },
-    // get Unix file permissions
-    get fileAttr() {
-      return (a || 0) >> 16 & 4095;
-    },
-    get offset() {
-      return u;
-    },
-    set offset(i) {
-      u = d(i);
-    },
-    get encrypted() {
-      return (n & I.FLG_ENC) === I.FLG_ENC;
-    },
-    get centralHeaderSize() {
-      return I.CENHDR + h + y + S;
-    },
-    get realDataOffset() {
-      return u + I.LOCHDR + c.fnameLen + c.extraLen;
-    },
-    get localHeader() {
-      return c;
-    },
-    loadLocalHeaderFromBinary: function(i) {
-      var f = i.slice(u, u + I.LOCHDR);
-      if (f.readUInt32LE(0) !== I.LOCSIG)
-        throw Z.Errors.INVALID_LOC();
-      c.version = f.readUInt16LE(I.LOCVER), c.flags = f.readUInt16LE(I.LOCFLG), c.method = f.readUInt16LE(I.LOCHOW), c.time = f.readUInt32LE(I.LOCTIM), c.crc = f.readUInt32LE(I.LOCCRC), c.compressedSize = f.readUInt32LE(I.LOCSIZ), c.size = f.readUInt32LE(I.LOCLEN), c.fnameLen = f.readUInt16LE(I.LOCNAM), c.extraLen = f.readUInt16LE(I.LOCEXT);
-      const E = u + I.LOCHDR + c.fnameLen, g = E + c.extraLen;
-      return i.slice(E, g);
-    },
-    loadFromBinary: function(i) {
-      if (i.length !== I.CENHDR || i.readUInt32LE(0) !== I.CENSIG)
-        throw Z.Errors.INVALID_CEN();
-      e = i.readUInt16LE(I.CENVEM), t = i.readUInt16LE(I.CENVER), n = i.readUInt16LE(I.CENFLG), r = i.readUInt16LE(I.CENHOW), s = i.readUInt32LE(I.CENTIM), o = i.readUInt32LE(I.CENCRC), l = i.readUInt32LE(I.CENSIZ), p = i.readUInt32LE(I.CENLEN), h = i.readUInt16LE(I.CENNAM), y = i.readUInt16LE(I.CENEXT), S = i.readUInt16LE(I.CENCOM), D = i.readUInt16LE(I.CENDSK), C = i.readUInt16LE(I.CENATT), a = i.readUInt32LE(I.CENATX), u = i.readUInt32LE(I.CENOFF);
-    },
-    localHeaderToBinary: function() {
-      var i = Buffer.alloc(I.LOCHDR);
-      return i.writeUInt32LE(I.LOCSIG, 0), i.writeUInt16LE(t, I.LOCVER), i.writeUInt16LE(n, I.LOCFLG), i.writeUInt16LE(r, I.LOCHOW), i.writeUInt32LE(s, I.LOCTIM), i.writeUInt32LE(o, I.LOCCRC), i.writeUInt32LE(l, I.LOCSIZ), i.writeUInt32LE(p, I.LOCLEN), i.writeUInt16LE(h, I.LOCNAM), i.writeUInt16LE(c.extraLen, I.LOCEXT), i;
-    },
-    centralHeaderToBinary: function() {
-      var i = Buffer.alloc(I.CENHDR + h + y + S);
-      return i.writeUInt32LE(I.CENSIG, 0), i.writeUInt16LE(e, I.CENVEM), i.writeUInt16LE(t, I.CENVER), i.writeUInt16LE(n, I.CENFLG), i.writeUInt16LE(r, I.CENHOW), i.writeUInt32LE(s, I.CENTIM), i.writeUInt32LE(o, I.CENCRC), i.writeUInt32LE(l, I.CENSIZ), i.writeUInt32LE(p, I.CENLEN), i.writeUInt16LE(h, I.CENNAM), i.writeUInt16LE(y, I.CENEXT), i.writeUInt16LE(S, I.CENCOM), i.writeUInt16LE(D, I.CENDSK), i.writeUInt16LE(C, I.CENATT), i.writeUInt32LE(a, I.CENATX), i.writeUInt32LE(u, I.CENOFF), i;
-    },
-    toJSON: function() {
-      const i = function(f) {
-        return f + " bytes";
-      };
-      return {
-        made: e,
-        version: t,
-        flags: n,
-        method: Z.methodToString(r),
-        time: this.time,
-        crc: "0x" + o.toString(16).toUpperCase(),
-        compressedSize: i(l),
-        size: i(p),
-        fileNameLength: i(h),
-        extraLength: i(y),
-        commentLength: i(S),
-        diskNumStart: D,
-        inAttr: C,
-        attr: a,
-        offset: u,
-        centralHeaderSize: i(I.CENHDR + h + y + S)
-      };
-    },
-    toString: function() {
-      return JSON.stringify(this.toJSON(), null, "	");
-    }
-  };
-}, K = te, x = K.Constants, gt = function() {
-  var e = 0, t = 0, n = 0, r = 0, s = 0;
-  return {
-    get diskEntries() {
-      return e;
-    },
-    set diskEntries(o) {
-      e = t = o;
-    },
-    get totalEntries() {
-      return t;
-    },
-    set totalEntries(o) {
-      t = e = o;
-    },
-    get size() {
-      return n;
-    },
-    set size(o) {
-      n = o;
-    },
-    get offset() {
-      return r;
-    },
-    set offset(o) {
-      r = o;
-    },
-    get commentLength() {
-      return s;
-    },
-    set commentLength(o) {
-      s = o;
-    },
-    get mainHeaderSize() {
-      return x.ENDHDR + s;
-    },
-    loadFromBinary: function(o) {
-      if ((o.length !== x.ENDHDR || o.readUInt32LE(0) !== x.ENDSIG) && (o.length < x.ZIP64HDR || o.readUInt32LE(0) !== x.ZIP64SIG))
-        throw K.Errors.INVALID_END();
-      o.readUInt32LE(0) === x.ENDSIG ? (e = o.readUInt16LE(x.ENDSUB), t = o.readUInt16LE(x.ENDTOT), n = o.readUInt32LE(x.ENDSIZ), r = o.readUInt32LE(x.ENDOFF), s = o.readUInt16LE(x.ENDCOM)) : (e = K.readBigUInt64LE(o, x.ZIP64SUB), t = K.readBigUInt64LE(o, x.ZIP64TOT), n = K.readBigUInt64LE(o, x.ZIP64SIZE), r = K.readBigUInt64LE(o, x.ZIP64OFF), s = 0);
-    },
-    toBinary: function() {
-      var o = Buffer.alloc(x.ENDHDR + s);
-      return o.writeUInt32LE(x.ENDSIG, 0), o.writeUInt32LE(0, 4), o.writeUInt16LE(e, x.ENDSUB), o.writeUInt16LE(t, x.ENDTOT), o.writeUInt32LE(n, x.ENDSIZ), o.writeUInt32LE(r, x.ENDOFF), o.writeUInt16LE(s, x.ENDCOM), o.fill(" ", x.ENDHDR), o;
-    },
-    toJSON: function() {
-      const o = function(l, p) {
-        let h = l.toString(16).toUpperCase();
-        for (; h.length < p; ) h = "0" + h;
-        return "0x" + h;
-      };
-      return {
-        diskEntries: e,
-        totalEntries: t,
-        size: n + " bytes",
-        offset: o(r, 4),
-        commentLength: s
-      };
-    },
-    toString: function() {
-      return JSON.stringify(this.toJSON(), null, "	");
-    }
-  };
-};
-ue.EntryHeader = pt;
-ue.MainHeader = gt;
-var de = {}, ht = function(e) {
-  var t = je, n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
-  return {
-    deflate: function() {
-      return t.deflateRawSync(e, n);
-    },
-    deflateAsync: function(r) {
-      var s = t.createDeflateRaw(n), o = [], l = 0;
-      s.on("data", function(p) {
-        o.push(p), l += p.length;
-      }), s.on("end", function() {
-        var p = Buffer.alloc(l), h = 0;
-        p.fill(0);
-        for (var y = 0; y < o.length; y++) {
-          var S = o[y];
-          S.copy(p, h), h += S.length;
-        }
-        r && r(p);
-      }), s.end(e);
-    }
-  };
-};
-const yt = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
-var It = function(e, t) {
-  var n = je;
-  const r = yt >= 15 && t > 0 ? { maxOutputLength: t } : {};
-  return {
-    inflate: function() {
-      return n.inflateRawSync(e, r);
-    },
-    inflateAsync: function(s) {
-      var o = n.createInflateRaw(r), l = [], p = 0;
-      o.on("data", function(h) {
-        l.push(h), p += h.length;
-      }), o.on("end", function() {
-        var h = Buffer.alloc(p), y = 0;
-        h.fill(0);
-        for (var S = 0; S < l.length; S++) {
-          var D = l[S];
-          D.copy(h, y), y += D.length;
-        }
-        s && s(h);
-      }), o.end(e);
-    }
-  };
-};
-const { randomFillSync: Oe } = st, Nt = le, St = new Uint32Array(256).map((e, t) => {
-  for (let n = 0; n < 8; n++)
-    t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
-  return t >>> 0;
-}), ze = (e, t) => Math.imul(e, t) >>> 0, Re = (e, t) => St[(e ^ t) & 255] ^ e >>> 8, J = () => typeof Oe == "function" ? Oe(Buffer.alloc(12)) : J.node();
-J.node = () => {
-  const e = Buffer.alloc(12), t = e.length;
-  for (let n = 0; n < t; n++) e[n] = Math.random() * 256 & 255;
-  return e;
-};
-const se = {
-  genSalt: J
-};
-function Ee(e) {
-  const t = Buffer.isBuffer(e) ? e : Buffer.from(e);
-  this.keys = new Uint32Array([305419896, 591751049, 878082192]);
-  for (let n = 0; n < t.length; n++)
-    this.updateKeys(t[n]);
+function k() {
+	let e = O();
+	return e?.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
 }
-Ee.prototype.updateKeys = function(e) {
-  const t = this.keys;
-  return t[0] = Re(t[0], e), t[1] += t[0] & 255, t[1] = ze(t[1], 134775813) + 1, t[2] = Re(t[2], t[1] >>> 24), e;
-};
-Ee.prototype.next = function() {
-  const e = (this.keys[2] | 2) >>> 0;
-  return ze(e, e ^ 1) >> 8 & 255;
-};
-function Dt(e) {
-  const t = new Ee(e);
-  return function(n) {
-    const r = Buffer.alloc(n.length);
-    let s = 0;
-    for (let o of n)
-      r[s++] = t.updateKeys(o ^ t.next());
-    return r;
-  };
+function A(e) {
+	let t = O();
+	return t?.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
 }
-function Lt(e) {
-  const t = new Ee(e);
-  return function(n, r, s = 0) {
-    r || (r = Buffer.alloc(n.length));
-    for (let o of n) {
-      const l = t.next();
-      r[s++] = o ^ l, t.updateKeys(o);
-    }
-    return r;
-  };
+function _e(e, t) {
+	return e === "anthropic" ? "MiniMax-M2.7" : t?.includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo";
 }
-function Ct(e, t, n) {
-  if (!e || !Buffer.isBuffer(e) || e.length < 12)
-    return Buffer.alloc(0);
-  const r = Dt(n), s = r(e.slice(0, 12)), o = (t.flags & 8) === 8 ? t.timeHighByte : t.crc >>> 24;
-  if (s[11] !== o)
-    throw Nt.WRONG_PASSWORD();
-  return r(e.slice(12));
+function ve(e) {
+	let t = O();
+	return t?.qaModel ? t.qaModel : process.env.QA_MODEL ? process.env.QA_MODEL : _e(e, t?.qaBaseUrl || A(e));
 }
-function _t(e) {
-  Buffer.isBuffer(e) && e.length >= 12 ? se.genSalt = function() {
-    return e.slice(0, 12);
-  } : e === "node" ? se.genSalt = J.node : se.genSalt = J;
+function ye() {
+	let e = O();
+	return e?.qaApiStyle ? e.qaApiStyle : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
 }
-function Tt(e, t, n, r = !1) {
-  e == null && (e = Buffer.alloc(0)), Buffer.isBuffer(e) || (e = Buffer.from(e.toString()));
-  const s = Lt(n), o = se.genSalt();
-  o[11] = t.crc >>> 24 & 255, r && (o[10] = t.crc >>> 16 & 255);
-  const l = Buffer.alloc(e.length + 12);
-  return s(o, l), s(e, l, 12);
+function be() {
+	try {
+		let e = D();
+		d.existsSync(e) && (d.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
+	} catch (e) {
+		console.error("[SecureStore] Failed to clear credentials:", e);
+	}
 }
-var wt = { decrypt: Ct, encrypt: Tt, _salter: _t };
-de.Deflater = ht;
-de.Inflater = It;
-de.ZipCrypto = wt;
-var A = te, At = ue, U = A.Constants, he = de, ke = function(e, t) {
-  var n = new At.EntryHeader(), r = Buffer.alloc(0), s = Buffer.alloc(0), o = !1, l = null, p = Buffer.alloc(0), h = Buffer.alloc(0), y = !0;
-  const S = e, D = typeof S.decoder == "object" ? S.decoder : A.decoder;
-  y = D.hasOwnProperty("efs") ? D.efs : !1;
-  function C() {
-    return !t || !(t instanceof Uint8Array) ? Buffer.alloc(0) : (h = n.loadLocalHeaderFromBinary(t), t.slice(n.realDataOffset, n.realDataOffset + n.compressedSize));
-  }
-  function a(f) {
-    if (n.flags_desc) {
-      const E = {}, g = n.realDataOffset + n.compressedSize;
-      if (t.readUInt32LE(g) == U.LOCSIG || t.readUInt32LE(g) == U.CENSIG)
-        throw A.Errors.DESCRIPTOR_NOT_EXIST();
-      if (t.readUInt32LE(g) == U.EXTSIG)
-        E.crc = t.readUInt32LE(g + U.EXTCRC), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ), E.size = t.readUInt32LE(g + U.EXTLEN);
-      else if (t.readUInt16LE(g + 12) === 19280)
-        E.crc = t.readUInt32LE(g + U.EXTCRC - 4), E.compressedSize = t.readUInt32LE(g + U.EXTSIZ - 4), E.size = t.readUInt32LE(g + U.EXTLEN - 4);
-      else
-        throw A.Errors.DESCRIPTOR_UNKNOWN();
-      if (E.compressedSize !== n.compressedSize || E.size !== n.size || E.crc !== n.crc)
-        throw A.Errors.DESCRIPTOR_FAULTY();
-      if (A.crc32(f) !== E.crc)
-        return !1;
-    } else if (A.crc32(f) !== n.localHeader.crc)
-      return !1;
-    return !0;
-  }
-  function u(f, E, g) {
-    if (typeof E > "u" && typeof f == "string" && (g = f, f = void 0), o)
-      return f && E && E(Buffer.alloc(0), A.Errors.DIRECTORY_CONTENT_ERROR()), Buffer.alloc(0);
-    var N = C();
-    if (N.length === 0)
-      return f && E && E(N), N;
-    if (n.encrypted) {
-      if (typeof g != "string" && !Buffer.isBuffer(g))
-        throw A.Errors.INVALID_PASS_PARAM();
-      N = he.ZipCrypto.decrypt(N, n, g);
-    }
-    var L = Buffer.alloc(n.size);
-    switch (n.method) {
-      case A.Constants.STORED:
-        if (N.copy(L), a(L))
-          return f && E && E(L), L;
-        throw f && E && E(L, A.Errors.BAD_CRC()), A.Errors.BAD_CRC();
-      case A.Constants.DEFLATED:
-        var O = new he.Inflater(N, n.size);
-        if (f)
-          O.inflateAsync(function(w) {
-            w.copy(w, 0), E && (a(w) ? E(w) : E(w, A.Errors.BAD_CRC()));
-          });
-        else {
-          if (O.inflate(L).copy(L, 0), !a(L))
-            throw A.Errors.BAD_CRC(`"${D.decode(r)}"`);
-          return L;
-        }
-        break;
-      default:
-        throw f && E && E(Buffer.alloc(0), A.Errors.UNKNOWN_METHOD()), A.Errors.UNKNOWN_METHOD();
-    }
-  }
-  function c(f, E) {
-    if ((!l || !l.length) && Buffer.isBuffer(t))
-      return f && E && E(C()), C();
-    if (l.length && !o) {
-      var g;
-      switch (n.method) {
-        case A.Constants.STORED:
-          return n.compressedSize = n.size, g = Buffer.alloc(l.length), l.copy(g), f && E && E(g), g;
-        default:
-        case A.Constants.DEFLATED:
-          var N = new he.Deflater(l);
-          if (f)
-            N.deflateAsync(function(O) {
-              g = Buffer.alloc(O.length), n.compressedSize = O.length, O.copy(g), E && E(g);
-            });
-          else {
-            var L = N.deflate();
-            return n.compressedSize = L.length, L;
-          }
-          N = null;
-          break;
-      }
-    } else if (f && E)
-      E(Buffer.alloc(0));
-    else
-      return Buffer.alloc(0);
-  }
-  function d(f, E) {
-    return (f.readUInt32LE(E + 4) << 4) + f.readUInt32LE(E);
-  }
-  function m(f) {
-    try {
-      for (var E = 0, g, N, L; E + 4 < f.length; )
-        g = f.readUInt16LE(E), E += 2, N = f.readUInt16LE(E), E += 2, L = f.slice(E, E + N), E += N, U.ID_ZIP64 === g && i(L);
-    } catch {
-      throw A.Errors.EXTRA_FIELD_PARSE_ERROR();
-    }
-  }
-  function i(f) {
-    var E, g, N, L;
-    f.length >= U.EF_ZIP64_SCOMP && (E = d(f, U.EF_ZIP64_SUNCOMP), n.size === U.EF_ZIP64_OR_32 && (n.size = E)), f.length >= U.EF_ZIP64_RHO && (g = d(f, U.EF_ZIP64_SCOMP), n.compressedSize === U.EF_ZIP64_OR_32 && (n.compressedSize = g)), f.length >= U.EF_ZIP64_DSN && (N = d(f, U.EF_ZIP64_RHO), n.offset === U.EF_ZIP64_OR_32 && (n.offset = N)), f.length >= U.EF_ZIP64_DSN + 4 && (L = f.readUInt32LE(U.EF_ZIP64_DSN), n.diskNumStart === U.EF_ZIP64_OR_16 && (n.diskNumStart = L));
-  }
-  return {
-    get entryName() {
-      return D.decode(r);
-    },
-    get rawEntryName() {
-      return r;
-    },
-    set entryName(f) {
-      r = A.toBuffer(f, D.encode);
-      var E = r[r.length - 1];
-      o = E === 47 || E === 92, n.fileNameLength = r.length;
-    },
-    get efs() {
-      return typeof y == "function" ? y(this.entryName) : y;
-    },
-    get extra() {
-      return p;
-    },
-    set extra(f) {
-      p = f, n.extraLength = f.length, m(f);
-    },
-    get comment() {
-      return D.decode(s);
-    },
-    set comment(f) {
-      if (s = A.toBuffer(f, D.encode), n.commentLength = s.length, s.length > 65535) throw A.Errors.COMMENT_TOO_LONG();
-    },
-    get name() {
-      var f = D.decode(r);
-      return o ? f.substr(f.length - 1).split("/").pop() : f.split("/").pop();
-    },
-    get isDirectory() {
-      return o;
-    },
-    getCompressedData: function() {
-      return c(!1, null);
-    },
-    getCompressedDataAsync: function(f) {
-      c(!0, f);
-    },
-    setData: function(f) {
-      l = A.toBuffer(f, A.decoder.encode), !o && l.length ? (n.size = l.length, n.method = A.Constants.DEFLATED, n.crc = A.crc32(f), n.changed = !0) : n.method = A.Constants.STORED;
-    },
-    getData: function(f) {
-      return n.changed ? l : u(!1, null, f);
-    },
-    getDataAsync: function(f, E) {
-      n.changed ? f(l) : u(!0, f, E);
-    },
-    set attr(f) {
-      n.attr = f;
-    },
-    get attr() {
-      return n.attr;
-    },
-    set header(f) {
-      n.loadFromBinary(f);
-    },
-    get header() {
-      return n;
-    },
-    packCentralHeader: function() {
-      n.flags_efs = this.efs, n.extraLength = p.length;
-      var f = n.centralHeaderToBinary(), E = A.Constants.CENHDR;
-      return r.copy(f, E), E += r.length, p.copy(f, E), E += n.extraLength, s.copy(f, E), f;
-    },
-    packLocalHeader: function() {
-      let f = 0;
-      n.flags_efs = this.efs, n.extraLocalLength = h.length;
-      const E = n.localHeaderToBinary(), g = Buffer.alloc(E.length + r.length + n.extraLocalLength);
-      return E.copy(g, f), f += E.length, r.copy(g, f), f += r.length, h.copy(g, f), f += h.length, g;
-    },
-    toJSON: function() {
-      const f = function(E) {
-        return "<" + (E && E.length + " bytes buffer" || "null") + ">";
-      };
-      return {
-        entryName: this.entryName,
-        name: this.name,
-        comment: this.comment,
-        isDirectory: this.isDirectory,
-        header: n.toJSON(),
-        compressedData: f(t),
-        data: f(l)
-      };
-    },
-    toString: function() {
-      return JSON.stringify(this.toJSON(), null, "	");
-    }
-  };
-};
-const ve = ke, Ot = ue, M = te;
-var Rt = function(e, t) {
-  var n = [], r = {}, s = Buffer.alloc(0), o = new Ot.MainHeader(), l = !1;
-  const p = /* @__PURE__ */ new Set(), h = t, { noSort: y, decoder: S } = h;
-  e ? a(h.readEntries) : l = !0;
-  function D() {
-    const c = /* @__PURE__ */ new Set();
-    for (const d of Object.keys(r)) {
-      const m = d.split("/");
-      if (m.pop(), !!m.length)
-        for (let i = 0; i < m.length; i++) {
-          const f = m.slice(0, i + 1).join("/") + "/";
-          c.add(f);
-        }
-    }
-    for (const d of c)
-      if (!(d in r)) {
-        const m = new ve(h);
-        m.entryName = d, m.attr = 16, m.temporary = !0, n.push(m), r[m.entryName] = m, p.add(m);
-      }
-  }
-  function C() {
-    if (l = !0, r = {}, o.diskEntries > (e.length - o.offset) / M.Constants.CENHDR)
-      throw M.Errors.DISK_ENTRY_TOO_LARGE();
-    n = new Array(o.diskEntries);
-    for (var c = o.offset, d = 0; d < n.length; d++) {
-      var m = c, i = new ve(h, e);
-      i.header = e.slice(m, m += M.Constants.CENHDR), i.entryName = e.slice(m, m += i.header.fileNameLength), i.header.extraLength && (i.extra = e.slice(m, m += i.header.extraLength)), i.header.commentLength && (i.comment = e.slice(m, m + i.header.commentLength)), c += i.header.centralHeaderSize, n[d] = i, r[i.entryName] = i;
-    }
-    p.clear(), D();
-  }
-  function a(c) {
-    var d = e.length - M.Constants.ENDHDR, m = Math.max(0, d - 65535), i = m, f = e.length, E = -1, g = 0;
-    for ((typeof h.trailingSpace == "boolean" ? h.trailingSpace : !1) && (m = 0), d; d >= i; d--)
-      if (e[d] === 80) {
-        if (e.readUInt32LE(d) === M.Constants.ENDSIG) {
-          E = d, g = d, f = d + M.Constants.ENDHDR, i = d - M.Constants.END64HDR;
-          continue;
-        }
-        if (e.readUInt32LE(d) === M.Constants.END64SIG) {
-          i = m;
-          continue;
-        }
-        if (e.readUInt32LE(d) === M.Constants.ZIP64SIG) {
-          E = d, f = d + M.readBigUInt64LE(e, d + M.Constants.ZIP64SIZE) + M.Constants.ZIP64LEAD;
-          break;
-        }
-      }
-    if (E == -1) throw M.Errors.INVALID_FORMAT();
-    o.loadFromBinary(e.slice(E, f)), o.commentLength && (s = e.slice(g + M.Constants.ENDHDR)), c && C();
-  }
-  function u() {
-    n.length > 1 && !y && n.sort((c, d) => c.entryName.toLowerCase().localeCompare(d.entryName.toLowerCase()));
-  }
-  return {
-    /**
-     * Returns an array of ZipEntry objects existent in the current opened archive
-     * @return Array
-     */
-    get entries() {
-      return l || C(), n.filter((c) => !p.has(c));
-    },
-    /**
-     * Archive comment
-     * @return {String}
-     */
-    get comment() {
-      return S.decode(s);
-    },
-    set comment(c) {
-      s = M.toBuffer(c, S.encode), o.commentLength = s.length;
-    },
-    getEntryCount: function() {
-      return l ? n.length : o.diskEntries;
-    },
-    forEach: function(c) {
-      this.entries.forEach(c);
-    },
-    /**
-     * Returns a reference to the entry with the given name or null if entry is inexistent
-     *
-     * @param entryName
-     * @return ZipEntry
-     */
-    getEntry: function(c) {
-      return l || C(), r[c] || null;
-    },
-    /**
-     * Adds the given entry to the entry list
-     *
-     * @param entry
-     */
-    setEntry: function(c) {
-      l || C(), n.push(c), r[c.entryName] = c, o.totalEntries = n.length;
-    },
-    /**
-     * Removes the file with the given name from the entry list.
-     *
-     * If the entry is a directory, then all nested files and directories will be removed
-     * @param entryName
-     * @returns {void}
-     */
-    deleteFile: function(c, d = !0) {
-      l || C();
-      const m = r[c];
-      this.getEntryChildren(m, d).map((f) => f.entryName).forEach(this.deleteEntry);
-    },
-    /**
-     * Removes the entry with the given name from the entry list.
-     *
-     * @param {string} entryName
-     * @returns {void}
-     */
-    deleteEntry: function(c) {
-      l || C();
-      const d = r[c], m = n.indexOf(d);
-      m >= 0 && (n.splice(m, 1), delete r[c], o.totalEntries = n.length);
-    },
-    /**
-     *  Iterates and returns all nested files and directories of the given entry
-     *
-     * @param entry
-     * @return Array
-     */
-    getEntryChildren: function(c, d = !0) {
-      if (l || C(), typeof c == "object")
-        if (c.isDirectory && d) {
-          const m = [], i = c.entryName;
-          for (const f of n)
-            f.entryName.startsWith(i) && m.push(f);
-          return m;
-        } else
-          return [c];
-      return [];
-    },
-    /**
-     *  How many child elements entry has
-     *
-     * @param {ZipEntry} entry
-     * @return {integer}
-     */
-    getChildCount: function(c) {
-      if (c && c.isDirectory) {
-        const d = this.getEntryChildren(c);
-        return d.includes(c) ? d.length - 1 : d.length;
-      }
-      return 0;
-    },
-    /**
-     * Returns the zip file
-     *
-     * @return Buffer
-     */
-    compressToBuffer: function() {
-      l || C(), u();
-      const c = [], d = [];
-      let m = 0, i = 0;
-      o.size = 0, o.offset = 0;
-      let f = 0;
-      for (const N of this.entries) {
-        const L = N.getCompressedData();
-        N.header.offset = i;
-        const O = N.packLocalHeader(), w = O.length + L.length;
-        i += w, c.push(O), c.push(L);
-        const R = N.packCentralHeader();
-        d.push(R), o.size += R.length, m += w + R.length, f++;
-      }
-      m += o.mainHeaderSize, o.offset = i, o.totalEntries = f, i = 0;
-      const E = Buffer.alloc(m);
-      for (const N of c)
-        N.copy(E, i), i += N.length;
-      for (const N of d)
-        N.copy(E, i), i += N.length;
-      const g = o.toBinary();
-      return s && s.copy(g, M.Constants.ENDHDR), g.copy(E, i), e = E, l = !1, E;
-    },
-    toAsyncBuffer: function(c, d, m, i) {
-      try {
-        l || C(), u();
-        const f = [], E = [];
-        let g = 0, N = 0, L = 0;
-        o.size = 0, o.offset = 0;
-        const O = function(w) {
-          if (w.length > 0) {
-            const R = w.shift(), j = R.entryName + R.extra.toString();
-            m && m(j), R.getCompressedDataAsync(function($) {
-              i && i(j), R.header.offset = N;
-              const X = R.packLocalHeader(), oe = X.length + $.length;
-              N += oe, f.push(X), f.push($);
-              const ge = R.packCentralHeader();
-              E.push(ge), o.size += ge.length, g += oe + ge.length, L++, O(w);
-            });
-          } else {
-            g += o.mainHeaderSize, o.offset = N, o.totalEntries = L, N = 0;
-            const R = Buffer.alloc(g);
-            f.forEach(function($) {
-              $.copy(R, N), N += $.length;
-            }), E.forEach(function($) {
-              $.copy(R, N), N += $.length;
-            });
-            const j = o.toBinary();
-            s && s.copy(j, M.Constants.ENDHDR), j.copy(R, N), e = R, l = !1, c(R);
-          }
-        };
-        O(Array.from(this.entries));
-      } catch (f) {
-        d(f);
-      }
-    }
-  };
-};
-const F = te, P = T, vt = ke, xt = Rt, G = (...e) => F.findLast(e, (t) => typeof t == "boolean"), xe = (...e) => F.findLast(e, (t) => typeof t == "string"), Ft = (...e) => F.findLast(e, (t) => typeof t == "function"), Ut = {
-  // option "noSort" : if true it disables files sorting
-  noSort: !1,
-  // read entries during load (initial loading may be slower)
-  readEntries: !1,
-  // default method is none
-  method: F.Constants.NONE,
-  // file system
-  fs: null
-};
-var Ze = function(e, t) {
-  let n = null;
-  const r = Object.assign(/* @__PURE__ */ Object.create(null), Ut);
-  e && typeof e == "object" && (e instanceof Uint8Array || (Object.assign(r, e), e = r.input ? r.input : void 0, r.input && delete r.input), Buffer.isBuffer(e) && (n = e, r.method = F.Constants.BUFFER, e = void 0)), Object.assign(r, t);
-  const s = new F(r);
-  if ((typeof r.decoder != "object" || typeof r.decoder.encode != "function" || typeof r.decoder.decode != "function") && (r.decoder = F.decoder), e && typeof e == "string")
-    if (s.fs.existsSync(e))
-      r.method = F.Constants.FILE, r.filename = e, n = s.fs.readFileSync(e);
-    else
-      throw F.Errors.INVALID_FILENAME();
-  const o = new xt(n, r), { canonical: l, sanitize: p, zipnamefix: h } = F;
-  function y(a) {
-    if (a && o) {
-      var u;
-      if (typeof a == "string" && (u = o.getEntry(P.posix.normalize(a))), typeof a == "object" && typeof a.entryName < "u" && typeof a.header < "u" && (u = o.getEntry(a.entryName)), u)
-        return u;
-    }
-    return null;
-  }
-  function S(a) {
-    const { join: u, normalize: c, sep: d } = P.posix;
-    return u(".", c(d + a.split("\\").join(d) + d));
-  }
-  function D(a) {
-    return a instanceof RegExp ? /* @__PURE__ */ function(u) {
-      return function(c) {
-        return u.test(c);
-      };
-    }(a) : typeof a != "function" ? () => !0 : a;
-  }
-  const C = (a, u) => {
-    let c = u.slice(-1);
-    return c = c === s.sep ? s.sep : "", P.relative(a, u) + c;
-  };
-  return {
-    /**
-     * Extracts the given entry from the archive and returns the content as a Buffer object
-     * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
-     * @param {Buffer|string} [pass] - password
-     * @return Buffer or Null in case of error
-     */
-    readFile: function(a, u) {
-      var c = y(a);
-      return c && c.getData(u) || null;
-    },
-    /**
-     * Returns how many child elements has on entry (directories) on files it is always 0
-     * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
-     * @returns {integer}
-     */
-    childCount: function(a) {
-      const u = y(a);
-      if (u)
-        return o.getChildCount(u);
-    },
-    /**
-     * Asynchronous readFile
-     * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
-     * @param {callback} callback
-     *
-     * @return Buffer or Null in case of error
-     */
-    readFileAsync: function(a, u) {
-      var c = y(a);
-      c ? c.getDataAsync(u) : u(null, "getEntry failed for:" + a);
-    },
-    /**
-     * Extracts the given entry from the archive and returns the content as plain text in the given encoding
-     * @param {ZipEntry|string} entry - ZipEntry object or String with the full path of the entry
-     * @param {string} encoding - Optional. If no encoding is specified utf8 is used
-     *
-     * @return String
-     */
-    readAsText: function(a, u) {
-      var c = y(a);
-      if (c) {
-        var d = c.getData();
-        if (d && d.length)
-          return d.toString(u || "utf8");
-      }
-      return "";
-    },
-    /**
-     * Asynchronous readAsText
-     * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
-     * @param {callback} callback
-     * @param {string} [encoding] - Optional. If no encoding is specified utf8 is used
-     *
-     * @return String
-     */
-    readAsTextAsync: function(a, u, c) {
-      var d = y(a);
-      d ? d.getDataAsync(function(m, i) {
-        if (i) {
-          u(m, i);
-          return;
-        }
-        m && m.length ? u(m.toString(c || "utf8")) : u("");
-      }) : u("");
-    },
-    /**
-     * Remove the entry from the file or the entry and all it's nested directories and files if the given entry is a directory
-     *
-     * @param {ZipEntry|string} entry
-     * @returns {void}
-     */
-    deleteFile: function(a, u = !0) {
-      var c = y(a);
-      c && o.deleteFile(c.entryName, u);
-    },
-    /**
-     * Remove the entry from the file or directory without affecting any nested entries
-     *
-     * @param {ZipEntry|string} entry
-     * @returns {void}
-     */
-    deleteEntry: function(a) {
-      var u = y(a);
-      u && o.deleteEntry(u.entryName);
-    },
-    /**
-     * Adds a comment to the zip. The zip must be rewritten after adding the comment.
-     *
-     * @param {string} comment
-     */
-    addZipComment: function(a) {
-      o.comment = a;
-    },
-    /**
-     * Returns the zip comment
-     *
-     * @return String
-     */
-    getZipComment: function() {
-      return o.comment || "";
-    },
-    /**
-     * Adds a comment to a specified zipEntry. The zip must be rewritten after adding the comment
-     * The comment cannot exceed 65535 characters in length
-     *
-     * @param {ZipEntry} entry
-     * @param {string} comment
-     */
-    addZipEntryComment: function(a, u) {
-      var c = y(a);
-      c && (c.comment = u);
-    },
-    /**
-     * Returns the comment of the specified entry
-     *
-     * @param {ZipEntry} entry
-     * @return String
-     */
-    getZipEntryComment: function(a) {
-      var u = y(a);
-      return u && u.comment || "";
-    },
-    /**
-     * Updates the content of an existing entry inside the archive. The zip must be rewritten after updating the content
-     *
-     * @param {ZipEntry} entry
-     * @param {Buffer} content
-     */
-    updateFile: function(a, u) {
-      var c = y(a);
-      c && c.setData(u);
-    },
-    /**
-     * Adds a file from the disk to the archive
-     *
-     * @param {string} localPath File to add to zip
-     * @param {string} [zipPath] Optional path inside the zip
-     * @param {string} [zipName] Optional name for the file
-     * @param {string} [comment] Optional file comment
-     */
-    addLocalFile: function(a, u, c, d) {
-      if (s.fs.existsSync(a)) {
-        u = u ? S(u) : "";
-        const m = P.win32.basename(P.win32.normalize(a));
-        u += c || m;
-        const i = s.fs.statSync(a), f = i.isFile() ? s.fs.readFileSync(a) : Buffer.alloc(0);
-        i.isDirectory() && (u += s.sep), this.addFile(u, f, d, i);
-      } else
-        throw F.Errors.FILE_NOT_FOUND(a);
-    },
-    /**
-     * Callback for showing if everything was done.
-     *
-     * @callback doneCallback
-     * @param {Error} err - Error object
-     * @param {boolean} done - was request fully completed
-     */
-    /**
-     * Adds a file from the disk to the archive
-     *
-     * @param {(object|string)} options - options object, if it is string it us used as localPath.
-     * @param {string} options.localPath - Local path to the file.
-     * @param {string} [options.comment] - Optional file comment.
-     * @param {string} [options.zipPath] - Optional path inside the zip
-     * @param {string} [options.zipName] - Optional name for the file
-     * @param {doneCallback} callback - The callback that handles the response.
-     */
-    addLocalFileAsync: function(a, u) {
-      a = typeof a == "object" ? a : { localPath: a };
-      const c = P.resolve(a.localPath), { comment: d } = a;
-      let { zipPath: m, zipName: i } = a;
-      const f = this;
-      s.fs.stat(c, function(E, g) {
-        if (E) return u(E, !1);
-        m = m ? S(m) : "";
-        const N = P.win32.basename(P.win32.normalize(c));
-        if (m += i || N, g.isFile())
-          s.fs.readFile(c, function(L, O) {
-            return L ? u(L, !1) : (f.addFile(m, O, d, g), setImmediate(u, void 0, !0));
-          });
-        else if (g.isDirectory())
-          return m += s.sep, f.addFile(m, Buffer.alloc(0), d, g), setImmediate(u, void 0, !0);
-      });
-    },
-    /**
-     * Adds a local directory and all its nested files and directories to the archive
-     *
-     * @param {string} localPath - local path to the folder
-     * @param {string} [zipPath] - optional path inside zip
-     * @param {(RegExp|function)} [filter] - optional RegExp or Function if files match will be included.
-     */
-    addLocalFolder: function(a, u, c) {
-      if (c = D(c), u = u ? S(u) : "", a = P.normalize(a), s.fs.existsSync(a)) {
-        const d = s.findFiles(a), m = this;
-        if (d.length)
-          for (const i of d) {
-            const f = P.join(u, C(a, i));
-            c(f) && m.addLocalFile(i, P.dirname(f));
-          }
-      } else
-        throw F.Errors.FILE_NOT_FOUND(a);
-    },
-    /**
-     * Asynchronous addLocalFolder
-     * @param {string} localPath
-     * @param {callback} callback
-     * @param {string} [zipPath] optional path inside zip
-     * @param {RegExp|function} [filter] optional RegExp or Function if files match will
-     *               be included.
-     */
-    addLocalFolderAsync: function(a, u, c, d) {
-      d = D(d), c = c ? S(c) : "", a = P.normalize(a);
-      var m = this;
-      s.fs.open(a, "r", function(i) {
-        if (i && i.code === "ENOENT")
-          u(void 0, F.Errors.FILE_NOT_FOUND(a));
-        else if (i)
-          u(void 0, i);
-        else {
-          var f = s.findFiles(a), E = -1, g = function() {
-            if (E += 1, E < f.length) {
-              var N = f[E], L = C(a, N).split("\\").join("/");
-              L = L.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, ""), d(L) ? s.fs.stat(N, function(O, w) {
-                O && u(void 0, O), w.isFile() ? s.fs.readFile(N, function(R, j) {
-                  R ? u(void 0, R) : (m.addFile(c + L, j, "", w), g());
-                }) : (m.addFile(c + L + "/", Buffer.alloc(0), "", w), g());
-              }) : process.nextTick(() => {
-                g();
-              });
-            } else
-              u(!0, void 0);
-          };
-          g();
-        }
-      });
-    },
-    /**
-     * Adds a local directory and all its nested files and directories to the archive
-     *
-     * @param {object | string} options - options object, if it is string it us used as localPath.
-     * @param {string} options.localPath - Local path to the folder.
-     * @param {string} [options.zipPath] - optional path inside zip.
-     * @param {RegExp|function} [options.filter] - optional RegExp or Function if files match will be included.
-     * @param {function|string} [options.namefix] - optional function to help fix filename
-     * @param {doneCallback} callback - The callback that handles the response.
-     *
-     */
-    addLocalFolderAsync2: function(a, u) {
-      const c = this;
-      a = typeof a == "object" ? a : { localPath: a }, localPath = P.resolve(S(a.localPath));
-      let { zipPath: d, filter: m, namefix: i } = a;
-      m instanceof RegExp ? m = /* @__PURE__ */ function(g) {
-        return function(N) {
-          return g.test(N);
-        };
-      }(m) : typeof m != "function" && (m = function() {
-        return !0;
-      }), d = d ? S(d) : "", i == "latin1" && (i = (g) => g.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "")), typeof i != "function" && (i = (g) => g);
-      const f = (g) => P.join(d, i(C(localPath, g))), E = (g) => P.win32.basename(P.win32.normalize(i(g)));
-      s.fs.open(localPath, "r", function(g) {
-        g && g.code === "ENOENT" ? u(void 0, F.Errors.FILE_NOT_FOUND(localPath)) : g ? u(void 0, g) : s.findFilesAsync(localPath, function(N, L) {
-          if (N) return u(N);
-          L = L.filter((O) => m(f(O))), L.length || u(void 0, !1), setImmediate(
-            L.reverse().reduce(function(O, w) {
-              return function(R, j) {
-                if (R || j === !1) return setImmediate(O, R, !1);
-                c.addLocalFileAsync(
-                  {
-                    localPath: w,
-                    zipPath: P.dirname(f(w)),
-                    zipName: E(w)
-                  },
-                  O
-                );
-              };
-            }, u)
-          );
-        });
-      });
-    },
-    /**
-     * Adds a local directory and all its nested files and directories to the archive
-     *
-     * @param {string} localPath - path where files will be extracted
-     * @param {object} props - optional properties
-     * @param {string} [props.zipPath] - optional path inside zip
-     * @param {RegExp|function} [props.filter] - optional RegExp or Function if files match will be included.
-     * @param {function|string} [props.namefix] - optional function to help fix filename
-     */
-    addLocalFolderPromise: function(a, u) {
-      return new Promise((c, d) => {
-        this.addLocalFolderAsync2(Object.assign({ localPath: a }, u), (m, i) => {
-          m && d(m), i && c(this);
-        });
-      });
-    },
-    /**
-     * Allows you to create a entry (file or directory) in the zip file.
-     * If you want to create a directory the entryName must end in / and a null buffer should be provided.
-     * Comment and attributes are optional
-     *
-     * @param {string} entryName
-     * @param {Buffer | string} content - file content as buffer or utf8 coded string
-     * @param {string} [comment] - file comment
-     * @param {number | object} [attr] - number as unix file permissions, object as filesystem Stats object
-     */
-    addFile: function(a, u, c, d) {
-      a = h(a);
-      let m = y(a);
-      const i = m != null;
-      i || (m = new vt(r), m.entryName = a), m.comment = c || "";
-      const f = typeof d == "object" && d instanceof s.fs.Stats;
-      f && (m.header.time = d.mtime);
-      var E = m.isDirectory ? 16 : 0;
-      let g = m.isDirectory ? 16384 : 32768;
-      return f ? g |= 4095 & d.mode : typeof d == "number" ? g |= 4095 & d : g |= m.isDirectory ? 493 : 420, E = (E | g << 16) >>> 0, m.attr = E, m.setData(u), i || o.setEntry(m), m;
-    },
-    /**
-     * Returns an array of ZipEntry objects representing the files and folders inside the archive
-     *
-     * @param {string} [password]
-     * @returns Array
-     */
-    getEntries: function(a) {
-      return o.password = a, o ? o.entries : [];
-    },
-    /**
-     * Returns a ZipEntry object representing the file or folder specified by ``name``.
-     *
-     * @param {string} name
-     * @return ZipEntry
-     */
-    getEntry: function(a) {
-      return y(a);
-    },
-    getEntryCount: function() {
-      return o.getEntryCount();
-    },
-    forEach: function(a) {
-      return o.forEach(a);
-    },
-    /**
-     * Extracts the given entry to the given targetPath
-     * If the entry is a directory inside the archive, the entire directory and it's subdirectories will be extracted
-     *
-     * @param {string|ZipEntry} entry - ZipEntry object or String with the full path of the entry
-     * @param {string} targetPath - Target folder where to write the file
-     * @param {boolean} [maintainEntryPath=true] - If maintainEntryPath is true and the entry is inside a folder, the entry folder will be created in targetPath as well. Default is TRUE
-     * @param {boolean} [overwrite=false] - If the file already exists at the target path, the file will be overwriten if this is true.
-     * @param {boolean} [keepOriginalPermission=false] - The file will be set as the permission from the entry if this is true.
-     * @param {string} [outFileName] - String If set will override the filename of the extracted file (Only works if the entry is a file)
-     *
-     * @return Boolean
-     */
-    extractEntryTo: function(a, u, c, d, m, i) {
-      d = G(!1, d), m = G(!1, m), c = G(!0, c), i = xe(m, i);
-      var f = y(a);
-      if (!f)
-        throw F.Errors.NO_ENTRY();
-      var E = l(f.entryName), g = p(u, i && !f.isDirectory ? i : c ? E : P.basename(E));
-      if (f.isDirectory) {
-        var N = o.getEntryChildren(f);
-        return N.forEach(function(w) {
-          if (w.isDirectory) return;
-          var R = w.getData();
-          if (!R)
-            throw F.Errors.CANT_EXTRACT_FILE();
-          var j = l(w.entryName), $ = p(u, c ? j : P.basename(j));
-          const X = m ? w.header.fileAttr : void 0;
-          s.writeFileTo($, R, d, X);
-        }), !0;
-      }
-      var L = f.getData(o.password);
-      if (!L) throw F.Errors.CANT_EXTRACT_FILE();
-      if (s.fs.existsSync(g) && !d)
-        throw F.Errors.CANT_OVERRIDE();
-      const O = m ? a.header.fileAttr : void 0;
-      return s.writeFileTo(g, L, d, O), !0;
-    },
-    /**
-     * Test the archive
-     * @param {string} [pass]
-     */
-    test: function(a) {
-      if (!o)
-        return !1;
-      for (var u in o.entries)
-        try {
-          if (u.isDirectory)
-            continue;
-          var c = o.entries[u].getData(a);
-          if (!c)
-            return !1;
-        } catch {
-          return !1;
-        }
-      return !0;
-    },
-    /**
-     * Extracts the entire archive to the given location
-     *
-     * @param {string} targetPath Target location
-     * @param {boolean} [overwrite=false] If the file already exists at the target path, the file will be overwriten if this is true.
-     *                  Default is FALSE
-     * @param {boolean} [keepOriginalPermission=false] The file will be set as the permission from the entry if this is true.
-     *                  Default is FALSE
-     * @param {string|Buffer} [pass] password
-     */
-    extractAllTo: function(a, u, c, d) {
-      if (c = G(!1, c), d = xe(c, d), u = G(!1, u), !o) throw F.Errors.NO_ZIP();
-      o.entries.forEach(function(m) {
-        var i = p(a, l(m.entryName));
-        if (m.isDirectory) {
-          s.makeDir(i);
-          return;
-        }
-        var f = m.getData(d);
-        if (!f)
-          throw F.Errors.CANT_EXTRACT_FILE();
-        const E = c ? m.header.fileAttr : void 0;
-        s.writeFileTo(i, f, u, E);
-        try {
-          s.fs.utimesSync(i, m.header.time, m.header.time);
-        } catch {
-          throw F.Errors.CANT_EXTRACT_FILE();
-        }
-      });
-    },
-    /**
-     * Asynchronous extractAllTo
-     *
-     * @param {string} targetPath Target location
-     * @param {boolean} [overwrite=false] If the file already exists at the target path, the file will be overwriten if this is true.
-     *                  Default is FALSE
-     * @param {boolean} [keepOriginalPermission=false] The file will be set as the permission from the entry if this is true.
-     *                  Default is FALSE
-     * @param {function} callback The callback will be executed when all entries are extracted successfully or any error is thrown.
-     */
-    extractAllToAsync: function(a, u, c, d) {
-      if (d = Ft(u, c, d), c = G(!1, c), u = G(!1, u), !d)
-        return new Promise((g, N) => {
-          this.extractAllToAsync(a, u, c, function(L) {
-            L ? N(L) : g(this);
-          });
-        });
-      if (!o) {
-        d(F.Errors.NO_ZIP());
-        return;
-      }
-      a = P.resolve(a);
-      const m = (g) => p(a, P.normalize(l(g.entryName))), i = (g, N) => new Error(g + ': "' + N + '"'), f = [], E = [];
-      o.entries.forEach((g) => {
-        g.isDirectory ? f.push(g) : E.push(g);
-      });
-      for (const g of f) {
-        const N = m(g), L = c ? g.header.fileAttr : void 0;
-        try {
-          s.makeDir(N), L && s.fs.chmodSync(N, L), s.fs.utimesSync(N, g.header.time, g.header.time);
-        } catch {
-          d(i("Unable to create folder", N));
-        }
-      }
-      E.reverse().reduce(function(g, N) {
-        return function(L) {
-          if (L)
-            g(L);
-          else {
-            const O = P.normalize(l(N.entryName)), w = p(a, O);
-            N.getDataAsync(function(R, j) {
-              if (j)
-                g(j);
-              else if (!R)
-                g(F.Errors.CANT_EXTRACT_FILE());
-              else {
-                const $ = c ? N.header.fileAttr : void 0;
-                s.writeFileToAsync(w, R, u, $, function(X) {
-                  X || g(i("Unable to write file", w)), s.fs.utimes(w, N.header.time, N.header.time, function(oe) {
-                    oe ? g(i("Unable to set times", w)) : g();
-                  });
-                });
-              }
-            });
-          }
-        };
-      }, d)();
-    },
-    /**
-     * Writes the newly created zip file to disk at the specified location or if a zip was opened and no ``targetFileName`` is provided, it will overwrite the opened zip
-     *
-     * @param {string} targetFileName
-     * @param {function} callback
-     */
-    writeZip: function(a, u) {
-      if (arguments.length === 1 && typeof a == "function" && (u = a, a = ""), !a && r.filename && (a = r.filename), !!a) {
-        var c = o.compressToBuffer();
-        if (c) {
-          var d = s.writeFileTo(a, c, !0);
-          typeof u == "function" && u(d ? null : new Error("failed"), "");
-        }
-      }
-    },
-    /**
-             *
-             * @param {string} targetFileName
-             * @param {object} [props]
-             * @param {boolean} [props.overwrite=true] If the file already exists at the target path, the file will be overwriten if this is true.
-             * @param {boolean} [props.perm] The file will be set as the permission from the entry if this is true.
-    
-             * @returns {Promise<void>}
-             */
-    writeZipPromise: function(a, u) {
-      const { overwrite: c, perm: d } = Object.assign({ overwrite: !0 }, u);
-      return new Promise((m, i) => {
-        !a && r.filename && (a = r.filename), a || i("ADM-ZIP: ZIP File Name Missing"), this.toBufferPromise().then((f) => {
-          const E = (g) => g ? m(g) : i("ADM-ZIP: Wasn't able to write zip file");
-          s.writeFileToAsync(a, f, c, d, E);
-        }, i);
-      });
-    },
-    /**
-     * @returns {Promise<Buffer>} A promise to the Buffer.
-     */
-    toBufferPromise: function() {
-      return new Promise((a, u) => {
-        o.toAsyncBuffer(a, u);
-      });
-    },
-    /**
-     * Returns the content of the entire zip file as a Buffer object
-     *
-     * @prop {function} [onSuccess]
-     * @prop {function} [onFail]
-     * @prop {function} [onItemStart]
-     * @prop {function} [onItemEnd]
-     * @returns {Buffer}
-     */
-    toBuffer: function(a, u, c, d) {
-      return typeof a == "function" ? (o.toAsyncBuffer(a, u, c, d), null) : o.compressToBuffer();
-    }
-  };
-};
-const Ge = /* @__PURE__ */ at(Ze), Se = /* @__PURE__ */ it({
-  __proto__: null,
-  default: Ge
-}, [Ze]), Pt = Ne(import.meta.url), bt = T.dirname(Pt);
-function De() {
-  return process.env.NODE_ENV === "test" ? T.join(bt, "../tmp-test-credentials.enc") : T.join(z.getPath("userData"), "credentials.enc");
+function xe() {
+	return k().length > 0;
 }
-async function Bt(e) {
-  if (!ae.isEncryptionAvailable())
-    throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), new Error("Encryption not available on this system");
-  try {
-    const t = JSON.stringify(e), n = ae.encryptString(t);
-    _.writeFileSync(De(), n), console.log("[SecureStore] Credentials saved securely");
-  } catch (t) {
-    throw console.error("[SecureStore] Failed to save credentials:", t), new Error("Failed to save credentials securely");
-  }
+//#endregion
+//#region electron/qa-service.ts
+var Se = c(import.meta.url), j = f.dirname(Se);
+function M() {
+	return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : ye();
 }
-function ne() {
-  const e = De();
-  if (_.existsSync(e))
-    try {
-      if (!ae.isEncryptionAvailable())
-        return console.warn("[SecureStore] Encryption not available, cannot decrypt credentials"), null;
-      const t = _.readFileSync(e), n = ae.decryptString(t), r = JSON.parse(n);
-      return console.log("[SecureStore] Credentials loaded from secure storage"), r;
-    } catch (t) {
-      return console.error("[SecureStore] Failed to load credentials:", t), null;
-    }
-  return null;
+function N() {
+	return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : k();
 }
-function Xe() {
-  const e = ne();
-  return e != null && e.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
+function P() {
+	return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : M() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : A(M());
 }
-function Ke(e) {
-  const t = ne();
-  return t != null && t.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
+function F() {
+	return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : M() === "anthropic" ? "MiniMax-M2.7" : P().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : ve(M());
 }
-function Mt(e, t) {
-  return e === "anthropic" ? "MiniMax-M2.7" : t != null && t.includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo";
+function I(e) {
+	return e.replace(/\/+$/g, "");
 }
-function jt(e) {
-  const t = ne();
-  if (t != null && t.qaModel)
-    return t.qaModel;
-  if (process.env.QA_MODEL) return process.env.QA_MODEL;
-  const n = (t == null ? void 0 : t.qaBaseUrl) || Ke(e);
-  return Mt(e, n);
+function Ce(e) {
+	try {
+		let t = new URL(e);
+		return t.pathname !== "/" && t.pathname !== "";
+	} catch {
+		return e.split("/").length > 3;
+	}
 }
-function Ht() {
-  const e = ne();
-  return e != null && e.qaApiStyle ? e.qaApiStyle : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
+var L = [], R = null, z = "idle", B = null, V = 0;
+function H(e) {
+	return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((e) => e.length > 2);
 }
-function $t() {
-  try {
-    const e = De();
-    _.existsSync(e) && (_.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
-  } catch (e) {
-    console.error("[SecureStore] Failed to clear credentials:", e);
-  }
+function we(e, t, n) {
+	let r = Array(t.size).fill(0), i = /* @__PURE__ */ new Map();
+	for (let t of e) i.set(t, (i.get(t) || 0) + 1);
+	for (let [a, o] of i) {
+		let i = t.get(a);
+		i !== void 0 && (r[i] = o / e.length * (n.get(a) || 0));
+	}
+	return r;
 }
-function zt() {
-  return Xe().length > 0;
+function Te(e) {
+	let t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((e) => H(e));
+	for (let e of r) {
+		let t = new Set(e);
+		for (let e of t) n.set(e, (n.get(e) || 0) + 1);
+	}
+	let i = 0;
+	for (let e of n.keys()) t.set(e, i++);
+	let a = /* @__PURE__ */ new Map(), o = e.length;
+	for (let [e, t] of n) a.set(e, Math.log((o + 1) / (t + 1)) + 1);
+	return {
+		vocab: t,
+		idf: a
+	};
 }
-const kt = Ne(import.meta.url), Fe = T.dirname(kt);
-function ee() {
-  return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : Ht();
+function Ee(e, t) {
+	let n = new Set(H(e));
+	if (n.size === 0) return 0;
+	let r = new Set(H(t)), i = 0;
+	for (let e of n) r.has(e) && i++;
+	return i / n.size;
 }
-function Le() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : Xe();
+async function De(e, t) {
+	let n = I(P()), r;
+	r = n.endsWith("/chat/completions") ? n : n.endsWith("/api/v1") || n.endsWith("/v1") || Ce(n) ? `${n}/chat/completions` : `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
+	let i = {
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${N()}`
+	};
+	n.includes("openrouter.ai") && (i["HTTP-Referer"] = "https://github.com", i["X-Title"] = "UniversalReader");
+	let a = await fetch(r, {
+		method: "POST",
+		headers: i,
+		signal: t,
+		body: JSON.stringify({
+			model: F(),
+			messages: e,
+			temperature: .7
+		})
+	});
+	if (!a.ok) {
+		let e = await a.text();
+		throw Error(`OpenAI-compatible API error: ${a.status} - ${e}`);
+	}
+	return (await a.json()).choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 }
-function Ce() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : ee() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : Ke(ee());
+async function Oe(e, t) {
+	let n = I(P()), r = await fetch(`${n}/v1/messages`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"x-api-key": N(),
+			"anthropic-version": "2023-06-01"
+		},
+		signal: t,
+		body: JSON.stringify({
+			model: F(),
+			max_tokens: 1024,
+			messages: e
+		})
+	});
+	if (!r.ok) {
+		let e = await r.text();
+		throw Error(`Anthropic-compatible API error: ${r.status} - ${e}`);
+	}
+	return (await r.json()).content?.filter((e) => e.type === "text").map((e) => e.text || "").join("\n").trim() || "Sorry, I couldn't generate a response.";
 }
-function Ve() {
-  return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : ee() === "anthropic" ? "MiniMax-M2.7" : Ce().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : jt(ee());
+async function ke(e, t = 3) {
+	for (let n = 0; n < t; n++) try {
+		let t = new AbortController(), n = setTimeout(() => t.abort(), 6e4), r = M() === "anthropic" ? await Oe(e, t.signal) : await De(e, t.signal);
+		return clearTimeout(n), r;
+	} catch (e) {
+		let r = n === t - 1, i = e instanceof Error ? e.message : String(e);
+		if (console.error(`[QA] Chat API error (attempt ${n + 1}/${t}):`, i), r) throw Error(`Chat API failed after ${t} attempts: ${i}`);
+		let a = 1e3 * (n + 1);
+		i.includes("429") ? (a = 2e3 * (n + 2), console.log(`[QA] Rate limit detected, waiting ${a}ms before retry...`)) : i.includes("50") || i.includes("503") ? (a = 1500 * (n + 1), console.log(`[QA] Server error detected, waiting ${a}ms before retry...`)) : i.includes("abort") && (a = 500, console.log(`[QA] Request timeout, retrying in ${a}ms...`)), await new Promise((e) => setTimeout(e, a));
+	}
+	throw Error("Unexpected error in retry loop");
 }
-function We(e) {
-  return e.replace(/\/+$/g, "");
+async function Ae(e, t = 4) {
+	if (L.length === 0) return [];
+	let n = L.map((t, n) => ({
+		idx: n,
+		score: Ee(e, t.content),
+		doc: t
+	}));
+	return n.sort((e, t) => t.score - e.score), n.slice(0, t).map((e) => ({
+		pageContent: e.doc.content,
+		metadata: e.doc.metadata
+	}));
 }
-function Zt(e) {
-  try {
-    const t = new URL(e);
-    return t.pathname !== "/" && t.pathname !== "";
-  } catch {
-    return e.split("/").length > 3;
-  }
+function U(e, t) {
+	z = e, B = t || null;
 }
-let W = [], ce = null, _e = "idle", Qe = null, Y = 0;
-function fe(e) {
-  return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((t) => t.length > 2);
+function je() {
+	return {
+		status: z,
+		currentBook: R || void 0,
+		error: B || void 0,
+		chunkCount: V || void 0
+	};
 }
-function Gt(e, t, n) {
-  const r = new Array(t.size).fill(0), s = /* @__PURE__ */ new Map();
-  for (const o of e)
-    s.set(o, (s.get(o) || 0) + 1);
-  for (const [o, l] of s) {
-    const p = t.get(o);
-    if (p !== void 0) {
-      const h = l / e.length, y = n.get(o) || 0;
-      r[p] = h * y;
-    }
-  }
-  return r;
+async function Me(e, t) {
+	switch (t.toLowerCase()) {
+		case "txt":
+		case "md": return d.promises.readFile(e, "utf-8");
+		case "pdf": {
+			let t = await import("./pdf-BzLafEDA.js"), n = [
+				f.join(process.cwd(), "public", "pdf.worker.min.mjs"),
+				f.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
+				f.join(j, "..", "dist", "pdf.worker.min.mjs"),
+				f.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
+				f.join(j, "..", "dist-electron", "pdf.worker.mjs")
+			];
+			for (let e of n) if (d.existsSync(e)) {
+				t.GlobalWorkerOptions.workerSrc = e;
+				break;
+			}
+			let r = await d.promises.readFile(e), i = new Uint8Array(r), a = await t.getDocument({ data: i }).promise, o = [];
+			for (let e = 1; e <= a.numPages; e++) {
+				let t = (await (await a.getPage(e)).getTextContent()).items.map((e) => typeof e == "object" && e && "str" in e ? e.str : "").join(" ");
+				o.push(t);
+			}
+			return o.join("\n\n");
+		}
+		case "epub": {
+			let t = new pe.default(e).getEntries(), n = [];
+			for (let e of t) if (e.entryName.endsWith(".html") || e.entryName.endsWith(".xhtml") || e.entryName.endsWith(".htm")) {
+				let t = e.getData().toString("utf-8");
+				n.push(t);
+			}
+			return n.map((e) => e.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim()).join("\n\n");
+		}
+		case "azw3":
+		case "azw":
+		case "mobi": throw Error("AZW3/Mobi format requires conversion to EPUB. Please convert the file to EPUB format using Calibre (https://calibre-ebook.com) or an online converter, then re-add the book to the library.");
+		default: throw Error(`Unsupported format: ${t}`);
+	}
 }
-function Xt(e) {
-  const t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((p) => fe(p));
-  for (const p of r) {
-    const h = new Set(p);
-    for (const y of h)
-      n.set(y, (n.get(y) || 0) + 1);
-  }
-  let s = 0;
-  for (const p of n.keys())
-    t.set(p, s++);
-  const o = /* @__PURE__ */ new Map(), l = e.length;
-  for (const [p, h] of n)
-    o.set(p, Math.log((l + 1) / (h + 1)) + 1);
-  return { vocab: t, idf: o };
+async function Ne(e, t) {
+	try {
+		L = [], R = null, V = 0, U("loading");
+		let n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
+		if (console.log(`[QA] Memory before load: ${r}MB heap used`), n.heapUsed > 500 * 1024 * 1024) if (console.warn(`[QA] High memory usage (${r}MB), attempting GC...`), global.gc) {
+			global.gc();
+			let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
+			console.log(`[QA] Memory after GC: ${t}MB heap used`);
+		} else console.warn("[QA] GC not available (run with --expose-gc flag)");
+		if (!N()) throw Error("QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment.");
+		if (!d.existsSync(e)) throw Error(`File not found: ${e}`);
+		console.log(`[QA] Extracting text from ${e}`);
+		let i = await Me(e, t);
+		if (!i || i.trim().length === 0) throw Error("No text content extracted from file");
+		console.log(`[QA] Extracted ${i.length} characters`);
+		let a = 1e3, o = [];
+		for (let e = 0; e < i.length; e += a) o.push(i.slice(e, e + a));
+		console.log(`[QA] Created ${o.length} text chunks`);
+		let { vocab: s, idf: c } = Te(o);
+		L = o.map((t, n) => ({
+			content: t,
+			embedding: we(H(t), s, c),
+			metadata: {
+				source: f.basename(e),
+				chunkIndex: n
+			}
+		})), V = o.length, R = e, U("ready");
+		let l = process.memoryUsage(), u = Math.round(l.heapUsed / 1024 / 1024);
+		return console.log(`[QA] Ready with ${V} chunks, memory: ${u}MB`), { success: !0 };
+	} catch (e) {
+		let t = e instanceof Error ? e.message : "Unknown error";
+		return console.error("[QA] Load error:", t), U("error", t), {
+			success: !1,
+			error: t
+		};
+	}
 }
-function Kt(e, t) {
-  const n = new Set(fe(e));
-  if (n.size === 0) return 0;
-  const r = new Set(fe(t));
-  let s = 0;
-  for (const o of n)
-    r.has(o) && s++;
-  return s / n.size;
-}
-async function Vt(e, t) {
-  var p, h, y;
-  const n = We(Ce());
-  let r;
-  n.endsWith("/chat/completions") ? r = n : n.endsWith("/api/v1") ? r = `${n}/chat/completions` : n.endsWith("/v1") ? r = `${n}/chat/completions` : Zt(n) ? r = `${n}/chat/completions` : r = `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
-  const s = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${Le()}`
-  };
-  n.includes("openrouter.ai") && (s["HTTP-Referer"] = "https://github.com", s["X-Title"] = "UniversalReader");
-  const o = await fetch(r, {
-    method: "POST",
-    headers: s,
-    signal: t,
-    body: JSON.stringify({
-      model: Ve(),
-      messages: e,
-      temperature: 0.7
-    })
-  });
-  if (!o.ok) {
-    const S = await o.text();
-    throw new Error(`OpenAI-compatible API error: ${o.status} - ${S}`);
-  }
-  return ((y = (h = (p = (await o.json()).choices) == null ? void 0 : p[0]) == null ? void 0 : h.message) == null ? void 0 : y.content) || "Sorry, I couldn't generate a response.";
-}
-async function Wt(e, t) {
-  var l;
-  const n = We(Ce()), r = await fetch(`${n}/v1/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": Le(),
-      "anthropic-version": "2023-06-01"
-    },
-    signal: t,
-    body: JSON.stringify({
-      model: Ve(),
-      max_tokens: 1024,
-      messages: e
-    })
-  });
-  if (!r.ok) {
-    const p = await r.text();
-    throw new Error(`Anthropic-compatible API error: ${r.status} - ${p}`);
-  }
-  return ((l = (await r.json()).content) == null ? void 0 : l.filter((p) => p.type === "text").map((p) => p.text || "").join(`
-`).trim()) || "Sorry, I couldn't generate a response.";
-}
-async function Qt(e, t = 3) {
-  for (let n = 0; n < t; n++)
-    try {
-      const r = new AbortController(), s = setTimeout(() => r.abort(), 6e4), o = ee() === "anthropic" ? await Wt(e, r.signal) : await Vt(e, r.signal);
-      return clearTimeout(s), o;
-    } catch (r) {
-      const s = n === t - 1, o = r instanceof Error ? r.message : String(r);
-      if (console.error(`[QA] Chat API error (attempt ${n + 1}/${t}):`, o), s)
-        throw new Error(`Chat API failed after ${t} attempts: ${o}`);
-      let l = 1e3 * (n + 1);
-      o.includes("429") ? (l = 2e3 * (n + 2), console.log(`[QA] Rate limit detected, waiting ${l}ms before retry...`)) : o.includes("50") || o.includes("503") ? (l = 1500 * (n + 1), console.log(`[QA] Server error detected, waiting ${l}ms before retry...`)) : o.includes("abort") && (l = 500, console.log(`[QA] Request timeout, retrying in ${l}ms...`)), await new Promise((p) => setTimeout(p, l));
-    }
-  throw new Error("Unexpected error in retry loop");
-}
-async function Yt(e, t = 4) {
-  if (W.length === 0) return [];
-  const n = W.map((r, s) => ({
-    idx: s,
-    score: Kt(e, r.content),
-    doc: r
-  }));
-  return n.sort((r, s) => s.score - r.score), n.slice(0, t).map((r) => ({
-    pageContent: r.doc.content,
-    metadata: r.doc.metadata
-  }));
-}
-function ie(e, t) {
-  _e = e, Qe = t || null;
-}
-function qt() {
-  return {
-    status: _e,
-    currentBook: ce || void 0,
-    error: Qe || void 0,
-    chunkCount: Y || void 0
-  };
-}
-async function Jt(e, t) {
-  switch (t.toLowerCase()) {
-    case "txt":
-    case "md":
-      return _.promises.readFile(e, "utf-8");
-    case "pdf": {
-      const n = await import("./pdf-CMEkdAEn.js"), r = [
-        T.join(process.cwd(), "public", "pdf.worker.min.mjs"),
-        T.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
-        T.join(Fe, "..", "dist", "pdf.worker.min.mjs"),
-        T.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
-        T.join(Fe, "..", "dist-electron", "pdf.worker.mjs")
-      ];
-      for (const h of r)
-        if (_.existsSync(h)) {
-          n.GlobalWorkerOptions.workerSrc = h;
-          break;
-        }
-      const s = await _.promises.readFile(e), o = new Uint8Array(s), l = await n.getDocument({ data: o }).promise, p = [];
-      for (let h = 1; h <= l.numPages; h++) {
-        const D = (await (await l.getPage(h)).getTextContent()).items.map((C) => typeof C == "object" && C !== null && "str" in C ? C.str : "").join(" ");
-        p.push(D);
-      }
-      return p.join(`
-
-`);
-    }
-    case "epub": {
-      const r = new Ge(e).getEntries(), s = [];
-      for (const l of r)
-        if (l.entryName.endsWith(".html") || l.entryName.endsWith(".xhtml") || l.entryName.endsWith(".htm")) {
-          const p = l.getData().toString("utf-8");
-          s.push(p);
-        }
-      return s.map(
-        (l) => l.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim()
-      ).join(`
-
-`);
-    }
-    case "azw3":
-    case "azw":
-    case "mobi":
-      throw new Error(
-        "AZW3/Mobi format requires conversion to EPUB. Please convert the file to EPUB format using Calibre (https://calibre-ebook.com) or an online converter, then re-add the book to the library."
-      );
-    default:
-      throw new Error(`Unsupported format: ${t}`);
-  }
-}
-async function en(e, t) {
-  try {
-    W = [], ce = null, Y = 0, ie("loading");
-    const n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
-    if (console.log(`[QA] Memory before load: ${r}MB heap used`), n.heapUsed > 500 * 1024 * 1024)
-      if (console.warn(`[QA] High memory usage (${r}MB), attempting GC...`), global.gc) {
-        global.gc();
-        const D = process.memoryUsage(), C = Math.round(D.heapUsed / 1024 / 1024);
-        console.log(`[QA] Memory after GC: ${C}MB heap used`);
-      } else
-        console.warn("[QA] GC not available (run with --expose-gc flag)");
-    if (!Le())
-      throw new Error(
-        "QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment."
-      );
-    if (!_.existsSync(e))
-      throw new Error(`File not found: ${e}`);
-    console.log(`[QA] Extracting text from ${e}`);
-    const s = await Jt(e, t);
-    if (!s || s.trim().length === 0)
-      throw new Error("No text content extracted from file");
-    console.log(`[QA] Extracted ${s.length} characters`);
-    const o = 1e3, l = [];
-    for (let D = 0; D < s.length; D += o)
-      l.push(s.slice(D, D + o));
-    console.log(`[QA] Created ${l.length} text chunks`);
-    const { vocab: p, idf: h } = Xt(l);
-    W = l.map((D, C) => {
-      const a = fe(D);
-      return {
-        content: D,
-        embedding: Gt(a, p, h),
-        metadata: { source: T.basename(e), chunkIndex: C }
-      };
-    }), Y = l.length, ce = e, ie("ready");
-    const y = process.memoryUsage(), S = Math.round(y.heapUsed / 1024 / 1024);
-    return console.log(`[QA] Ready with ${Y} chunks, memory: ${S}MB`), { success: !0 };
-  } catch (n) {
-    const r = n instanceof Error ? n.message : "Unknown error";
-    return console.error("[QA] Load error:", r), ie("error", r), { success: !1, error: r };
-  }
-}
-async function tn(e) {
-  const t = e.trim();
-  if (!t)
-    throw new Error("Question cannot be empty.");
-  if (W.length === 0)
-    throw new Error("No book loaded. Please load a book first.");
-  if (_e !== "ready")
-    throw new Error("QA service not ready. Please wait.");
-  console.log(`[QA] Question: ${t}`);
-  const n = await Yt(t, 3), r = n.map((p) => p.pageContent.slice(0, 1500)).join(`
-
-`);
-  console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
-  const s = `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
+async function Pe(e) {
+	let t = e.trim();
+	if (!t) throw Error("Question cannot be empty.");
+	if (L.length === 0) throw Error("No book loaded. Please load a book first.");
+	if (z !== "ready") throw Error("QA service not ready. Please wait.");
+	console.log(`[QA] Question: ${t}`);
+	let n = await Ae(t, 3), r = n.map((e) => e.pageContent.slice(0, 1500)).join("\n\n");
+	console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
+	let i = await ke([{
+		role: "user",
+		content: `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
 
 Context:
 ${r}
 
 Question: ${t}
 
-Answer:`, o = await Qt([
-    { role: "user", content: s }
-  ]), l = n.map((p) => ({
-    content: p.pageContent,
-    source: p.metadata.source || "Unknown"
-  }));
-  return console.log(`[QA] Answer length: ${o.length}`), {
-    answer: o,
-    sources: l
-  };
+Answer:`
+	}]), a = n.map((e) => ({
+		content: e.pageContent,
+		source: e.metadata.source || "Unknown"
+	}));
+	return console.log(`[QA] Answer length: ${i.length}`), {
+		answer: i,
+		sources: a
+	};
 }
-function nn() {
-  W = [], ce = null, Y = 0, ie("idle");
-  const e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
-  console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
+function Fe() {
+	L = [], R = null, V = 0, U("idle");
+	let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
+	console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
 }
-const me = {
-  loadBookForQA: en,
-  askQuestion: tn,
-  clearQA: nn,
-  getStatus: qt
-}, Ye = [
-  "pdf",
-  "epub",
-  "mobi",
-  "azw3",
-  "txt",
-  "md"
-], qe = ["docx"], rn = /* @__PURE__ */ new Set(["epub", "mobi", "azw3", "txt", "md"]);
-function pe(e) {
-  return e.trim().toLowerCase().replace(/^\./, "");
+var W = {
+	loadBookForQA: Ne,
+	askQuestion: Pe,
+	clearQA: Fe,
+	getStatus: je
+}, Ie = [
+	"pdf",
+	"epub",
+	"mobi",
+	"azw3",
+	"txt",
+	"md"
+], Le = ["docx"], Re = new Set([
+	"epub",
+	"mobi",
+	"azw3",
+	"txt",
+	"md"
+]);
+function G(e) {
+	return e.trim().toLowerCase().replace(/^\./, "");
 }
-function Je(e) {
-  const t = pe(e);
-  return Ye.includes(t);
+function ze(e) {
+	let t = G(e);
+	return Ie.includes(t);
 }
-function on(e) {
-  const t = pe(e);
-  return qe.includes(t);
+function Be(e) {
+	let t = G(e);
+	return Le.includes(t);
 }
-function sn(e) {
-  return Je(e) ? "supported" : on(e) ? "convertible" : "unsupported";
+function Ve(e) {
+	return ze(e) ? "supported" : Be(e) ? "convertible" : "unsupported";
 }
-function Ie(e) {
-  return rn.has(e) ? "flow" : "paged";
+function K(e) {
+	return Re.has(e) ? "flow" : "paged";
 }
-function an() {
-  return [...Ye, ...qe];
+//#endregion
+//#region src/services/importService.ts
+function He() {
+	return [...Ie, ...Le];
 }
 function Ue(e) {
-  return e === "docx" ? "md" : e;
+	return e === "docx" ? "md" : e;
 }
-function cn(e) {
-  const t = pe(e), n = sn(t);
-  if (n === "unsupported")
-    return {
-      capability: n,
-      sourceFormat: t,
-      requiresConversion: !1,
-      reason: "unsupported_format"
-    };
-  if (Je(t)) {
-    const s = Ue(t);
-    return {
-      capability: n,
-      sourceFormat: t,
-      targetFormat: s,
-      documentKind: Ie(s),
-      ingestStatus: "ready",
-      requiresConversion: !1
-    };
-  }
-  const r = Ue(t);
-  return {
-    capability: n,
-    sourceFormat: t,
-    targetFormat: r,
-    documentKind: Ie(r),
-    ingestStatus: "converted",
-    requiresConversion: !0
-  };
+function We(e) {
+	let t = G(e), n = Ve(t);
+	if (n === "unsupported") return {
+		capability: n,
+		sourceFormat: t,
+		requiresConversion: !1,
+		reason: "unsupported_format"
+	};
+	if (ze(t)) {
+		let e = Ue(t);
+		return {
+			capability: n,
+			sourceFormat: t,
+			targetFormat: e,
+			documentKind: K(e),
+			ingestStatus: "ready",
+			requiresConversion: !1
+		};
+	}
+	let r = Ue(t);
+	return {
+		capability: n,
+		sourceFormat: t,
+		targetFormat: r,
+		documentKind: K(r),
+		ingestStatus: "converted",
+		requiresConversion: !0
+	};
 }
-const fn = T.join(z.getPath("userData"), "library.db"), H = new rt(fn);
-H.exec(`
-  CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT,
-    path TEXT NOT NULL UNIQUE,
-    format TEXT NOT NULL,
-    coverPath TEXT,
-    addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    lastReadAt DATETIME,
-    progress REAL DEFAULT 0,
-    progressLocator TEXT,
-    progressUpdatedAt INTEGER,
-    documentKind TEXT,
-    ingestStatus TEXT,
-    sourceFormat TEXT
-  );
-`);
-const re = (e, t) => {
-  H.prepare("PRAGMA table_info(books)").all().some((s) => s.name === e) || H.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
+//#endregion
+//#region electron/handlers.ts
+var q = new l(f.join(n.getPath("userData"), "library.db"));
+q.exec("\n  CREATE TABLE IF NOT EXISTS books (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    author TEXT,\n    path TEXT NOT NULL UNIQUE,\n    format TEXT NOT NULL,\n    coverPath TEXT,\n    addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    lastReadAt DATETIME,\n    progress REAL DEFAULT 0,\n    progressLocator TEXT,\n    progressUpdatedAt INTEGER,\n    documentKind TEXT,\n    ingestStatus TEXT,\n    sourceFormat TEXT\n  );\n");
+var J = (e, t) => {
+	q.prepare("PRAGMA table_info(books)").all().some((t) => t.name === e) || q.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
 };
-re("progressLocator", "TEXT");
-re("progressUpdatedAt", "INTEGER");
-re("documentKind", "TEXT");
-re("ingestStatus", "TEXT");
-re("sourceFormat", "TEXT");
-H.exec(`
-  CREATE TABLE IF NOT EXISTS annotations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bookId INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    cfi TEXT,
-    pageNumber INTEGER,
-    text TEXT,
-    note TEXT,
-    color TEXT DEFAULT '#ffeb3b',
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
-  );
-`);
-H.exec(`
-  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);
-  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);
-  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
-  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);
-`);
-const q = T.join(z.getPath("userData"), "covers");
-_.mkdirSync(q, { recursive: !0 });
-async function ln(e, t) {
-  try {
-    const n = (await Promise.resolve().then(() => Se)).default, s = new n(e).getEntries(), o = [
-      /cover\.(jpg|jpeg|png|gif)$/i,
-      /cover-image\.(jpg|jpeg|png|gif)$/i,
-      /images\/cover\.(jpg|jpeg|png|gif)$/i,
-      /OEBPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
-      /OPS\/images\/cover\.(jpg|jpeg|png|gif)$/i
-    ], l = s.find((h) => h.entryName.endsWith(".opf"));
-    if (l) {
-      const h = l.getData().toString("utf-8"), y = h.match(/name="cover"\s+content="([^"]+)"/) || h.match(/properties="cover-image"[^>]*href="([^"]+)"/);
-      if (y) {
-        const S = y[1], D = h.match(new RegExp(`id="${S}"[^>]*href="([^"]+)"`)) || h.match(new RegExp(`href="([^"]+)"[^>]*id="${S}"`));
-        if (D) {
-          const C = D[1], a = T.dirname(l.entryName), u = a ? `${a}/${C}` : C, c = s.find(
-            (d) => d.entryName === u || d.entryName.endsWith(C)
-          );
-          if (c) {
-            const d = c.getData(), m = T.extname(c.entryName) || ".jpg", i = `${t}${m}`, f = T.join(q, i);
-            return await _.promises.writeFile(f, d), f;
-          }
-        }
-      }
-    }
-    for (const h of o) {
-      const y = s.find((S) => h.test(S.entryName));
-      if (y) {
-        const S = y.getData(), D = T.extname(y.entryName) || ".jpg", C = `${t}${D}`, a = T.join(q, C);
-        return await _.promises.writeFile(a, S), a;
-      }
-    }
-    const p = s.find(
-      (h) => /\.(jpg|jpeg|png|gif)$/i.test(h.entryName) && (h.entryName.toLowerCase().includes("cover") || h.entryName.toLowerCase().includes("title"))
-    );
-    if (p) {
-      const h = p.getData(), y = T.extname(p.entryName) || ".jpg", S = `${t}${y}`, D = T.join(q, S);
-      return await _.promises.writeFile(D, h), D;
-    }
-    return null;
-  } catch (n) {
-    return console.error("Failed to extract EPUB cover:", n), null;
-  }
+J("progressLocator", "TEXT"), J("progressUpdatedAt", "INTEGER"), J("documentKind", "TEXT"), J("ingestStatus", "TEXT"), J("sourceFormat", "TEXT"), q.exec("\n  CREATE TABLE IF NOT EXISTS annotations (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bookId INTEGER NOT NULL,\n    type TEXT NOT NULL,\n    cfi TEXT,\n    pageNumber INTEGER,\n    text TEXT,\n    note TEXT,\n    color TEXT DEFAULT '#ffeb3b',\n    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE\n  );\n"), q.exec("\n  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);\n  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);\n  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);\n  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);\n");
+var Y = f.join(n.getPath("userData"), "covers");
+d.mkdirSync(Y, { recursive: !0 });
+async function Ge(e, t) {
+	try {
+		let n = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, r = new n(e).getEntries(), i = [
+			/cover\.(jpg|jpeg|png|gif)$/i,
+			/cover-image\.(jpg|jpeg|png|gif)$/i,
+			/images\/cover\.(jpg|jpeg|png|gif)$/i,
+			/OEBPS\/images\/cover\.(jpg|jpeg|png|gif)$/i,
+			/OPS\/images\/cover\.(jpg|jpeg|png|gif)$/i
+		], a = r.find((e) => e.entryName.endsWith(".opf"));
+		if (a) {
+			let e = a.getData().toString("utf-8"), n = e.match(/name="cover"\s+content="([^"]+)"/) || e.match(/properties="cover-image"[^>]*href="([^"]+)"/);
+			if (n) {
+				let i = n[1], o = e.match(RegExp(`id="${i}"[^>]*href="([^"]+)"`)) || e.match(RegExp(`href="([^"]+)"[^>]*id="${i}"`));
+				if (o) {
+					let e = o[1], n = f.dirname(a.entryName), i = n ? `${n}/${e}` : e, s = r.find((t) => t.entryName === i || t.entryName.endsWith(e));
+					if (s) {
+						let e = s.getData(), n = `${t}${f.extname(s.entryName) || ".jpg"}`, r = f.join(Y, n);
+						return await d.promises.writeFile(r, e), r;
+					}
+				}
+			}
+		}
+		for (let e of i) {
+			let n = r.find((t) => e.test(t.entryName));
+			if (n) {
+				let e = n.getData(), r = `${t}${f.extname(n.entryName) || ".jpg"}`, i = f.join(Y, r);
+				return await d.promises.writeFile(i, e), i;
+			}
+		}
+		let o = r.find((e) => /\.(jpg|jpeg|png|gif)$/i.test(e.entryName) && (e.entryName.toLowerCase().includes("cover") || e.entryName.toLowerCase().includes("title")));
+		if (o) {
+			let e = o.getData(), n = `${t}${f.extname(o.entryName) || ".jpg"}`, r = f.join(Y, n);
+			return await d.promises.writeFile(r, e), r;
+		}
+		return null;
+	} catch (e) {
+		return console.error("Failed to extract EPUB cover:", e), null;
+	}
 }
-async function un(e, t) {
-  try {
-    const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), l = await (await n.getDocument({ data: s }).promise).getPage(1), p = l.getViewport({ scale: 1 }), h = Math.min(400 / p.width, 1.5), y = l.getViewport({ scale: h }), S = ot(y.width, y.height), D = S.getContext("2d");
-    await l.render({
-      canvasContext: D,
-      viewport: y
-    }).promise;
-    const C = `${t}.png`, a = T.join(q, C), u = S.toBuffer("image/png");
-    return await _.promises.writeFile(a, u), a;
-  } catch (n) {
-    return console.error("Failed to extract PDF cover:", n), null;
-  }
+async function Ke(e, t) {
+	try {
+		let n = await import("./pdf-BzLafEDA.js"), r = await d.promises.readFile(e), i = new Uint8Array(r), a = await (await n.getDocument({ data: i }).promise).getPage(1), o = a.getViewport({ scale: 1 }), s = Math.min(400 / o.width, 1.5), c = a.getViewport({ scale: s }), l = p(c.width, c.height), u = l.getContext("2d");
+		await a.render({
+			canvasContext: u,
+			viewport: c
+		}).promise;
+		let m = `${t}.png`, h = f.join(Y, m), g = l.toBuffer("image/png");
+		return await d.promises.writeFile(h, g), h;
+	} catch (e) {
+		return console.error("Failed to extract PDF cover:", e), null;
+	}
 }
-function dn(e) {
-  return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (t, n) => String.fromCharCode(Number(n)));
+function qe(e) {
+	return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'").replace(/&#(\d+);/g, (e, t) => String.fromCharCode(Number(t)));
 }
-async function En(e) {
-  const t = (await Promise.resolve().then(() => Se)).default, r = new t(e).getEntry("word/document.xml");
-  if (!r)
-    throw new Error("DOCX 内容缺失: word/document.xml");
-  return r.getData().toString("utf-8").split(/<\/w:p>/i).map((l) => [...l.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, `
-`).matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((S) => dn(S[1])).join("").trim()).filter(Boolean).join(`
-
-`);
+async function Je(e) {
+	let t = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, n = new t(e).getEntry("word/document.xml");
+	if (!n) throw Error("DOCX 内容缺失: word/document.xml");
+	return n.getData().toString("utf-8").split(/<\/w:p>/i).map((e) => [...e.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, "\n").matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((e) => qe(e[1])).join("").trim()).filter(Boolean).join("\n\n");
 }
-async function mn(e, t) {
-  try {
-    if (t === "epub") {
-      const n = (await Promise.resolve().then(() => Se)).default, o = new n(e).getEntries().find((l) => l.entryName.endsWith(".opf"));
-      if (o) {
-        const l = o.getData().toString("utf-8"), p = l.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), h = l.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
-        return {
-          title: p ? p[1].trim() : void 0,
-          author: h ? h[1].trim() : void 0
-        };
-      }
-    }
-    if (t === "pdf") {
-      const n = await import("./pdf-CMEkdAEn.js"), r = await _.promises.readFile(e), s = new Uint8Array(r), p = (await (await n.getDocument({ data: s }).promise).getMetadata()).info;
-      return {
-        title: (p == null ? void 0 : p.Title) || void 0,
-        author: (p == null ? void 0 : p.Author) || void 0
-      };
-    }
-  } catch (n) {
-    console.error("Failed to extract metadata:", n);
-  }
-  return {};
+async function Ye(e, t) {
+	try {
+		if (t === "epub") {
+			let t = (await Promise.resolve().then(() => /* @__PURE__ */ S(E(), 1))).default, n = new t(e).getEntries().find((e) => e.entryName.endsWith(".opf"));
+			if (n) {
+				let e = n.getData().toString("utf-8"), t = e.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), r = e.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
+				return {
+					title: t ? t[1].trim() : void 0,
+					author: r ? r[1].trim() : void 0
+				};
+			}
+		}
+		if (t === "pdf") {
+			let t = await import("./pdf-BzLafEDA.js"), n = await d.promises.readFile(e), r = new Uint8Array(n), i = (await (await t.getDocument({ data: r }).promise).getMetadata()).info;
+			return {
+				title: i?.Title || void 0,
+				author: i?.Author || void 0
+			};
+		}
+	} catch (e) {
+		console.error("Failed to extract metadata:", e);
+	}
+	return {};
 }
-function pn(e) {
-  if (e)
-    try {
-      return JSON.parse(e);
-    } catch {
-      return;
-    }
+function Xe(e) {
+	if (e) try {
+		return JSON.parse(e);
+	} catch {
+		return;
+	}
 }
-function Te(e) {
-  const t = e.format || "txt";
-  return {
-    ...e,
-    progressLocator: pn(e.progressLocator),
-    progressUpdatedAt: e.progressUpdatedAt ?? void 0,
-    documentKind: e.documentKind || Ie(t),
-    ingestStatus: e.ingestStatus || "ready",
-    sourceFormat: e.sourceFormat || t
-  };
+function X(e) {
+	let t = e.format || "txt";
+	return {
+		...e,
+		progressLocator: Xe(e.progressLocator),
+		progressUpdatedAt: e.progressUpdatedAt ?? void 0,
+		documentKind: e.documentKind || K(t),
+		ingestStatus: e.ingestStatus || "ready",
+		sourceFormat: e.sourceFormat || t
+	};
 }
-function gn(e) {
-  try {
-    const t = new URL(e);
-    return t.protocol === "http:" || t.protocol === "https:" || t.protocol === "mailto:";
-  } catch {
-    return !1;
-  }
+function Ze(e) {
+	try {
+		let t = new URL(e);
+		return t.protocol === "http:" || t.protocol === "https:" || t.protocol === "mailto:";
+	} catch {
+		return !1;
+	}
 }
-const hn = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), yn = H.prepare(`
-  SELECT * FROM books
-  WHERE title LIKE ? OR author LIKE ?
-  ORDER BY lastReadAt DESC
-`), In = H.prepare(`
-  UPDATE books
-  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP
-  WHERE id = ?
-`);
-v.handle("read-file", async (e, t) => _.promises.readFile(t));
-v.handle("read-file-buffer", async (e, t) => _.promises.readFile(t));
-v.handle("file-exists", async (e, t) => {
-  try {
-    return await _.promises.access(t, _.constants.F_OK), !0;
-  } catch {
-    return !1;
-  }
+var Qe = q.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), $e = q.prepare("\n  SELECT * FROM books\n  WHERE title LIKE ? OR author LIKE ?\n  ORDER BY lastReadAt DESC\n"), et = q.prepare("\n  UPDATE books\n  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP\n  WHERE id = ?\n");
+i.handle("read-file", async (e, t) => d.promises.readFile(t)), i.handle("read-file-buffer", async (e, t) => d.promises.readFile(t)), i.handle("file-exists", async (e, t) => {
+	try {
+		return await d.promises.access(t, d.constants.F_OK), !0;
+	} catch {
+		return !1;
+	}
+}), i.handle("open-external", async (e, t) => {
+	if (typeof t != "string" || !Ze(t)) throw Error("Invalid external URL");
+	return o.openExternal(t);
+}), i.handle("open-user-data-folder", async () => o.openPath(n.getPath("userData"))), i.handle("get-cover-url", async (e, t) => {
+	if (!t) return null;
+	try {
+		return await d.promises.access(t, d.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+	} catch {
+		return null;
+	}
 });
-v.handle("open-external", async (e, t) => {
-  if (typeof t != "string" || !gn(t))
-    throw new Error("Invalid external URL");
-  return Pe.openExternal(t);
-});
-v.handle("open-user-data-folder", async () => Pe.openPath(z.getPath("userData")));
-v.handle("get-cover-url", async (e, t) => {
-  if (!t) return null;
-  try {
-    return await _.promises.access(t, _.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
-  } catch {
-    return null;
-  }
-});
-const et = T.join(z.getPath("userData"), "backgrounds");
-_.mkdirSync(et, { recursive: !0 });
-v.handle("select-background-image", async () => {
-  const e = await be.showOpenDialog({
-    properties: ["openFile"],
-    filters: [
-      { name: "Images", extensions: ["jpg", "jpeg", "png", "gif", "webp", "bmp"] }
-    ]
-  });
-  if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = T.extname(t), r = `background-${Me.randomUUID()}${n}`, s = T.join(et, r);
-  try {
-    return await _.promises.copyFile(t, s), s;
-  } catch (o) {
-    return console.error("Failed to copy background image:", o), null;
-  }
-});
-v.handle("get-background-image-url", async (e, t) => {
-  if (!t) return null;
-  try {
-    return await _.promises.access(t, _.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
-  } catch {
-    return null;
-  }
-});
-v.handle("open-file-dialog", async () => {
-  const e = await be.showOpenDialog({
-    properties: ["openFile"],
-    filters: [
-      { name: "Books", extensions: [...an()] }
-    ]
-  });
-  if (e.canceled || e.filePaths.length === 0) return null;
-  const t = e.filePaths[0], n = T.extname(t).toLowerCase(), r = pe(n), s = cn(r);
-  if (s.capability === "unsupported" || !s.targetFormat || !s.documentKind || !s.ingestStatus)
-    return null;
-  const o = T.basename(t, n), l = Me.randomUUID(), p = T.join(z.getPath("userData"), "books");
-  await _.promises.mkdir(p, { recursive: !0 });
-  let h;
-  if (s.requiresConversion && s.sourceFormat === "docx") {
-    const a = `${o}-${l}.docx`, u = T.join(p, a);
-    await _.promises.copyFile(t, u);
-    const c = await En(u), d = `${o}-${l}.md`;
-    h = T.join(p, d), await _.promises.writeFile(h, c, "utf-8");
-  } else {
-    const a = `${o}-${l}${n}`;
-    h = T.join(p, a), await _.promises.copyFile(t, h);
-  }
-  const y = await mn(h, s.targetFormat), S = y.title || o, D = y.author || null;
-  let C = null;
-  s.targetFormat === "epub" || s.targetFormat === "mobi" || s.targetFormat === "azw3" ? C = await ln(h, l) : s.targetFormat === "pdf" && (C = await un(h, l));
-  try {
-    const u = H.prepare(`
-      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP
-      RETURNING *
-    `).get(
-      S,
-      D,
-      h,
-      s.targetFormat,
-      s.sourceFormat,
-      s.documentKind,
-      s.ingestStatus,
-      C
-    );
-    return u ? Te(u) : null;
-  } catch (a) {
-    return console.error("DB Insert Error:", a), null;
-  }
-});
-v.handle("get-library", () => hn.all().map(Te));
-v.handle("search-library", (e, t) => {
-  const n = `%${t}%`;
-  return yn.all(n, n).map(Te);
-});
-v.handle("update-progress", (e, t, n, r, s) => {
-  const o = typeof s == "number" ? s : Date.now(), l = r ? JSON.stringify(r) : null;
-  In.run(n, l, o, t);
-});
-v.handle("delete-book", (e, t) => {
-  try {
-    const n = H.prepare("SELECT * FROM books WHERE id = ?").get(t);
-    return n && (n.coverPath && _.promises.unlink(n.coverPath).catch(() => {
-    }), n.path && _.promises.unlink(n.path).catch(() => {
-    })), H.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
-  } catch (n) {
-    return console.error("Delete book error:", n), !1;
-  }
-});
-v.handle("get-annotations", (e, t) => H.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t));
-v.handle("add-annotation", (e, t) => H.prepare(`
-    INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    RETURNING *
-  `).get(
-  t.bookId,
-  t.type,
-  t.cfi || null,
-  t.pageNumber || null,
-  t.text || null,
-  t.note || null,
-  t.color || "#ffeb3b"
-));
-v.handle("update-annotation", (e, t, n) => {
-  const r = [], s = [];
-  return n.note !== void 0 && (r.push("note = ?"), s.push(n.note)), n.color !== void 0 && (r.push("color = ?"), s.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), s.push(t), H.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...s));
-});
-v.handle("delete-annotation", (e, t) => {
-  try {
-    return H.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
-  } catch (n) {
-    return console.error("Delete annotation error:", n), !1;
-  }
-});
-v.handle("qa-load-book", async (e, t, n) => me.loadBookForQA(t, n));
-v.handle("qa-ask", async (e, t) => me.askQuestion(t));
-v.handle("qa-clear", async () => {
-  me.clearQA();
-});
-v.handle("qa-get-status", async () => me.getStatus());
-v.handle("credentials-save", async (e, t) => {
-  try {
-    return await Bt(t), { success: !0 };
-  } catch (n) {
-    return { success: !1, error: n instanceof Error ? n.message : String(n) };
-  }
-});
-v.handle("credentials-load", async () => ne());
-v.handle("credentials-clear", async () => {
-  try {
-    return $t(), { success: !0 };
-  } catch (e) {
-    return { success: !1, error: e instanceof Error ? e.message : String(e) };
-  }
-});
-v.handle("credentials-has", async () => zt());
-const Nn = Ne(import.meta.url), tt = V.dirname(Nn);
-process.env.DIST = V.join(tt, "../dist");
-process.env.VITE_PUBLIC = z.isPackaged ? process.env.DIST : V.join(process.env.DIST, "../public");
-let k;
-const ye = process.env.VITE_DEV_SERVER_URL;
-function Sn(e) {
-  e.webContents.on(
-    "did-fail-load",
-    (t, n, r, s, o) => {
-      o && console.error(
-        "[main] did-fail-load",
-        JSON.stringify({ errorCode: n, errorDescription: r, validatedURL: s })
-      );
-    }
-  ), e.webContents.on("render-process-gone", (t, n) => {
-    console.error("[main] render-process-gone", JSON.stringify(n));
-  });
+var tt = f.join(n.getPath("userData"), "backgrounds");
+d.mkdirSync(tt, { recursive: !0 }), i.handle("select-background-image", async () => {
+	let e = await r.showOpenDialog({
+		properties: ["openFile"],
+		filters: [{
+			name: "Images",
+			extensions: [
+				"jpg",
+				"jpeg",
+				"png",
+				"gif",
+				"webp",
+				"bmp"
+			]
+		}]
+	});
+	if (e.canceled || e.filePaths.length === 0) return null;
+	let t = e.filePaths[0], n = f.extname(t), i = `background-${u.randomUUID()}${n}`, a = f.join(tt, i);
+	try {
+		return await d.promises.copyFile(t, a), a;
+	} catch (e) {
+		return console.error("Failed to copy background image:", e), null;
+	}
+}), i.handle("get-background-image-url", async (e, t) => {
+	if (!t) return null;
+	try {
+		return await d.promises.access(t, d.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
+	} catch {
+		return null;
+	}
+}), i.handle("open-file-dialog", async () => {
+	let e = await r.showOpenDialog({
+		properties: ["openFile"],
+		filters: [{
+			name: "Books",
+			extensions: [...He()]
+		}]
+	});
+	if (e.canceled || e.filePaths.length === 0) return null;
+	let t = e.filePaths[0], i = f.extname(t).toLowerCase(), a = We(G(i));
+	if (a.capability === "unsupported" || !a.targetFormat || !a.documentKind || !a.ingestStatus) return null;
+	let o = f.basename(t, i), s = u.randomUUID(), c = f.join(n.getPath("userData"), "books");
+	await d.promises.mkdir(c, { recursive: !0 });
+	let l;
+	if (a.requiresConversion && a.sourceFormat === "docx") {
+		let e = `${o}-${s}.docx`, n = f.join(c, e);
+		await d.promises.copyFile(t, n);
+		let r = await Je(n), i = `${o}-${s}.md`;
+		l = f.join(c, i), await d.promises.writeFile(l, r, "utf-8");
+	} else {
+		let e = `${o}-${s}${i}`;
+		l = f.join(c, e), await d.promises.copyFile(t, l);
+	}
+	let p = await Ye(l, a.targetFormat), m = p.title || o, h = p.author || null, g = null;
+	a.targetFormat === "epub" || a.targetFormat === "mobi" || a.targetFormat === "azw3" ? g = await Ge(l, s) : a.targetFormat === "pdf" && (g = await Ke(l, s));
+	try {
+		let e = q.prepare("\n      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) \n      VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n      ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP\n      RETURNING *\n    ").get(m, h, l, a.targetFormat, a.sourceFormat, a.documentKind, a.ingestStatus, g);
+		return e ? X(e) : null;
+	} catch (e) {
+		return console.error("DB Insert Error:", e), null;
+	}
+}), i.handle("get-library", () => Qe.all().map(X)), i.handle("search-library", (e, t) => {
+	let n = `%${t}%`;
+	return $e.all(n, n).map(X);
+}), i.handle("update-progress", (e, t, n, r, i) => {
+	let a = typeof i == "number" ? i : Date.now(), o = r ? JSON.stringify(r) : null;
+	et.run(n, o, a, t);
+}), i.handle("delete-book", (e, t) => {
+	try {
+		let e = q.prepare("SELECT * FROM books WHERE id = ?").get(t);
+		return e && (e.coverPath && d.promises.unlink(e.coverPath).catch(() => {}), e.path && d.promises.unlink(e.path).catch(() => {})), q.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
+	} catch (e) {
+		return console.error("Delete book error:", e), !1;
+	}
+}), i.handle("get-annotations", (e, t) => q.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t)), i.handle("add-annotation", (e, t) => q.prepare("\n    INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)\n    VALUES (?, ?, ?, ?, ?, ?, ?)\n    RETURNING *\n  ").get(t.bookId, t.type, t.cfi || null, t.pageNumber || null, t.text || null, t.note || null, t.color || "#ffeb3b")), i.handle("update-annotation", (e, t, n) => {
+	let r = [], i = [];
+	return n.note !== void 0 && (r.push("note = ?"), i.push(n.note)), n.color !== void 0 && (r.push("color = ?"), i.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), i.push(t), q.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...i));
+}), i.handle("delete-annotation", (e, t) => {
+	try {
+		return q.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
+	} catch (e) {
+		return console.error("Delete annotation error:", e), !1;
+	}
+}), i.handle("qa-load-book", async (e, t, n) => W.loadBookForQA(t, n)), i.handle("qa-ask", async (e, t) => W.askQuestion(t)), i.handle("qa-clear", async () => {
+	W.clearQA();
+}), i.handle("qa-get-status", async () => W.getStatus()), i.handle("credentials-save", async (e, t) => {
+	try {
+		return await ge(t), { success: !0 };
+	} catch (e) {
+		return {
+			success: !1,
+			error: e instanceof Error ? e.message : String(e)
+		};
+	}
+}), i.handle("credentials-load", async () => O()), i.handle("credentials-clear", async () => {
+	try {
+		return be(), { success: !0 };
+	} catch (e) {
+		return {
+			success: !1,
+			error: e instanceof Error ? e.message : String(e)
+		};
+	}
+}), i.handle("credentials-has", async () => xe());
+//#endregion
+//#region electron/main.ts
+var nt = c(import.meta.url), rt = s.dirname(nt);
+process.env.DIST = s.join(rt, "../dist"), process.env.VITE_PUBLIC = n.isPackaged ? process.env.DIST : s.join(process.env.DIST, "../public");
+var Z, Q = process.env.VITE_DEV_SERVER_URL;
+function it(e) {
+	e.webContents.on("did-fail-load", (e, t, n, r, i) => {
+		i && console.error("[main] did-fail-load", JSON.stringify({
+			errorCode: t,
+			errorDescription: n,
+			validatedURL: r
+		}));
+	}), e.webContents.on("render-process-gone", (e, t) => {
+		console.error("[main] render-process-gone", JSON.stringify(t));
+	});
 }
-function nt() {
-  if (k = new Be({
-    icon: V.join(process.env.VITE_PUBLIC, "vite.svg"),
-    webPreferences: {
-      preload: V.join(tt, "preload.mjs"),
-      contextIsolation: !0,
-      nodeIntegration: !1
-    }
-  }), Sn(k), k.webContents.on("did-finish-load", () => {
-    k == null || k.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), ye)
-    console.log("[main] loading dev url:", ye), k.loadURL(ye), k.webContents.openDevTools({ mode: "detach" });
-  else {
-    const e = V.join(process.env.DIST, "index.html");
-    console.log("[main] loading file:", e), k.loadFile(e);
-  }
+function $() {
+	if (Z = new t({
+		icon: s.join(process.env.VITE_PUBLIC, "vite.svg"),
+		webPreferences: {
+			preload: s.join(rt, "preload.mjs"),
+			contextIsolation: !0,
+			nodeIntegration: !1
+		}
+	}), it(Z), Z.webContents.on("did-finish-load", () => {
+		Z?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+	}), Q) console.log("[main] loading dev url:", Q), Z.loadURL(Q), Z.webContents.openDevTools({ mode: "detach" });
+	else {
+		let e = s.join(process.env.DIST, "index.html");
+		console.log("[main] loading file:", e), Z.loadFile(e);
+	}
 }
-z.on("window-all-closed", () => {
-  process.platform !== "darwin" && z.quit();
-});
-z.on("activate", () => {
-  Be.getAllWindows().length === 0 && nt();
-});
-z.whenReady().then(nt);
+n.on("window-all-closed", () => {
+	process.platform !== "darwin" && n.quit();
+}), n.on("activate", () => {
+	t.getAllWindows().length === 0 && $();
+}), n.whenReady().then($);
+//#endregion
+export {};

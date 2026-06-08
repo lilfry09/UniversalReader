@@ -156,7 +156,11 @@ export default function EpubReader({
   }, [bookId])
 
   useEffect(() => {
-    loadAnnotations()
+    const loadTimer = window.setTimeout(() => {
+      void loadAnnotations()
+    }, 0)
+
+    return () => window.clearTimeout(loadTimer)
   }, [loadAnnotations])
 
   // Apply reader settings when they change

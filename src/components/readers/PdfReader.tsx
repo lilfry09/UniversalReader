@@ -108,7 +108,11 @@ export default function PdfReader({
   }, [bookId])
 
   useEffect(() => {
-    loadAnnotations()
+    const loadTimer = window.setTimeout(() => {
+      void loadAnnotations()
+    }, 0)
+
+    return () => window.clearTimeout(loadTimer)
   }, [loadAnnotations])
 
   useEffect(() => {

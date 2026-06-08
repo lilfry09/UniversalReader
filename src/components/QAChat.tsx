@@ -56,7 +56,11 @@ export default function QAChat({ bookPath, bookFormat, bookTitle, isOpen, onTogg
 
   useEffect(() => {
     if (bookPath && bookFormat && isOpen && qaStatus === 'idle') {
-      loadBook()
+      const loadTimer = window.setTimeout(() => {
+        void loadBook()
+      }, 0)
+
+      return () => window.clearTimeout(loadTimer)
     }
   }, [bookPath, bookFormat, isOpen, qaStatus, loadBook])
 

@@ -100,7 +100,11 @@ export default function Library() {
   }, [isElectron])
 
   useEffect(() => {
-    loadBooks()
+    const loadTimer = window.setTimeout(() => {
+      void loadBooks()
+    }, 0)
+
+    return () => window.clearTimeout(loadTimer)
   }, [loadBooks])
 
   // Filter books based on search query
