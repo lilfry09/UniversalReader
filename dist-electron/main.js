@@ -8,16 +8,16 @@ import d from "path";
 import f from "node:crypto";
 import { createCanvas as p } from "canvas";
 //#region \0rolldown/runtime.js
-var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescriptor, _ = Object.getOwnPropertyNames, v = Object.getPrototypeOf, y = Object.prototype.hasOwnProperty, b = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), x = (e, t, n, r) => {
+var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescriptor, _ = Object.getOwnPropertyNames, v = Object.getPrototypeOf, y = Object.prototype.hasOwnProperty, b = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), ee = (e, t, n, r) => {
 	if (t && typeof t == "object" || typeof t == "function") for (var i = _(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !y.call(e, s) && s !== n && h(e, s, {
 		get: ((e) => t[e]).bind(null, s),
 		enumerable: !(r = g(t, s)) || r.enumerable
 	});
 	return e;
-}, S = (e, t, n) => (n = e == null ? {} : m(v(e)), x(t || !e || !e.__esModule ? h(n, "default", {
+}, te = (e, t, n) => (n = e == null ? {} : m(v(e)), ee(t || !e || !e.__esModule ? h(n, "default", {
 	value: e,
 	enumerable: !0
-}) : n, e)), C = /* @__PURE__ */ e(import.meta.url), ee = /* @__PURE__ */ b(((e, t) => {
+}) : n, e)), x = /* @__PURE__ */ e(import.meta.url), ne = /* @__PURE__ */ b(((e, t) => {
 	t.exports = {
 		LOCHDR: 30,
 		LOCSIG: 67324752,
@@ -131,7 +131,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		EF_ZIP64_RHO: 16,
 		EF_ZIP64_DSN: 24
 	};
-})), w = /* @__PURE__ */ b(((e) => {
+})), S = /* @__PURE__ */ b(((e) => {
 	var t = {
 		INVALID_LOC: "Invalid LOC header (bad signature)",
 		INVALID_CEN: "Invalid CEN header (bad signature)",
@@ -174,8 +174,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		};
 	}
 	for (let r of Object.keys(t)) e[r] = n(t[r]);
-})), te = /* @__PURE__ */ b(((e, t) => {
-	var n = C("fs"), r = C("path"), i = ee(), a = w(), o = typeof process == "object" && process.platform === "win32", s = (e) => typeof e == "object" && !!e, c = new Uint32Array(256).map((e, t) => {
+})), re = /* @__PURE__ */ b(((e, t) => {
+	var n = x("fs"), r = x("path"), i = ne(), a = S(), o = typeof process == "object" && process.platform === "win32", s = (e) => typeof e == "object" && !!e, c = new Uint32Array(256).map((e, t) => {
 		for (let e = 0; e < 8; e++) t & 1 ? t = 3988292384 ^ t >>> 1 : t >>>= 1;
 		return t >>> 0;
 	});
@@ -321,8 +321,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		let t = 0, n = 0;
 		return e.getFullYear() > 1979 && (t = (e.getFullYear() - 1980 & 127) << 9 | e.getMonth() + 1 << 5 | e.getDate(), n = e.getHours() << 11 | e.getMinutes() << 5 | e.getSeconds() >> 1), t << 16 | n;
 	}, l.isWin = o, l.crcTable = c;
-})), ne = /* @__PURE__ */ b(((e, t) => {
-	var n = C("path");
+})), ie = /* @__PURE__ */ b(((e, t) => {
+	var n = x("path");
 	t.exports = function(e, { fs: t }) {
 		var r = e || "", i = o(), a = null;
 		function o() {
@@ -372,16 +372,16 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), re = /* @__PURE__ */ b(((e, t) => {
+})), ae = /* @__PURE__ */ b(((e, t) => {
 	t.exports = {
 		efs: !0,
 		encode: (e) => Buffer.from(e, "utf8"),
 		decode: (e) => e.toString("utf8")
 	};
-})), T = /* @__PURE__ */ b(((e, t) => {
-	t.exports = te(), t.exports.Constants = ee(), t.exports.Errors = w(), t.exports.FileAttr = ne(), t.exports.decoder = re();
-})), ie = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = n.Constants;
+})), C = /* @__PURE__ */ b(((e, t) => {
+	t.exports = re(), t.exports.Constants = ne(), t.exports.Errors = S(), t.exports.FileAttr = ie(), t.exports.decoder = ae();
+})), oe = /* @__PURE__ */ b(((e, t) => {
+	var n = C(), r = n.Constants;
 	t.exports = function() {
 		var e = 20, t = 10, i = 0, a = 0, o = 0, s = 0, c = 0, l = 0, u = 0, d = 0, f = 0, p = 0, m = 0, h = 0, g = 0;
 		e |= n.isWin ? 2560 : 768, i |= r.FLG_EFS;
@@ -571,8 +571,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), ae = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = n.Constants;
+})), se = /* @__PURE__ */ b(((e, t) => {
+	var n = C(), r = n.Constants;
 	t.exports = function() {
 		var e = 0, t = 0, i = 0, a = 0, o = 0;
 		return {
@@ -635,11 +635,11 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), oe = /* @__PURE__ */ b(((e) => {
-	e.EntryHeader = ie(), e.MainHeader = ae();
-})), se = /* @__PURE__ */ b(((e, t) => {
+})), ce = /* @__PURE__ */ b(((e) => {
+	e.EntryHeader = oe(), e.MainHeader = se();
+})), le = /* @__PURE__ */ b(((e, t) => {
 	t.exports = function(e) {
-		var t = C("zlib"), n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
+		var t = x("zlib"), n = { chunkSize: (parseInt(e.length / 1024) + 1) * 1024 };
 		return {
 			deflate: function() {
 				return t.deflateRawSync(e, n);
@@ -660,10 +660,10 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), ce = /* @__PURE__ */ b(((e, t) => {
+})), ue = /* @__PURE__ */ b(((e, t) => {
 	var n = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
 	t.exports = function(e, t) {
-		var r = C("zlib");
+		var r = x("zlib");
 		let i = n >= 15 && t > 0 ? { maxOutputLength: t } : {};
 		return {
 			inflate: function() {
@@ -685,8 +685,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), le = /* @__PURE__ */ b(((e, t) => {
-	var { randomFillSync: n } = C("crypto"), r = w(), i = new Uint32Array(256).map((e, t) => {
+})), de = /* @__PURE__ */ b(((e, t) => {
+	var { randomFillSync: n } = x("crypto"), r = S(), i = new Uint32Array(256).map((e, t) => {
 		for (let e = 0; e < 8; e++) t & 1 ? t = t >>> 1 ^ 3988292384 : t >>>= 1;
 		return t >>> 0;
 	}), a = (e, t) => Math.imul(e, t) >>> 0, o = (e, t) => i[(e ^ t) & 255] ^ e >>> 8, s = () => typeof n == "function" ? n(Buffer.alloc(12)) : s.node();
@@ -754,10 +754,10 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		encrypt: m,
 		_salter: p
 	};
-})), ue = /* @__PURE__ */ b(((e) => {
-	e.Deflater = se(), e.Inflater = ce(), e.ZipCrypto = le();
-})), de = /* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = oe(), i = n.Constants, a = ue();
+})), fe = /* @__PURE__ */ b(((e) => {
+	e.Deflater = le(), e.Inflater = ue(), e.ZipCrypto = de();
+})), pe = /* @__PURE__ */ b(((e, t) => {
+	var n = C(), r = ce(), i = n.Constants, a = fe();
 	t.exports = function(e, t) {
 		var o = new r.EntryHeader(), s = Buffer.alloc(0), c = Buffer.alloc(0), l = !1, u = null, d = Buffer.alloc(0), f = Buffer.alloc(0), p = !0;
 		let m = e, h = typeof m.decoder == "object" ? m.decoder : n.decoder;
@@ -830,14 +830,14 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 		function b(e, t) {
 			return n.readBigUInt64LE(e, t);
 		}
-		function x(e) {
+		function ee(e) {
 			try {
-				for (var t = 0, r, a, o; t + 4 < e.length;) r = e.readUInt16LE(t), t += 2, a = e.readUInt16LE(t), t += 2, o = e.slice(t, t + a), t += a, i.ID_ZIP64 === r && S(o);
+				for (var t = 0, r, a, o; t + 4 < e.length;) r = e.readUInt16LE(t), t += 2, a = e.readUInt16LE(t), t += 2, o = e.slice(t, t + a), t += a, i.ID_ZIP64 === r && te(o);
 			} catch {
 				throw n.Errors.EXTRA_FIELD_PARSE_ERROR();
 			}
 		}
-		function S(e) {
+		function te(e) {
 			var t, n, r, a;
 			e.length >= i.EF_ZIP64_SCOMP && (t = b(e, i.EF_ZIP64_SUNCOMP), o.size === i.EF_ZIP64_OR_32 && (o.size = t)), e.length >= i.EF_ZIP64_RHO && (n = b(e, i.EF_ZIP64_SCOMP), o.compressedSize === i.EF_ZIP64_OR_32 && (o.compressedSize = n)), e.length >= i.EF_ZIP64_DSN && (r = b(e, i.EF_ZIP64_RHO), o.offset === i.EF_ZIP64_OR_32 && (o.offset = r)), e.length >= i.EF_ZIP64_DSN + 4 && (a = e.readUInt32LE(i.EF_ZIP64_DSN), o.diskNumStart === i.EF_ZIP64_OR_16 && (o.diskNumStart = a));
 		}
@@ -860,7 +860,7 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 				return d;
 			},
 			set extra(e) {
-				d = e, o.extraLength = e.length, x(e);
+				d = e, o.extraLength = e.length, ee(e);
 			},
 			get comment() {
 				return h.decode(c);
@@ -932,8 +932,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), fe = /* @__PURE__ */ b(((e, t) => {
-	var n = de(), r = oe(), i = T();
+})), me = /* @__PURE__ */ b(((e, t) => {
+	var n = pe(), r = ce(), i = C();
 	t.exports = function(e, t) {
 		var a = [], o = {}, s = Buffer.alloc(0), c = new r.MainHeader(), l = !1;
 		let u = /* @__PURE__ */ new Set(), d = t, { noSort: f, decoder: p } = d;
@@ -1084,8 +1084,8 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})), E = /* @__PURE__ */ S((/* @__PURE__ */ b(((e, t) => {
-	var n = T(), r = C("path"), i = de(), a = fe(), o = (...e) => n.findLast(e, (e) => typeof e == "boolean"), s = (...e) => n.findLast(e, (e) => typeof e == "string"), c = (...e) => n.findLast(e, (e) => typeof e == "function"), l = {
+})), w = /* @__PURE__ */ te((/* @__PURE__ */ b(((e, t) => {
+	var n = C(), r = x("path"), i = pe(), a = me(), o = (...e) => n.findLast(e, (e) => typeof e == "boolean"), s = (...e) => n.findLast(e, (e) => typeof e == "string"), c = (...e) => n.findLast(e, (e) => typeof e == "function"), l = {
 		noSort: !1,
 		readEntries: !1,
 		method: n.Constants.NONE,
@@ -1407,21 +1407,97 @@ var m = Object.create, h = Object.defineProperty, g = Object.getOwnPropertyDescr
 			}
 		};
 	};
-})))(), 1), pe = c(import.meta.url), me = d.dirname(pe);
-function D() {
-	return process.env.NODE_ENV === "test" ? d.join(me, "../tmp-test-credentials.enc") : d.join(n.getPath("userData"), "credentials.enc");
+})))(), 1), he = c(import.meta.url), ge = d.dirname(he), _e = 4096, ve = 2048, ye = 200;
+function T() {
+	return process.env.NODE_ENV === "test" ? d.join(ge, "../tmp-test-credentials.enc") : d.join(n.getPath("userData"), "credentials.enc");
 }
-async function he(e) {
-	if (!a.isEncryptionAvailable()) throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), Error("Encryption not available on this system");
+function be(e) {
+	return Array.from(e).some((e) => {
+		let t = e.codePointAt(0);
+		return t !== void 0 && (t <= 31 || t === 127);
+	});
+}
+function xe(e) {
+	if (e == null) return "openai";
+	if (e === "openai" || e === "anthropic") return e;
+	throw Error("Invalid API style");
+}
+function Se(e) {
+	return e === "anthropic" ? "anthropic" : "openai";
+}
+function E(e, t, n) {
+	if (e == null) return;
+	if (typeof e != "string") throw Error(`Invalid ${t}`);
+	let r = e.trim();
+	if (r) {
+		if (r.length > n || be(r)) throw Error(`Invalid ${t}`);
+		return r;
+	}
+}
+function Ce(e) {
+	let t = E(e, "API key", _e);
+	if (t && /\s/.test(t)) throw Error("Invalid API key");
+	return t;
+}
+function we(e) {
+	return e.toLowerCase().replace(/^\[/, "").replace(/\]$/, "");
+}
+function Te(e) {
+	let t = e.split(".");
+	if (t.length !== 4) return !1;
+	let n = t.map((e) => Number(e));
+	if (n.some((e) => !Number.isInteger(e) || e < 0 || e > 255)) return !1;
+	let [r, i] = n;
+	return r === 10 || r === 127 || r === 172 && i >= 16 && i <= 31 || r === 192 && i === 168 || r === 169 && i === 254 || r === 0;
+}
+function Ee(e) {
+	let t = we(e), n = t.includes(":");
+	return t === "localhost" || t.endsWith(".localhost") || t === "::" || t === "::1" || n && t.startsWith("fe80:") || n && t.startsWith("fc") || n && t.startsWith("fd") || Te(t);
+}
+function D(e) {
+	let t = e.trim();
+	if (!t || t.length > ve || be(t)) throw Error("Invalid Base URL");
+	let n;
 	try {
-		let t = JSON.stringify(e), n = a.encryptString(t);
-		u.writeFileSync(D(), n), console.log("[SecureStore] Credentials saved securely");
+		n = new URL(t);
+	} catch {
+		throw Error("Invalid Base URL");
+	}
+	if (n.protocol !== "https:") throw Error("Base URL must use HTTPS");
+	if (n.username || n.password || n.search || n.hash) throw Error("Invalid Base URL");
+	if (Ee(n.hostname)) throw Error("Base URL host is not allowed");
+	return n.toString().replace(/\/+$/g, "");
+}
+function De(e) {
+	let t = E(e, "Base URL", ve);
+	return t ? D(t) : void 0;
+}
+function Oe(e) {
+	return E(e, "model", ye);
+}
+function ke(e) {
+	if (!e || typeof e != "object") throw Error("Invalid credentials");
+	let t = O(), n = Ce(e.qaApiKey) || t?.qaApiKey;
+	if (!n) throw Error("API Key is required");
+	return {
+		qaApiKey: n,
+		qaBaseUrl: De(e.qaBaseUrl),
+		qaModel: Oe(e.qaModel),
+		qaApiStyle: xe(e.qaApiStyle)
+	};
+}
+async function Ae(e) {
+	if (!a.isEncryptionAvailable()) throw console.warn("[SecureStore] Encryption not available, credentials will not be saved"), Error("Encryption not available on this system");
+	let t = ke(e);
+	try {
+		let e = JSON.stringify(t), n = a.encryptString(e);
+		u.writeFileSync(T(), n), console.log("[SecureStore] Credentials saved securely");
 	} catch (e) {
 		throw console.error("[SecureStore] Failed to save credentials:", e), Error("Failed to save credentials securely");
 	}
 }
 function O() {
-	let e = D();
+	let e = T();
 	if (u.existsSync(e)) try {
 		if (!a.isEncryptionAvailable()) return console.warn("[SecureStore] Encryption not available, cannot decrypt credentials"), null;
 		let t = u.readFileSync(e), n = a.decryptString(t), r = JSON.parse(n);
@@ -1431,55 +1507,64 @@ function O() {
 	}
 	return null;
 }
-function ge() {
+function je() {
+	let e = O();
+	return e ? {
+		hasApiKey: !!e.qaApiKey,
+		qaBaseUrl: e.qaBaseUrl,
+		qaModel: e.qaModel,
+		qaApiStyle: Se(e.qaApiStyle)
+	} : null;
+}
+function k() {
 	let e = O();
 	return e?.qaApiKey ? e.qaApiKey : process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "";
 }
-function _e(e) {
+function Me(e) {
 	let t = O();
-	return t?.qaBaseUrl ? t.qaBaseUrl : process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1";
+	return t?.qaBaseUrl ? D(t.qaBaseUrl) : process.env.QA_BASE_URL ? D(process.env.QA_BASE_URL) : process.env.OPENROUTER_BASE_URL ? D(process.env.OPENROUTER_BASE_URL) : D(e === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1");
 }
-function ve(e, t) {
+function Ne(e, t) {
 	return e === "anthropic" ? "MiniMax-M2.7" : t?.includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo";
 }
-function ye(e) {
+function Pe(e) {
 	let t = O();
-	return t?.qaModel ? t.qaModel : process.env.QA_MODEL ? process.env.QA_MODEL : ve(e, t?.qaBaseUrl || _e(e));
+	return t?.qaModel ? t.qaModel : process.env.QA_MODEL ? process.env.QA_MODEL : Ne(e, Me(e));
 }
-function be() {
+function Fe() {
 	let e = O();
-	return e?.qaApiStyle ? e.qaApiStyle : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
+	return e?.qaApiStyle ? Se(e.qaApiStyle) : (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai";
 }
-function xe() {
+function Ie() {
 	try {
-		let e = D();
+		let e = T();
 		u.existsSync(e) && (u.unlinkSync(e), console.log("[SecureStore] Credentials cleared"));
 	} catch (e) {
 		console.error("[SecureStore] Failed to clear credentials:", e);
 	}
 }
-function Se() {
-	return ge().length > 0;
+function Le() {
+	return k().length > 0;
 }
 //#endregion
 //#region electron/qa-service.ts
-var Ce = c(import.meta.url), we = d.dirname(Ce);
-function k() {
-	return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : be();
-}
+var Re = c(import.meta.url), ze = d.dirname(Re);
 function A() {
-	return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : ge();
+	return process.env.NODE_ENV === "test" ? (process.env.QA_API_STYLE || "").toLowerCase() === "anthropic" ? "anthropic" : "openai" : Fe();
 }
 function j() {
-	return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : k() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1" : _e(k());
+	return process.env.NODE_ENV === "test" ? process.env.QA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.DEEPSEEK_API_KEY || "" : k();
 }
 function M() {
-	return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : k() === "anthropic" ? "MiniMax-M2.7" : j().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : ye(k());
+	return process.env.NODE_ENV === "test" ? process.env.QA_BASE_URL ? process.env.QA_BASE_URL : process.env.OPENROUTER_BASE_URL ? process.env.OPENROUTER_BASE_URL : D(A() === "anthropic" ? "https://api.minimax.io/anthropic" : "https://openrouter.ai/api/v1") : Me(A());
 }
-function N(e) {
+function Be() {
+	return process.env.NODE_ENV === "test" ? process.env.QA_MODEL ? process.env.QA_MODEL : A() === "anthropic" ? "MiniMax-M2.7" : M().includes("openrouter.ai") ? "google/gemini-2.0-flash-thinking-exp:free" : "gpt-3.5-turbo" : Pe(A());
+}
+function Ve(e) {
 	return e.replace(/\/+$/g, "");
 }
-function Te(e) {
+function He(e) {
 	try {
 		let t = new URL(e);
 		return t.pathname !== "/" && t.pathname !== "";
@@ -1487,11 +1572,17 @@ function Te(e) {
 		return e.split("/").length > 3;
 	}
 }
-var P = [], F = null, I = "idle", L = null, R = 0;
-function z(e) {
+function Ue() {
+	return D(M());
+}
+function We(e, t) {
+	throw Error(`${e} API request failed with status ${t}`);
+}
+var N = [], P = null, F = "idle", Ge = null, I = 0;
+function L(e) {
 	return e.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((e) => e.length > 2);
 }
-function Ee(e, t, n) {
+function Ke(e, t, n) {
 	let r = Array(t.size).fill(0), i = /* @__PURE__ */ new Map();
 	for (let t of e) i.set(t, (i.get(t) || 0) + 1);
 	for (let [a, o] of i) {
@@ -1500,8 +1591,8 @@ function Ee(e, t, n) {
 	}
 	return r;
 }
-function De(e) {
-	let t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((e) => z(e));
+function qe(e) {
+	let t = /* @__PURE__ */ new Map(), n = /* @__PURE__ */ new Map(), r = e.map((e) => L(e));
 	for (let e of r) {
 		let t = new Set(e);
 		for (let e of t) n.set(e, (n.get(e) || 0) + 1);
@@ -1515,19 +1606,19 @@ function De(e) {
 		idf: a
 	};
 }
-function Oe(e, t) {
-	let n = new Set(z(e));
+function Je(e, t) {
+	let n = new Set(L(e));
 	if (n.size === 0) return 0;
-	let r = new Set(z(t)), i = 0;
+	let r = new Set(L(t)), i = 0;
 	for (let e of n) r.has(e) && i++;
 	return i / n.size;
 }
-async function ke(e, t) {
-	let n = N(j()), r;
-	r = n.endsWith("/chat/completions") ? n : n.endsWith("/api/v1") || n.endsWith("/v1") || Te(n) ? `${n}/chat/completions` : `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
+async function Ye(e, t) {
+	let n = Ve(Ue()), r;
+	r = n.endsWith("/chat/completions") ? n : n.endsWith("/api/v1") || n.endsWith("/v1") || He(n) ? `${n}/chat/completions` : `${n}/v1/chat/completions`, console.log("[QA] API endpoint:", r);
 	let i = {
 		"Content-Type": "application/json",
-		Authorization: `Bearer ${A()}`
+		Authorization: `Bearer ${j()}`
 	};
 	n.includes("openrouter.ai") && (i["HTTP-Referer"] = "https://github.com", i["X-Title"] = "UniversalReader");
 	let a = await fetch(r, {
@@ -1535,41 +1626,33 @@ async function ke(e, t) {
 		headers: i,
 		signal: t,
 		body: JSON.stringify({
-			model: M(),
+			model: Be(),
 			messages: e,
 			temperature: .7
 		})
 	});
-	if (!a.ok) {
-		let e = await a.text();
-		throw Error(`OpenAI-compatible API error: ${a.status} - ${e}`);
-	}
-	return (await a.json()).choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+	return a.ok || We("OpenAI-compatible", a.status), (await a.json()).choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 }
-async function Ae(e, t) {
-	let n = N(j()), r = await fetch(`${n}/v1/messages`, {
+async function Xe(e, t) {
+	let n = Ve(Ue()), r = await fetch(`${n}/v1/messages`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			"x-api-key": A(),
+			"x-api-key": j(),
 			"anthropic-version": "2023-06-01"
 		},
 		signal: t,
 		body: JSON.stringify({
-			model: M(),
+			model: Be(),
 			max_tokens: 1024,
 			messages: e
 		})
 	});
-	if (!r.ok) {
-		let e = await r.text();
-		throw Error(`Anthropic-compatible API error: ${r.status} - ${e}`);
-	}
-	return (await r.json()).content?.filter((e) => e.type === "text").map((e) => e.text || "").join("\n").trim() || "Sorry, I couldn't generate a response.";
+	return r.ok || We("Anthropic-compatible", r.status), (await r.json()).content?.filter((e) => e.type === "text").map((e) => e.text || "").join("\n").trim() || "Sorry, I couldn't generate a response.";
 }
-async function je(e, t = 3) {
+async function Ze(e, t = 3) {
 	for (let n = 0; n < t; n++) try {
-		let t = new AbortController(), n = setTimeout(() => t.abort(), 6e4), r = k() === "anthropic" ? await Ae(e, t.signal) : await ke(e, t.signal);
+		let t = new AbortController(), n = setTimeout(() => t.abort(), 6e4), r = A() === "anthropic" ? await Xe(e, t.signal) : await Ye(e, t.signal);
 		return clearTimeout(n), r;
 	} catch (e) {
 		let r = n === t - 1, i = e instanceof Error ? e.message : String(e);
@@ -1579,11 +1662,11 @@ async function je(e, t = 3) {
 	}
 	throw Error("Unexpected error in retry loop");
 }
-async function Me(e, t = 4) {
-	if (P.length === 0) return [];
-	let n = P.map((t, n) => ({
+async function Qe(e, t = 4) {
+	if (N.length === 0) return [];
+	let n = N.map((t, n) => ({
 		idx: n,
-		score: Oe(e, t.content),
+		score: Je(e, t.content),
 		doc: t
 	}));
 	return n.sort((e, t) => t.score - e.score), n.slice(0, t).map((e) => ({
@@ -1591,18 +1674,18 @@ async function Me(e, t = 4) {
 		metadata: e.doc.metadata
 	}));
 }
-function B(e, t) {
-	I = e, L = t || null;
+function R(e, t) {
+	F = e, Ge = t || null;
 }
-function Ne() {
+function $e() {
 	return {
-		status: I,
-		currentBook: F || void 0,
-		error: L || void 0,
-		chunkCount: R || void 0
+		status: F,
+		currentBook: P || void 0,
+		error: Ge || void 0,
+		chunkCount: I || void 0
 	};
 }
-async function Pe(e, t) {
+async function et(e, t) {
 	switch (t.toLowerCase()) {
 		case "txt":
 		case "md": return u.promises.readFile(e, "utf-8");
@@ -1610,9 +1693,9 @@ async function Pe(e, t) {
 			let t = await import("./pdf-BzLafEDA.js"), n = [
 				d.join(process.cwd(), "public", "pdf.worker.min.mjs"),
 				d.join(process.cwd(), "dist", "pdf.worker.min.mjs"),
-				d.join(we, "..", "dist", "pdf.worker.min.mjs"),
+				d.join(ze, "..", "dist", "pdf.worker.min.mjs"),
 				d.join(process.cwd(), "dist-electron", "pdf.worker.mjs"),
-				d.join(we, "..", "dist-electron", "pdf.worker.mjs")
+				d.join(ze, "..", "dist-electron", "pdf.worker.mjs")
 			];
 			for (let e of n) if (u.existsSync(e)) {
 				t.GlobalWorkerOptions.workerSrc = e;
@@ -1626,7 +1709,7 @@ async function Pe(e, t) {
 			return o.join("\n\n");
 		}
 		case "epub": {
-			let t = new E.default(e).getEntries(), n = [];
+			let t = new w.default(e).getEntries(), n = [];
 			for (let e of t) if (e.entryName.endsWith(".html") || e.entryName.endsWith(".xhtml") || e.entryName.endsWith(".htm")) {
 				let t = e.getData().toString("utf-8");
 				n.push(t);
@@ -1639,52 +1722,52 @@ async function Pe(e, t) {
 		default: throw Error(`Unsupported format: ${t}`);
 	}
 }
-async function Fe(e, t) {
+async function tt(e, t) {
 	try {
-		P = [], F = null, R = 0, B("loading");
+		N = [], P = null, I = 0, R("loading");
 		let n = process.memoryUsage(), r = Math.round(n.heapUsed / 1024 / 1024);
 		if (console.log(`[QA] Memory before load: ${r}MB heap used`), n.heapUsed > 500 * 1024 * 1024) if (console.warn(`[QA] High memory usage (${r}MB), attempting GC...`), global.gc) {
 			global.gc();
 			let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
 			console.log(`[QA] Memory after GC: ${t}MB heap used`);
 		} else console.warn("[QA] GC not available (run with --expose-gc flag)");
-		if (!A()) throw Error("QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment.");
+		if (!j()) throw Error("QA_API_KEY (or OPENROUTER_API_KEY) environment variable is not set. Please set it in your .env file or system environment.");
 		if (!u.existsSync(e)) throw Error(`File not found: ${e}`);
 		console.log(`[QA] Extracting text from ${e}`);
-		let i = await Pe(e, t);
+		let i = await et(e, t);
 		if (!i || i.trim().length === 0) throw Error("No text content extracted from file");
 		console.log(`[QA] Extracted ${i.length} characters`);
 		let a = 1e3, o = [];
 		for (let e = 0; e < i.length; e += a) o.push(i.slice(e, e + a));
 		console.log(`[QA] Created ${o.length} text chunks`);
-		let { vocab: s, idf: c } = De(o);
-		P = o.map((t, n) => ({
+		let { vocab: s, idf: c } = qe(o);
+		N = o.map((t, n) => ({
 			content: t,
-			embedding: Ee(z(t), s, c),
+			embedding: Ke(L(t), s, c),
 			metadata: {
 				source: d.basename(e),
 				chunkIndex: n
 			}
-		})), R = o.length, F = e, B("ready");
+		})), I = o.length, P = e, R("ready");
 		let l = process.memoryUsage(), f = Math.round(l.heapUsed / 1024 / 1024);
-		return console.log(`[QA] Ready with ${R} chunks, memory: ${f}MB`), { success: !0 };
+		return console.log(`[QA] Ready with ${I} chunks, memory: ${f}MB`), { success: !0 };
 	} catch (e) {
 		let t = e instanceof Error ? e.message : "Unknown error";
-		return console.error("[QA] Load error:", t), B("error", t), {
+		return console.error("[QA] Load error:", t), R("error", t), {
 			success: !1,
 			error: t
 		};
 	}
 }
-async function Ie(e) {
+async function nt(e) {
 	let t = e.trim();
 	if (!t) throw Error("Question cannot be empty.");
-	if (P.length === 0) throw Error("No book loaded. Please load a book first.");
-	if (I !== "ready") throw Error("QA service not ready. Please wait.");
+	if (N.length === 0) throw Error("No book loaded. Please load a book first.");
+	if (F !== "ready") throw Error("QA service not ready. Please wait.");
 	console.log(`[QA] Question: ${t}`);
-	let n = await Me(t, 3), r = n.map((e) => e.pageContent.slice(0, 1500)).join("\n\n");
+	let n = await Qe(t, 3), r = n.map((e) => e.pageContent.slice(0, 1500)).join("\n\n");
 	console.log(`[QA] Context length: ${r.length} chars, ${n.length} docs`);
-	let i = await je([{
+	let i = await Ze([{
 		role: "user",
 		content: `You are a helpful assistant that answers questions about a book. Based only on the following context from the book, please answer the question. If the answer is not in the context, say so.
 
@@ -1703,97 +1786,97 @@ Answer:`
 		sources: a
 	};
 }
-function Le() {
-	P = [], F = null, R = 0, B("idle");
+function rt() {
+	N = [], P = null, I = 0, R("idle");
 	let e = process.memoryUsage(), t = Math.round(e.heapUsed / 1024 / 1024);
 	console.log(`[QA] Cleared, memory: ${t}MB`), global.gc && e.heapUsed > 200 * 1024 * 1024 && (console.log("[QA] Triggering GC after clear..."), global.gc());
 }
-var V = {
-	loadBookForQA: Fe,
-	askQuestion: Ie,
-	clearQA: Le,
-	getStatus: Ne
-}, Re = [
+var z = {
+	loadBookForQA: tt,
+	askQuestion: nt,
+	clearQA: rt,
+	getStatus: $e
+}, it = [
 	"pdf",
 	"epub",
 	"mobi",
 	"azw3",
 	"txt",
 	"md"
-], ze = ["docx"], Be = new Set([
+], at = ["docx"], ot = new Set([
 	"epub",
 	"mobi",
 	"azw3",
 	"txt",
 	"md"
 ]);
-function H(e) {
+function B(e) {
 	return e.trim().toLowerCase().replace(/^\./, "");
 }
-function Ve(e) {
-	let t = H(e);
-	return Re.includes(t);
+function st(e) {
+	let t = B(e);
+	return it.includes(t);
 }
-function He(e) {
-	let t = H(e);
-	return ze.includes(t);
+function ct(e) {
+	let t = B(e);
+	return at.includes(t);
 }
-function Ue(e) {
-	return Ve(e) ? "supported" : He(e) ? "convertible" : "unsupported";
+function lt(e) {
+	return st(e) ? "supported" : ct(e) ? "convertible" : "unsupported";
 }
-function U(e) {
-	return Be.has(e) ? "flow" : "paged";
+function V(e) {
+	return ot.has(e) ? "flow" : "paged";
 }
 //#endregion
 //#region src/services/importService.ts
-function We() {
-	return [...Re, ...ze];
+function ut() {
+	return [...it, ...at];
 }
-function Ge(e) {
+function dt(e) {
 	return e === "docx" ? "md" : e;
 }
-function Ke(e) {
-	let t = H(e), n = Ue(t);
+function ft(e) {
+	let t = B(e), n = lt(t);
 	if (n === "unsupported") return {
 		capability: n,
 		sourceFormat: t,
 		requiresConversion: !1,
 		reason: "unsupported_format"
 	};
-	if (Ve(t)) {
-		let e = Ge(t);
+	if (st(t)) {
+		let e = dt(t);
 		return {
 			capability: n,
 			sourceFormat: t,
 			targetFormat: e,
-			documentKind: U(e),
+			documentKind: V(e),
 			ingestStatus: "ready",
 			requiresConversion: !1
 		};
 	}
-	let r = Ge(t);
+	let r = dt(t);
 	return {
 		capability: n,
 		sourceFormat: t,
 		targetFormat: r,
-		documentKind: U(r),
+		documentKind: V(r),
 		ingestStatus: "converted",
 		requiresConversion: !0
 	};
 }
 //#endregion
 //#region electron/handlers.ts
-var W = new l(d.join(n.getPath("userData"), "library.db"));
-W.exec("\n  CREATE TABLE IF NOT EXISTS books (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    author TEXT,\n    path TEXT NOT NULL UNIQUE,\n    format TEXT NOT NULL,\n    coverPath TEXT,\n    addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    lastReadAt DATETIME,\n    progress REAL DEFAULT 0,\n    progressLocator TEXT,\n    progressUpdatedAt INTEGER,\n    documentKind TEXT,\n    ingestStatus TEXT,\n    sourceFormat TEXT\n  );\n");
-var G = (e, t) => {
-	W.prepare("PRAGMA table_info(books)").all().some((t) => t.name === e) || W.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
+var H = new l(d.join(n.getPath("userData"), "library.db"));
+H.exec("\n  CREATE TABLE IF NOT EXISTS books (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    author TEXT,\n    path TEXT NOT NULL UNIQUE,\n    format TEXT NOT NULL,\n    coverPath TEXT,\n    addedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    lastReadAt DATETIME,\n    progress REAL DEFAULT 0,\n    progressLocator TEXT,\n    progressUpdatedAt INTEGER,\n    documentKind TEXT,\n    ingestStatus TEXT,\n    sourceFormat TEXT\n  );\n");
+var U = (e, t) => {
+	H.prepare("PRAGMA table_info(books)").all().some((t) => t.name === e) || H.exec(`ALTER TABLE books ADD COLUMN ${e} ${t}`);
 };
-G("progressLocator", "TEXT"), G("progressUpdatedAt", "INTEGER"), G("documentKind", "TEXT"), G("ingestStatus", "TEXT"), G("sourceFormat", "TEXT"), W.exec("\n  CREATE TABLE IF NOT EXISTS annotations (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bookId INTEGER NOT NULL,\n    type TEXT NOT NULL,\n    cfi TEXT,\n    pageNumber INTEGER,\n    text TEXT,\n    note TEXT,\n    color TEXT DEFAULT '#ffeb3b',\n    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE\n  );\n"), W.exec("\n  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);\n  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);\n  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);\n  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);\n");
-var K = d.join(n.getPath("userData"), "covers");
-u.mkdirSync(K, { recursive: !0 });
-async function qe(e, t) {
+U("progressLocator", "TEXT"), U("progressUpdatedAt", "INTEGER"), U("documentKind", "TEXT"), U("ingestStatus", "TEXT"), U("sourceFormat", "TEXT"), H.exec("\n  CREATE TABLE IF NOT EXISTS annotations (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    bookId INTEGER NOT NULL,\n    type TEXT NOT NULL,\n    cfi TEXT,\n    pageNumber INTEGER,\n    text TEXT,\n    note TEXT,\n    color TEXT DEFAULT '#ffeb3b',\n    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,\n    FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE\n  );\n"), H.exec("\n  CREATE INDEX IF NOT EXISTS idx_books_lastReadAt ON books(lastReadAt);\n  CREATE INDEX IF NOT EXISTS idx_books_title ON books(title);\n  CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);\n  CREATE INDEX IF NOT EXISTS idx_annotations_bookId ON annotations(bookId);\n");
+var W = d.join(n.getPath("userData"), "covers");
+u.mkdirSync(W, { recursive: !0 });
+async function pt(e, t) {
 	try {
-		let n = new E.default(e).getEntries(), r = [
+		let n = new w.default(e).getEntries(), r = [
 			/cover\.(jpg|jpeg|png|gif)$/i,
 			/cover-image\.(jpg|jpeg|png|gif)$/i,
 			/images\/cover\.(jpg|jpeg|png|gif)$/i,
@@ -1807,7 +1890,7 @@ async function qe(e, t) {
 				if (o) {
 					let e = o[1], r = d.dirname(i.entryName), a = r ? `${r}/${e}` : e, s = n.find((t) => t.entryName === a || t.entryName.endsWith(e));
 					if (s) {
-						let e = s.getData(), n = `${t}${d.extname(s.entryName) || ".jpg"}`, r = d.join(K, n);
+						let e = s.getData(), n = `${t}${d.extname(s.entryName) || ".jpg"}`, r = d.join(W, n);
 						return await u.promises.writeFile(r, e), r;
 					}
 				}
@@ -1816,13 +1899,13 @@ async function qe(e, t) {
 		for (let e of r) {
 			let r = n.find((t) => e.test(t.entryName));
 			if (r) {
-				let e = r.getData(), n = `${t}${d.extname(r.entryName) || ".jpg"}`, i = d.join(K, n);
+				let e = r.getData(), n = `${t}${d.extname(r.entryName) || ".jpg"}`, i = d.join(W, n);
 				return await u.promises.writeFile(i, e), i;
 			}
 		}
 		let a = n.find((e) => /\.(jpg|jpeg|png|gif)$/i.test(e.entryName) && (e.entryName.toLowerCase().includes("cover") || e.entryName.toLowerCase().includes("title")));
 		if (a) {
-			let e = a.getData(), n = `${t}${d.extname(a.entryName) || ".jpg"}`, r = d.join(K, n);
+			let e = a.getData(), n = `${t}${d.extname(a.entryName) || ".jpg"}`, r = d.join(W, n);
 			return await u.promises.writeFile(r, e), r;
 		}
 		return null;
@@ -1830,31 +1913,31 @@ async function qe(e, t) {
 		return console.error("Failed to extract EPUB cover:", e), null;
 	}
 }
-async function Je(e, t) {
+async function mt(e, t) {
 	try {
 		let n = await import("./pdf-BzLafEDA.js"), r = await u.promises.readFile(e), i = new Uint8Array(r), a = await (await n.getDocument({ data: i }).promise).getPage(1), o = a.getViewport({ scale: 1 }), s = Math.min(400 / o.width, 1.5), c = a.getViewport({ scale: s }), l = p(c.width, c.height), f = l.getContext("2d");
 		await a.render({
 			canvasContext: f,
 			viewport: c
 		}).promise;
-		let m = `${t}.png`, h = d.join(K, m), g = l.toBuffer("image/png");
+		let m = `${t}.png`, h = d.join(W, m), g = l.toBuffer("image/png");
 		return await u.promises.writeFile(h, g), h;
 	} catch (e) {
 		return console.error("Failed to extract PDF cover:", e), null;
 	}
 }
-function Ye(e) {
+function ht(e) {
 	return e.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&apos;/g, "'").replace(/&#(\d+);/g, (e, t) => String.fromCharCode(Number(t)));
 }
-async function Xe(e) {
-	let t = new E.default(e).getEntry("word/document.xml");
+async function gt(e) {
+	let t = new w.default(e).getEntry("word/document.xml");
 	if (!t) throw Error("DOCX 内容缺失: word/document.xml");
-	return t.getData().toString("utf-8").split(/<\/w:p>/i).map((e) => [...e.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, "\n").matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((e) => Ye(e[1])).join("").trim()).filter(Boolean).join("\n\n");
+	return t.getData().toString("utf-8").split(/<\/w:p>/i).map((e) => [...e.replace(/<w:tab\s*\/>/gi, "	").replace(/<w:br\s*\/>/gi, "\n").matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/gi)].map((e) => ht(e[1])).join("").trim()).filter(Boolean).join("\n\n");
 }
-async function Ze(e, t) {
+async function _t(e, t) {
 	try {
 		if (t === "epub") {
-			let t = new E.default(e).getEntries().find((e) => e.entryName.endsWith(".opf"));
+			let t = new w.default(e).getEntries().find((e) => e.entryName.endsWith(".opf"));
 			if (t) {
 				let e = t.getData().toString("utf-8"), n = e.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i), r = e.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
 				return {
@@ -1875,25 +1958,25 @@ async function Ze(e, t) {
 	}
 	return {};
 }
-function Qe(e) {
+function vt(e) {
 	if (e) try {
 		return JSON.parse(e);
 	} catch {
 		return;
 	}
 }
-function q(e) {
+function G(e) {
 	let t = e.format || "txt";
 	return {
 		...e,
-		progressLocator: Qe(e.progressLocator),
+		progressLocator: vt(e.progressLocator),
 		progressUpdatedAt: e.progressUpdatedAt ?? void 0,
-		documentKind: e.documentKind || U(t),
+		documentKind: e.documentKind || V(t),
 		ingestStatus: e.ingestStatus || "ready",
 		sourceFormat: e.sourceFormat || t
 	};
 }
-function $e(e) {
+function yt(e) {
 	try {
 		let t = new URL(e);
 		return t.protocol === "http:" || t.protocol === "https:" || t.protocol === "mailto:";
@@ -1901,32 +1984,32 @@ function $e(e) {
 		return !1;
 	}
 }
-function J(e) {
+function K(e) {
 	return typeof e == "number" && Number.isInteger(e) && e > 0;
 }
-function et(e, t) {
+function bt(e, t) {
 	if (typeof e != "string" || e.trim() === "") throw Error(`Invalid ${t}`);
 	return e;
 }
-function tt(e, t) {
+function xt(e, t) {
 	let n = d.resolve(e), r = d.resolve(t), i = d.relative(r, n);
 	return i === "" || !i.startsWith("..") && !d.isAbsolute(i);
 }
-var nt = W.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), rt = W.prepare("\n  SELECT * FROM books\n  WHERE title LIKE ? OR author LIKE ?\n  ORDER BY lastReadAt DESC\n"), it = W.prepare("\n  UPDATE books\n  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP\n  WHERE id = ?\n"), at = W.prepare("SELECT * FROM books WHERE path = ?"), ot = W.prepare("SELECT id FROM books WHERE coverPath = ?"), Y = W.prepare("SELECT * FROM books WHERE id = ?"), st = W.prepare("SELECT id FROM annotations WHERE id = ?");
-function X(e) {
-	return typeof e != "string" || e.trim() === "" ? null : at.get(e) ?? null;
+var St = H.prepare("SELECT * FROM books ORDER BY lastReadAt DESC"), Ct = H.prepare("\n  SELECT * FROM books\n  WHERE title LIKE ? OR author LIKE ?\n  ORDER BY lastReadAt DESC\n"), wt = H.prepare("\n  UPDATE books\n  SET progress = ?, progressLocator = ?, progressUpdatedAt = ?, lastReadAt = CURRENT_TIMESTAMP\n  WHERE id = ?\n"), Tt = H.prepare("SELECT * FROM books WHERE path = ?"), Et = H.prepare("SELECT id FROM books WHERE coverPath = ?"), q = H.prepare("SELECT * FROM books WHERE id = ?"), Dt = H.prepare("SELECT id FROM annotations WHERE id = ?");
+function J(e) {
+	return typeof e != "string" || e.trim() === "" ? null : Tt.get(e) ?? null;
 }
-function ct(e) {
-	et(e, "book path");
-	let t = X(e);
+function Ot(e) {
+	bt(e, "book path");
+	let t = J(e);
 	if (!t) throw Error("Book path is not in the library");
 	return t.path;
 }
-function lt(e) {
-	return typeof e != "string" || e.trim() === "" ? !1 : !!ot.get(e);
+function kt(e) {
+	return typeof e != "string" || e.trim() === "" ? !1 : !!Et.get(e);
 }
-i.handle("read-file", async (e, t) => u.promises.readFile(ct(t))), i.handle("read-file-buffer", async (e, t) => u.promises.readFile(ct(t))), i.handle("file-exists", async (e, t) => {
-	let n = X(t);
+i.handle("read-file", async (e, t) => u.promises.readFile(Ot(t))), i.handle("read-file-buffer", async (e, t) => u.promises.readFile(Ot(t))), i.handle("file-exists", async (e, t) => {
+	let n = J(t);
 	if (!n) return !1;
 	try {
 		return await u.promises.access(n.path, u.constants.F_OK), !0;
@@ -1934,18 +2017,18 @@ i.handle("read-file", async (e, t) => u.promises.readFile(ct(t))), i.handle("rea
 		return !1;
 	}
 }), i.handle("open-external", async (e, t) => {
-	if (typeof t != "string" || !$e(t)) throw Error("Invalid external URL");
+	if (typeof t != "string" || !yt(t)) throw Error("Invalid external URL");
 	return o.openExternal(t);
 }), i.handle("open-user-data-folder", async () => o.openPath(n.getPath("userData"))), i.handle("get-cover-url", async (e, t) => {
-	if (!lt(t)) return null;
+	if (!kt(t)) return null;
 	try {
 		return await u.promises.access(t, u.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
 	} catch {
 		return null;
 	}
 });
-var Z = d.join(n.getPath("userData"), "backgrounds");
-u.mkdirSync(Z, { recursive: !0 }), i.handle("select-background-image", async () => {
+var Y = d.join(n.getPath("userData"), "backgrounds");
+u.mkdirSync(Y, { recursive: !0 }), i.handle("select-background-image", async () => {
 	let e = await r.showOpenDialog({
 		properties: ["openFile"],
 		filters: [{
@@ -1961,14 +2044,14 @@ u.mkdirSync(Z, { recursive: !0 }), i.handle("select-background-image", async () 
 		}]
 	});
 	if (e.canceled || e.filePaths.length === 0) return null;
-	let t = e.filePaths[0], n = d.extname(t), i = `background-${f.randomUUID()}${n}`, a = d.join(Z, i);
+	let t = e.filePaths[0], n = d.extname(t), i = `background-${f.randomUUID()}${n}`, a = d.join(Y, i);
 	try {
 		return await u.promises.copyFile(t, a), a;
 	} catch (e) {
 		return console.error("Failed to copy background image:", e), null;
 	}
 }), i.handle("get-background-image-url", async (e, t) => {
-	if (typeof t != "string" || !tt(t, Z)) return null;
+	if (typeof t != "string" || !xt(t, Y)) return null;
 	try {
 		return await u.promises.access(t, u.constants.F_OK), `file://${t.replace(/\\/g, "/")}`;
 	} catch {
@@ -1979,11 +2062,11 @@ u.mkdirSync(Z, { recursive: !0 }), i.handle("select-background-image", async () 
 		properties: ["openFile"],
 		filters: [{
 			name: "Books",
-			extensions: [...We()]
+			extensions: [...ut()]
 		}]
 	});
 	if (e.canceled || e.filePaths.length === 0) return null;
-	let t = e.filePaths[0], i = d.extname(t).toLowerCase(), a = Ke(H(i));
+	let t = e.filePaths[0], i = d.extname(t).toLowerCase(), a = ft(B(i));
 	if (a.capability === "unsupported" || !a.targetFormat || !a.documentKind || !a.ingestStatus) return null;
 	let o = d.basename(t, i), s = f.randomUUID(), c = d.join(n.getPath("userData"), "books");
 	await u.promises.mkdir(c, { recursive: !0 });
@@ -1991,89 +2074,117 @@ u.mkdirSync(Z, { recursive: !0 }), i.handle("select-background-image", async () 
 	if (a.requiresConversion && a.sourceFormat === "docx") {
 		let e = `${o}-${s}.docx`, n = d.join(c, e);
 		await u.promises.copyFile(t, n);
-		let r = await Xe(n), i = `${o}-${s}.md`;
+		let r = await gt(n), i = `${o}-${s}.md`;
 		l = d.join(c, i), await u.promises.writeFile(l, r, "utf-8");
 	} else {
 		let e = `${o}-${s}${i}`;
 		l = d.join(c, e), await u.promises.copyFile(t, l);
 	}
-	let p = await Ze(l, a.targetFormat), m = p.title || o, h = p.author || null, g = null;
-	a.targetFormat === "epub" || a.targetFormat === "mobi" || a.targetFormat === "azw3" ? g = await qe(l, s) : a.targetFormat === "pdf" && (g = await Je(l, s));
+	let p = await _t(l, a.targetFormat), m = p.title || o, h = p.author || null, g = null;
+	a.targetFormat === "epub" || a.targetFormat === "mobi" || a.targetFormat === "azw3" ? g = await pt(l, s) : a.targetFormat === "pdf" && (g = await mt(l, s));
 	try {
-		let e = W.prepare("\n      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) \n      VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n      ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP\n      RETURNING *\n    ").get(m, h, l, a.targetFormat, a.sourceFormat, a.documentKind, a.ingestStatus, g);
-		return e ? q(e) : null;
+		let e = H.prepare("\n      INSERT INTO books (title, author, path, format, sourceFormat, documentKind, ingestStatus, coverPath) \n      VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n      ON CONFLICT(path) DO UPDATE SET lastReadAt = CURRENT_TIMESTAMP\n      RETURNING *\n    ").get(m, h, l, a.targetFormat, a.sourceFormat, a.documentKind, a.ingestStatus, g);
+		return e ? G(e) : null;
 	} catch (e) {
 		return console.error("DB Insert Error:", e), null;
 	}
-}), i.handle("get-library", () => nt.all().map(q)), i.handle("search-library", (e, t) => {
+}), i.handle("get-library", () => St.all().map(G)), i.handle("search-library", (e, t) => {
 	let n = `%${typeof t == "string" ? t : ""}%`;
-	return rt.all(n, n).map(q);
+	return Ct.all(n, n).map(G);
 }), i.handle("update-progress", (e, t, n, r, i) => {
-	if (!J(t)) throw Error("Invalid book id");
+	if (!K(t)) throw Error("Invalid book id");
 	if (typeof n != "number" || !Number.isFinite(n)) throw Error("Invalid progress");
-	if (!Y.get(t)) throw Error("Book not found");
+	if (!q.get(t)) throw Error("Book not found");
 	let a = Math.min(1, Math.max(0, n)), o = typeof i == "number" ? i : Date.now(), s = r ? JSON.stringify(r) : null;
-	it.run(a, s, o, t);
+	wt.run(a, s, o, t);
 }), i.handle("delete-book", (e, t) => {
-	if (!J(t)) return !1;
+	if (!K(t)) return !1;
 	try {
-		let e = Y.get(t);
-		return e && (e.coverPath && u.promises.unlink(e.coverPath).catch(() => {}), e.path && u.promises.unlink(e.path).catch(() => {})), W.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
+		let e = q.get(t);
+		return e && (e.coverPath && u.promises.unlink(e.coverPath).catch(() => {}), e.path && u.promises.unlink(e.path).catch(() => {})), H.prepare("DELETE FROM books WHERE id = ?").run(t), !0;
 	} catch (e) {
 		return console.error("Delete book error:", e), !1;
 	}
-}), i.handle("get-annotations", (e, t) => J(t) ? W.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t) : []), i.handle("add-annotation", (e, t) => {
-	if (!t || !J(t.bookId)) throw Error("Invalid annotation book id");
-	if (!Y.get(t.bookId)) throw Error("Book not found");
+}), i.handle("get-annotations", (e, t) => K(t) ? H.prepare("SELECT * FROM annotations WHERE bookId = ? ORDER BY createdAt DESC").all(t) : []), i.handle("add-annotation", (e, t) => {
+	if (!t || !K(t.bookId)) throw Error("Invalid annotation book id");
+	if (!q.get(t.bookId)) throw Error("Book not found");
 	if (t.type !== "highlight" && t.type !== "note") throw Error("Invalid annotation type");
-	return W.prepare("\n    INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)\n    VALUES (?, ?, ?, ?, ?, ?, ?)\n    RETURNING *\n  ").get(t.bookId, t.type, t.cfi || null, t.pageNumber || null, t.text || null, t.note || null, t.color || "#ffeb3b");
+	return H.prepare("\n    INSERT INTO annotations (bookId, type, cfi, pageNumber, text, note, color)\n    VALUES (?, ?, ?, ?, ?, ?, ?)\n    RETURNING *\n  ").get(t.bookId, t.type, t.cfi || null, t.pageNumber || null, t.text || null, t.note || null, t.color || "#ffeb3b");
 }), i.handle("update-annotation", (e, t, n) => {
-	if (!J(t) || !st.get(t) || !n || typeof n != "object") return null;
+	if (!K(t) || !Dt.get(t) || !n || typeof n != "object") return null;
 	let r = [], i = [];
-	return n.note !== void 0 && (r.push("note = ?"), i.push(n.note)), n.color !== void 0 && (r.push("color = ?"), i.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), i.push(t), W.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...i));
+	return n.note !== void 0 && (r.push("note = ?"), i.push(n.note)), n.color !== void 0 && (r.push("color = ?"), i.push(n.color)), r.length === 0 ? null : (r.push("updatedAt = CURRENT_TIMESTAMP"), i.push(t), H.prepare(`UPDATE annotations SET ${r.join(", ")} WHERE id = ? RETURNING *`).get(...i));
 }), i.handle("delete-annotation", (e, t) => {
-	if (!J(t)) return !1;
+	if (!K(t)) return !1;
 	try {
-		return W.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
+		return H.prepare("DELETE FROM annotations WHERE id = ?").run(t), !0;
 	} catch (e) {
 		return console.error("Delete annotation error:", e), !1;
 	}
 }), i.handle("qa-load-book", async (e, t, n) => {
-	let r = X(t);
-	return r ? V.loadBookForQA(r.path, r.format || n) : {
+	let r = J(t);
+	return r ? z.loadBookForQA(r.path, r.format || n) : {
 		success: !1,
 		error: "Book path is not in the library"
 	};
 }), i.handle("qa-ask", async (e, t) => {
 	if (typeof t != "string" || t.trim() === "") throw Error("Invalid question");
-	return V.askQuestion(t);
+	return z.askQuestion(t);
 }), i.handle("qa-clear", async () => {
-	V.clearQA();
-}), i.handle("qa-get-status", async () => V.getStatus()), i.handle("credentials-save", async (e, t) => {
+	z.clearQA();
+}), i.handle("qa-get-status", async () => z.getStatus()), i.handle("credentials-save", async (e, t) => {
 	try {
-		return await he(t), { success: !0 };
+		return await Ae(t), { success: !0 };
 	} catch (e) {
 		return {
 			success: !1,
 			error: e instanceof Error ? e.message : String(e)
 		};
 	}
-}), i.handle("credentials-load", async () => O()), i.handle("credentials-clear", async () => {
+}), i.handle("credentials-load", async () => je()), i.handle("credentials-clear", async () => {
 	try {
-		return xe(), { success: !0 };
+		return Ie(), { success: !0 };
 	} catch (e) {
 		return {
 			success: !1,
 			error: e instanceof Error ? e.message : String(e)
 		};
 	}
-}), i.handle("credentials-has", async () => Se());
+}), i.handle("credentials-has", async () => Le());
 //#endregion
 //#region electron/main.ts
-var ut = c(import.meta.url), dt = s.dirname(ut);
-process.env.DIST = s.join(dt, "../dist"), process.env.VITE_PUBLIC = n.isPackaged ? process.env.DIST : s.join(process.env.DIST, "../public");
-var Q, $ = process.env.VITE_DEV_SERVER_URL;
-function ft(e) {
+var At = c(import.meta.url), jt = s.dirname(At);
+process.env.DIST = s.join(jt, "../dist"), process.env.VITE_PUBLIC = n.isPackaged ? process.env.DIST : s.join(process.env.DIST, "../public");
+var X, Z = process.env.VITE_DEV_SERVER_URL, Mt = new Set([
+	"http:",
+	"https:",
+	"mailto:"
+]);
+function Nt(e, t) {
+	let n = s.resolve(e), r = s.resolve(t), i = s.relative(r, n);
+	return i === "" || !i.startsWith("..") && !s.isAbsolute(i);
+}
+function Pt(e) {
+	try {
+		let t = new URL(e);
+		return Mt.has(t.protocol);
+	} catch {
+		return !1;
+	}
+}
+function Ft(e) {
+	if (e === "about:blank") return !0;
+	try {
+		let t = new URL(e);
+		return Z ? t.origin === new URL(Z).origin : t.protocol !== "file:" || !process.env.DIST ? !1 : Nt(c(t), process.env.DIST);
+	} catch {
+		return !1;
+	}
+}
+async function Q(e) {
+	Pt(e) && await o.openExternal(e);
+}
+function It(e) {
 	e.webContents.on("did-fail-load", (e, t, n, r, i) => {
 		i && console.error("[main] did-fail-load", JSON.stringify({
 			errorCode: t,
@@ -2084,26 +2195,36 @@ function ft(e) {
 		console.error("[main] render-process-gone", JSON.stringify(t));
 	});
 }
-function pt() {
-	if (Q = new t({
+function Lt(e) {
+	e.webContents.setWindowOpenHandler(({ url: e }) => (Q(e), { action: "deny" })), e.webContents.on("will-navigate", (e, t) => {
+		Ft(t) || (e.preventDefault(), Q(t));
+	}), e.webContents.on("will-redirect", (e, t, n, r) => {
+		!r || Ft(t) || (e.preventDefault(), Q(t));
+	}), e.webContents.session.setPermissionRequestHandler((e, t, n) => {
+		n(!1);
+	});
+}
+function $() {
+	if (X = new t({
 		icon: s.join(process.env.VITE_PUBLIC, "vite.svg"),
 		webPreferences: {
-			preload: s.join(dt, "preload.mjs"),
+			preload: s.join(jt, "preload.mjs"),
 			contextIsolation: !0,
-			nodeIntegration: !1
+			nodeIntegration: !1,
+			sandbox: !0
 		}
-	}), ft(Q), Q.webContents.on("did-finish-load", () => {
-		Q?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-	}), $) console.log("[main] loading dev url:", $), Q.loadURL($), Q.webContents.openDevTools({ mode: "detach" });
+	}), It(X), Lt(X), X.webContents.on("did-finish-load", () => {
+		X?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+	}), Z) console.log("[main] loading dev url:", Z), X.loadURL(Z), X.webContents.openDevTools({ mode: "detach" });
 	else {
 		let e = s.join(process.env.DIST, "index.html");
-		console.log("[main] loading file:", e), Q.loadFile(e);
+		console.log("[main] loading file:", e), X.loadFile(e);
 	}
 }
 n.on("window-all-closed", () => {
 	process.platform !== "darwin" && n.quit();
 }), n.on("activate", () => {
-	t.getAllWindows().length === 0 && pt();
-}), n.whenReady().then(pt);
+	t.getAllWindows().length === 0 && $();
+}), n.whenReady().then($);
 //#endregion
 export {};

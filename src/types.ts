@@ -188,7 +188,7 @@ export interface IpcRenderer {
     qaApiStyle?: 'openai' | 'anthropic';
   }): Promise<{ success: boolean; error?: string }>;
   invoke(channel: "credentials-load"): Promise<{
-    qaApiKey?: string;
+    hasApiKey: boolean;
     qaBaseUrl?: string;
     qaModel?: string;
     qaApiStyle?: 'openai' | 'anthropic';

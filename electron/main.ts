@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, shell } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import './handlers' // Import handlers to register IPC events
@@ -12,6 +12,45 @@ process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST! : path.join(process
 
 let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] as string | undefined
+const allowedExternalProtocols = new Set(['http:', 'https:', 'mailto:'])
+
+function isPathInsideDirectory(filePath: string, directory: string): boolean {
+  const resolvedPath = path.resolve(filePath)
+  const resolvedDirectory = path.resolve(directory)
+  const relativePath = path.relative(resolvedDirectory, resolvedPath)
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
+}
+
+function isAllowedExternalUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl)
+    return allowedExternalProtocols.has(url.protocol)
+  } catch {
+    return false
+  }
+}
+
+function isAllowedAppNavigation(rawUrl: string): boolean {
+  if (rawUrl === 'about:blank') return true
+
+  try {
+    const url = new URL(rawUrl)
+
+    if (VITE_DEV_SERVER_URL) {
+      return url.origin === new URL(VITE_DEV_SERVER_URL).origin
+    }
+
+    if (url.protocol !== 'file:' || !process.env.DIST) return false
+    return isPathInsideDirectory(fileURLToPath(url), process.env.DIST)
+  } catch {
+    return false
+  }
+}
+
+async function openExternalUrl(rawUrl: string) {
+  if (!isAllowedExternalUrl(rawUrl)) return
+  await shell.openExternal(rawUrl)
+}
 
 function attachWebContentsDebugging(browserWindow: BrowserWindow) {
   browserWindow.webContents.on(
@@ -30,6 +69,31 @@ function attachWebContentsDebugging(browserWindow: BrowserWindow) {
   })
 }
 
+function attachWebContentsSecurity(browserWindow: BrowserWindow) {
+  browserWindow.webContents.setWindowOpenHandler(({ url }) => {
+    void openExternalUrl(url)
+    return { action: 'deny' }
+  })
+
+  browserWindow.webContents.on('will-navigate', (event, url) => {
+    if (isAllowedAppNavigation(url)) return
+
+    event.preventDefault()
+    void openExternalUrl(url)
+  })
+
+  browserWindow.webContents.on('will-redirect', (event, url, _isInPlace, isMainFrame) => {
+    if (!isMainFrame || isAllowedAppNavigation(url)) return
+
+    event.preventDefault()
+    void openExternalUrl(url)
+  })
+
+  browserWindow.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false)
+  })
+}
+
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, 'vite.svg'),
@@ -37,10 +101,12 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   })
 
   attachWebContentsDebugging(win)
+  attachWebContentsSecurity(win)
 
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())

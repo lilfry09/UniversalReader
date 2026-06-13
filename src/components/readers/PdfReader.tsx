@@ -405,10 +405,6 @@ export default function PdfReader({
   }
 
   const handleClickCapture = async (e: React.MouseEvent) => {
-    const raw = localStorage.getItem('open-external-links')
-    const enabled = raw == null ? true : raw === 'true'
-    if (!enabled) return
-
     const target = e.target as HTMLElement | null
     const anchor = target?.closest('a') as HTMLAnchorElement | null
     if (!anchor?.href) return
@@ -417,6 +413,10 @@ export default function PdfReader({
       const url = new URL(anchor.href)
       if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'mailto:') return
       e.preventDefault()
+
+      const raw = localStorage.getItem('open-external-links')
+      const enabled = raw == null ? true : raw === 'true'
+      if (!enabled) return
 
       if (isElectron()) {
         await window.ipcRenderer.invoke('open-external', anchor.href)

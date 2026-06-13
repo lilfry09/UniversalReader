@@ -7,6 +7,7 @@ import path from 'path'
 import { createCanvas } from 'canvas'
 import { qaService } from './qa-service'
 import * as secureStore from './secure-store'
+import type { CredentialUpdate } from './secure-store'
 import type { ReaderProgressLocator } from '../src/types'
 import { getDocumentKind, normalizeExtension } from '../src/domain/document'
 import type { DocumentFormat } from '../src/domain/document'
@@ -697,12 +698,7 @@ ipcMain.handle('qa-get-status', async () => {
 
 // ============ Secure Credentials Handlers ============
 
-ipcMain.handle('credentials-save', async (_, credentials: {
-  qaApiKey?: string
-  qaBaseUrl?: string
-  qaModel?: string
-  qaApiStyle?: 'openai' | 'anthropic'
-}) => {
+ipcMain.handle('credentials-save', async (_, credentials: CredentialUpdate) => {
   try {
     await secureStore.saveCredentials(credentials)
     return { success: true }
@@ -713,7 +709,7 @@ ipcMain.handle('credentials-save', async (_, credentials: {
 })
 
 ipcMain.handle('credentials-load', async () => {
-  return secureStore.loadCredentials()
+  return secureStore.loadCredentialMetadata()
 })
 
 ipcMain.handle('credentials-clear', async () => {

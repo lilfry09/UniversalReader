@@ -46,9 +46,10 @@ function getBaseUrl(): string {
   if (process.env.NODE_ENV === 'test') {
     if (process.env.QA_BASE_URL) return process.env.QA_BASE_URL;
     if (process.env.OPENROUTER_BASE_URL) return process.env.OPENROUTER_BASE_URL;
-    return getApiStyle() === "anthropic"
+    const defaultUrl = getApiStyle() === "anthropic"
       ? "https://api.minimax.io/anthropic"
       : "https://openrouter.ai/api/v1";
+    return secureStore.validateBaseUrl(defaultUrl);
   }
   return secureStore.getBaseUrl(getApiStyle());
 }
@@ -76,6 +77,14 @@ function hasBaseUrlPath(baseUrl: string): boolean {
   } catch {
     return baseUrl.split("/").length > 3;
   }
+}
+
+function getValidatedBaseUrl(): string {
+  return secureStore.validateBaseUrl(getBaseUrl());
+}
+
+function throwChatApiError(provider: string, status: number): never {
+  throw new Error(`${provider} API request failed with status ${status}`);
 }
 
 // Simple in-memory vector store
@@ -165,7 +174,7 @@ async function chatOpenAICompatible(
   messages: { role: string; content: string }[],
   signal?: AbortSignal
 ): Promise<string> {
-  const baseUrl = trimTrailingSlash(getBaseUrl());
+  const baseUrl = trimTrailingSlash(getValidatedBaseUrl());
 
   // Handle different URL formats
   let endpoint: string;
@@ -209,8 +218,7 @@ async function chatOpenAICompatible(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI-compatible API error: ${response.status} - ${errorText}`);
+    throwChatApiError("OpenAI-compatible", response.status);
   }
 
   const data = await response.json() as { choices?: { message: { content: string } }[] };
@@ -221,7 +229,7 @@ async function chatAnthropicCompatible(
   messages: { role: string; content: string }[],
   signal?: AbortSignal
 ): Promise<string> {
-  const baseUrl = trimTrailingSlash(getBaseUrl());
+  const baseUrl = trimTrailingSlash(getValidatedBaseUrl());
 
   const response = await fetch(`${baseUrl}/v1/messages`, {
     method: "POST",
@@ -239,8 +247,7 @@ async function chatAnthropicCompatible(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Anthropic-compatible API error: ${response.status} - ${errorText}`);
+    throwChatApiError("Anthropic-compatible", response.status);
   }
 
   const data = await response.json() as {

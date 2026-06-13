@@ -130,7 +130,8 @@ export default function MarkdownReader({
               components={{
                 a: ({ href, children, ...props }) => {
                   const safeHref = href || ''
-                  const external = isExternalLinksEnabled() && shouldOpenExternal(safeHref)
+                  const isSafeExternalHref = shouldOpenExternal(safeHref)
+                  const external = isSafeExternalHref && isExternalLinksEnabled()
 
                   return (
                     <a
@@ -138,8 +139,8 @@ export default function MarkdownReader({
                       href={safeHref}
                       onClick={async (e) => {
                         if (!safeHref) return
+                        if (isSafeExternalHref) e.preventDefault()
                         if (!external) return
-                        e.preventDefault()
                         try {
                           if (isElectron()) {
                             await window.ipcRenderer.invoke('open-external', safeHref)
@@ -151,7 +152,7 @@ export default function MarkdownReader({
                           console.error('Failed to open external link:', err)
                         }
                       }}
-                      rel={external ? 'noreferrer' : props.rel}
+                      rel={isSafeExternalHref ? 'noreferrer' : props.rel}
                     >
                       {children}
                     </a>

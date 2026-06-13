@@ -22,7 +22,8 @@ export default function APIConfig() {
 
       const creds = await window.ipcRenderer.invoke('credentials-load')
       if (creds) {
-        setApiKey(creds.qaApiKey || '')
+        setApiKey('')
+        setHasCredentials(hasCreds || creds.hasApiKey)
         setBaseUrl(creds.qaBaseUrl || '')
         setModel(creds.qaModel || '')
         setApiStyle(creds.qaApiStyle || 'openai')
@@ -40,7 +41,7 @@ export default function APIConfig() {
 
   const handleSave = async () => {
     if (!isElectron()) return
-    if (!apiKey.trim()) {
+    if (!apiKey.trim() && !hasCredentials) {
       setErrorMessage('API Key 不能为空')
       setSaveStatus('error')
       return
@@ -51,7 +52,7 @@ export default function APIConfig() {
 
     try {
       const result = await window.ipcRenderer.invoke('credentials-save', {
-        qaApiKey: apiKey.trim(),
+        qaApiKey: apiKey.trim() || undefined,
         qaBaseUrl: baseUrl.trim() || undefined,
         qaModel: model.trim() || undefined,
         qaApiStyle: apiStyle,
@@ -60,6 +61,7 @@ export default function APIConfig() {
       if (result.success) {
         setSaveStatus('success')
         setHasCredentials(true)
+        setApiKey('')
         setTimeout(() => setSaveStatus('idle'), 2000)
       } else {
         setSaveStatus('error')
@@ -137,7 +139,7 @@ export default function APIConfig() {
                 type={showApiKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
+                placeholder={hasCredentials ? '已保存；留空保持不变' : 'sk-...'}
                 className={inputClass}
               />
               <button
