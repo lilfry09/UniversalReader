@@ -5,7 +5,7 @@ process.env.DEEPSEEK_API_KEY = 'test-key'
 process.env.DEEPSEEK_API_URL = 'https://api.deepseek.com'
 
 // Mock the dependencies BEFORE importing
-vi.mock('fs', () => ({
+vi.mock('node:fs', () => ({
   default: {
     existsSync: vi.fn(),
     promises: {
@@ -70,7 +70,7 @@ describe('QA Service', () => {
 
   describe('loadBookForQA - API Key Validation', () => {
     it('should fail when file does not exist', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(false)
 
       const result = await qaService.loadBookForQA('/nonexistent/file.pdf', 'pdf')
@@ -80,7 +80,7 @@ describe('QA Service', () => {
     })
 
     it('should fail for unsupported format', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
 
       const result = await qaService.loadBookForQA('/test/file.xyz', 'xyz')
@@ -90,7 +90,7 @@ describe('QA Service', () => {
     })
 
     it('should fail for AZW3 format with conversion message', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
 
       const result = await qaService.loadBookForQA('/test/file.azw3', 'azw3')
@@ -100,7 +100,7 @@ describe('QA Service', () => {
     })
 
     it('should fail for Mobi format with conversion message', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
 
       const result = await qaService.loadBookForQA('/test/file.mobi', 'mobi')
@@ -130,7 +130,7 @@ describe('QA Service', () => {
 
   describe('chat API configuration', () => {
     it('should send OpenAI-compatible requests with QA overrides', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue(
         'A careful reader can use UniversalReader to study notes and ask questions about the current book.'
@@ -172,7 +172,7 @@ describe('QA Service', () => {
     })
 
     it('should use v1 SharedChat-compatible endpoints and a generic OpenAI default model', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue(
         'SharedChat-compatible providers can answer questions through the OpenAI chat completions API.'
@@ -210,7 +210,7 @@ describe('QA Service', () => {
     })
 
     it('should add v1 to bare OpenAI-compatible provider hosts', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue(
         'Bare OpenAI-compatible provider hosts still expose chat completions under the v1 API path.'
@@ -239,7 +239,7 @@ describe('QA Service', () => {
     })
 
     it('should send Anthropic-compatible requests when configured', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue(
         'This book explains annotations, library organization, and reading progress in detail.'
@@ -284,8 +284,77 @@ describe('QA Service', () => {
       })
     })
 
+    it('should expose sanitized provider errors during connection tests', async () => {
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_BASE_URL = 'https://example.test/v1'
+      process.env.QA_MODEL = 'missing-model'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        text: vi.fn().mockResolvedValue(JSON.stringify({
+          error: '当前 API 不支持所选模型 missing-model',
+        })),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const result = await qaService.testConnection()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('当前 API 不支持所选模型 missing-model')
+      expect(result.error).not.toContain('test-key')
+    })
+
+    it('should reject OpenAI-compatible 200 responses without chat choices', async () => {
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_BASE_URL = 'https://new.sharedchat.cc/codex'
+      process.env.QA_MODEL = 'gpt-5.5'
+      process.env.QA_API_STYLE = 'openai'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          code: 0,
+          msg: '该接口未接入公益站独立网关，旧转发链路已关闭',
+          data: null,
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const result = await qaService.testConnection()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('invalid chat response')
+      expect(result.error).toContain('旧转发链路已关闭')
+      expect(result.error).not.toContain('test-key')
+    })
+
+    it('should reject Anthropic-compatible 200 responses without text blocks', async () => {
+      process.env.QA_API_KEY = 'test-key'
+      process.env.QA_BASE_URL = 'https://example.test/anthropic'
+      process.env.QA_MODEL = 'missing-model'
+      process.env.QA_API_STYLE = 'anthropic'
+
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          content: [{ type: 'tool_use', name: 'noop' }],
+          message: 'No text output was produced',
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const result = await qaService.testConnection()
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('invalid chat response')
+      expect(result.error).toContain('No text output was produced')
+      expect(result.error).not.toContain('test-key')
+    })
+
     it('should retry on API failures', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue(
         'Test book content for retry testing.'
@@ -312,7 +381,7 @@ describe('QA Service', () => {
     })
 
     it('should handle rate limit errors with longer retry delay', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue('Test content')
       process.env.QA_API_KEY = 'test-key'
@@ -337,7 +406,7 @@ describe('QA Service', () => {
     })
 
     it('should fail after max retries', async () => {
-      const fs = await import('fs')
+      const fs = await import('node:fs')
       vi.mocked(fs.default.existsSync).mockReturnValue(true)
       vi.mocked(fs.default.promises.readFile).mockResolvedValue('Test content')
       process.env.QA_API_KEY = 'test-key'

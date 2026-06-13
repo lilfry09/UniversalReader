@@ -696,6 +696,10 @@ ipcMain.handle('qa-get-status', async () => {
   return qaService.getStatus()
 })
 
+ipcMain.handle('credentials-test', async () => {
+  return qaService.testConnection()
+})
+
 // ============ Secure Credentials Handlers ============
 
 ipcMain.handle('credentials-save', async (_, credentials: CredentialUpdate) => {

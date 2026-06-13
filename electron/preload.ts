@@ -23,6 +23,7 @@ const allowedInvokeChannels = new Set([
   'qa-clear',
   'qa-get-status',
   'credentials-save',
+  'credentials-test',
   'credentials-load',
   'credentials-clear',
   'credentials-has',

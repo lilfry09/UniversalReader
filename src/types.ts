@@ -187,6 +187,14 @@ export interface IpcRenderer {
     qaModel?: string;
     qaApiStyle?: 'openai' | 'anthropic';
   }): Promise<{ success: boolean; error?: string }>;
+  invoke(channel: "credentials-test"): Promise<{
+    success: boolean;
+    error?: string;
+    apiStyle?: 'openai' | 'anthropic';
+    baseUrl?: string;
+    model?: string;
+    answerPreview?: string;
+  }>;
   invoke(channel: "credentials-load"): Promise<{
     hasApiKey: boolean;
     qaBaseUrl?: string;

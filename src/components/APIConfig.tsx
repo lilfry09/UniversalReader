@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Key, Save, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Key, Save, Trash2, Wifi } from 'lucide-react'
 import { clsx } from 'clsx'
 import { isElectron } from '../utils'
 
@@ -11,7 +11,9 @@ export default function APIConfig() {
   const [showApiKey, setShowApiKey] = useState(false)
   const [hasCredentials, setHasCredentials] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [testMessage, setTestMessage] = useState('')
 
   const loadCredentials = useCallback(async () => {
     if (!isElectron()) return
@@ -39,37 +41,65 @@ export default function APIConfig() {
     })
   }, [loadCredentials])
 
+  const saveCurrentCredentials = async () => {
+    if (!apiKey.trim() && !hasCredentials) {
+      throw new Error('API Key 不能为空')
+    }
+
+    const result = await window.ipcRenderer.invoke('credentials-save', {
+      qaApiKey: apiKey.trim() || undefined,
+      qaBaseUrl: baseUrl.trim() || undefined,
+      qaModel: model.trim() || undefined,
+      qaApiStyle: apiStyle,
+    })
+
+    if (!result.success) {
+      throw new Error(result.error || '保存失败')
+    }
+
+    setHasCredentials(true)
+    setApiKey('')
+  }
+
   const handleSave = async () => {
     if (!isElectron()) return
-    if (!apiKey.trim() && !hasCredentials) {
-      setErrorMessage('API Key 不能为空')
-      setSaveStatus('error')
-      return
-    }
 
     setSaveStatus('saving')
     setErrorMessage('')
 
     try {
-      const result = await window.ipcRenderer.invoke('credentials-save', {
-        qaApiKey: apiKey.trim() || undefined,
-        qaBaseUrl: baseUrl.trim() || undefined,
-        qaModel: model.trim() || undefined,
-        qaApiStyle: apiStyle,
-      })
-
-      if (result.success) {
-        setSaveStatus('success')
-        setHasCredentials(true)
-        setApiKey('')
-        setTimeout(() => setSaveStatus('idle'), 2000)
-      } else {
-        setSaveStatus('error')
-        setErrorMessage(result.error || '保存失败')
-      }
+      await saveCurrentCredentials()
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 2000)
     } catch (err) {
       setSaveStatus('error')
       setErrorMessage(err instanceof Error ? err.message : '保存失败')
+    }
+  }
+
+  const handleTest = async () => {
+    if (!isElectron()) return
+
+    setTestStatus('testing')
+    setTestMessage('')
+    setErrorMessage('')
+
+    try {
+      await saveCurrentCredentials()
+      const result = await window.ipcRenderer.invoke('credentials-test')
+
+      if (!result.success) {
+        setTestStatus('error')
+        setTestMessage(result.error || '连接测试失败')
+        return
+      }
+
+      const modelLabel = result.model ? `模型：${result.model}` : '模型可用'
+      setTestStatus('success')
+      setTestMessage(`连接成功。${modelLabel}`)
+    } catch (err) {
+      setTestStatus('error')
+      setTestMessage(err instanceof Error ? err.message : '连接测试失败')
     }
   }
 
@@ -92,6 +122,7 @@ export default function APIConfig() {
 
   const inputClass = 'w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#637a68]/10'
   const buttonClass = 'inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition'
+  const isBusy = saveStatus === 'saving' || testStatus === 'testing'
 
   return (
     <div className="space-y-4">
@@ -200,11 +231,22 @@ export default function APIConfig() {
             </div>
           )}
 
+          {testStatus !== 'idle' && testMessage && (
+            <div className={clsx(
+              'mb-3 rounded-md border px-3 py-2 text-sm',
+              testStatus === 'success'
+                ? 'bg-green-50 border-green-200 text-green-700'
+                : 'bg-red-50 border-red-200 text-red-700'
+            )}>
+              {testMessage}
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              disabled={saveStatus === 'saving'}
+              disabled={isBusy}
               className={clsx(
                 buttonClass,
                 'bg-[#20332e] text-white hover:bg-[#2b433b] disabled:opacity-50 disabled:cursor-not-allowed'
@@ -214,10 +256,22 @@ export default function APIConfig() {
               {saveStatus === 'saving' ? '保存中...' : '保存配置'}
             </button>
 
+            <button
+              onClick={handleTest}
+              disabled={isBusy || (!apiKey.trim() && !hasCredentials)}
+              className={clsx(
+                buttonClass,
+                'border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed'
+              )}
+            >
+              <Wifi className="w-4 h-4" />
+              {testStatus === 'testing' ? '测试中...' : '测试连接'}
+            </button>
+
             {hasCredentials && (
               <button
                 onClick={handleClear}
-                disabled={saveStatus === 'saving'}
+                disabled={isBusy}
                 className={clsx(
                   buttonClass,
                   'border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50'

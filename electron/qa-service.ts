@@ -1,14 +1,14 @@
 // Simple QA Service using OpenRouter API
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "node:url";
-import AdmZip from "adm-zip";
-import type { SourceChunk, QAServiceStatus, QAStatus } from "../src/types.ts";
-import * as secureStore from "./secure-store.js";
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import AdmZip from 'adm-zip'
+import type { SourceChunk, QAServiceStatus, QAStatus } from '../src/types.ts'
+import * as secureStore from './secure-store.js'
 
 // ESM __dirname fix
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Simple Document interface
 interface Doc {
@@ -16,16 +16,16 @@ interface Doc {
   metadata: Record<string, unknown>;
 }
 
-type ApiStyle = "openai" | "anthropic";
+type ApiStyle = 'openai' | 'anthropic'
 
 // QA API configuration using secure storage
 function getApiStyle(): ApiStyle {
   // In test environment, fallback to env vars
   if (process.env.NODE_ENV === 'test') {
-    const value = (process.env.QA_API_STYLE || "").toLowerCase();
-    return value === "anthropic" ? "anthropic" : "openai";
+    const value = (process.env.QA_API_STYLE || '').toLowerCase()
+    return value === 'anthropic' ? 'anthropic' : 'openai'
   }
-  return secureStore.getApiStyle();
+  return secureStore.getApiStyle()
 }
 
 function getApiKey(): string {
@@ -35,56 +35,222 @@ function getApiKey(): string {
       process.env.QA_API_KEY ||
       process.env.OPENROUTER_API_KEY ||
       process.env.DEEPSEEK_API_KEY ||
-      ""
-    );
+      ''
+    )
   }
-  return secureStore.getApiKey();
+  return secureStore.getApiKey()
 }
 
 function getBaseUrl(): string {
   // In test environment, fallback to env vars
   if (process.env.NODE_ENV === 'test') {
-    if (process.env.QA_BASE_URL) return process.env.QA_BASE_URL;
-    if (process.env.OPENROUTER_BASE_URL) return process.env.OPENROUTER_BASE_URL;
-    const defaultUrl = getApiStyle() === "anthropic"
-      ? "https://api.minimax.io/anthropic"
-      : "https://openrouter.ai/api/v1";
-    return secureStore.validateBaseUrl(defaultUrl);
+    if (process.env.QA_BASE_URL) return process.env.QA_BASE_URL
+    if (process.env.OPENROUTER_BASE_URL) return process.env.OPENROUTER_BASE_URL
+    const defaultUrl = getApiStyle() === 'anthropic'
+      ? 'https://api.minimax.io/anthropic'
+      : 'https://openrouter.ai/api/v1'
+    return secureStore.validateBaseUrl(defaultUrl)
   }
-  return secureStore.getBaseUrl(getApiStyle());
+  return secureStore.getBaseUrl(getApiStyle())
 }
 
 function getChatModel(): string {
   // In test environment, fallback to env vars
   if (process.env.NODE_ENV === 'test') {
-    if (process.env.QA_MODEL) return process.env.QA_MODEL;
-    if (getApiStyle() === "anthropic") return "MiniMax-M2.7";
-    return getBaseUrl().includes("openrouter.ai")
-      ? "google/gemini-2.0-flash-thinking-exp:free"
-      : "gpt-3.5-turbo";
+    if (process.env.QA_MODEL) return process.env.QA_MODEL
+    if (getApiStyle() === 'anthropic') return 'MiniMax-M2.7'
+    return getBaseUrl().includes('openrouter.ai')
+      ? 'google/gemini-2.0-flash-thinking-exp:free'
+      : 'gpt-3.5-turbo'
   }
-  return secureStore.getChatModel(getApiStyle());
+  return secureStore.getChatModel(getApiStyle())
 }
 
 function trimTrailingSlash(url: string): string {
-  return url.replace(/\/+$/g, "");
+  return url.replace(/\/+$/g, '')
 }
 
 function hasBaseUrlPath(baseUrl: string): boolean {
   try {
     const parsed = new URL(baseUrl);
-    return parsed.pathname !== "/" && parsed.pathname !== "";
+    return parsed.pathname !== '/' && parsed.pathname !== ''
   } catch {
-    return baseUrl.split("/").length > 3;
+    return baseUrl.split('/').length > 3
   }
 }
 
 function getValidatedBaseUrl(): string {
-  return secureStore.validateBaseUrl(getBaseUrl());
+  return secureStore.validateBaseUrl(getBaseUrl())
 }
 
-function throwChatApiError(provider: string, status: number): never {
-  throw new Error(`${provider} API request failed with status ${status}`);
+function sanitizeProviderError(input: string): string {
+  return input
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')
+    .replace(/sk-[A-Za-z0-9._-]+/g, 'sk-[redacted]')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function getSanitizedString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim()
+    ? sanitizeProviderError(value)
+    : undefined
+}
+
+function extractProviderMessage(data: unknown): string | undefined {
+  if (!isRecord(data)) return undefined
+
+  const error = data.error
+  if (typeof error === 'string') return getSanitizedString(error)
+  if (isRecord(error)) {
+    const message = getSanitizedString(error.message)
+    if (message) return message
+  }
+
+  return getSanitizedString(data.message)
+    || getSanitizedString(data.msg)
+    || getSanitizedString(data.detail)
+}
+
+async function readJsonResponse(response: Response, provider: string): Promise<unknown> {
+  const textReader = (response as { text?: () => Promise<string> }).text
+  if (typeof textReader === 'function') {
+    const text = await textReader.call(response)
+    if (!text.trim()) {
+      throw new Error(`${provider} API returned an empty response`)
+    }
+
+    try {
+      return JSON.parse(text) as unknown
+    } catch {
+      throw new Error(`${provider} API returned non-JSON response: ${sanitizeProviderError(text)}`)
+    }
+  }
+
+  try {
+    return await response.json() as unknown
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`${provider} API returned an unreadable response: ${sanitizeProviderError(message)}`)
+  }
+}
+
+async function getProviderErrorMessage(response: Response): Promise<string | undefined> {
+  try {
+    const text = await response.text()
+    if (!text.trim()) return undefined
+
+    try {
+      const parsed = JSON.parse(text) as unknown
+      const providerMessage = extractProviderMessage(parsed)
+      if (providerMessage) return providerMessage
+    } catch {
+      // Fall back to raw text below.
+    }
+
+    return sanitizeProviderError(text)
+  } catch {
+    return undefined
+  }
+}
+
+async function throwChatApiError(provider: string, response: Response): Promise<never> {
+  const providerMessage = await getProviderErrorMessage(response)
+  const suffix = providerMessage ? `: ${providerMessage}` : ''
+  throw new Error(`${provider} API request failed with status ${response.status}${suffix}`)
+}
+
+type ChatFetchInit = {
+  method: 'POST'
+  headers: Record<string, string>
+  signal?: AbortSignal
+  body: string
+}
+
+async function getChatFetch(): Promise<typeof fetch> {
+  if (process.env.NODE_ENV === 'test') {
+    return fetch
+  }
+
+  try {
+    const electron = await import('electron')
+    if (electron.net && typeof electron.net.fetch === 'function') {
+      return electron.net.fetch.bind(electron.net) as typeof fetch
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn('[QA] Electron net.fetch unavailable, falling back to global fetch:', message)
+  }
+
+  return fetch
+}
+
+async function postChatRequest(endpoint: string, init: ChatFetchInit): Promise<Response> {
+  const requestFetch = await getChatFetch()
+  return requestFetch(endpoint, init)
+}
+
+function extractTextContent(content: unknown): string | undefined {
+  if (typeof content === 'string') {
+    const trimmed = content.trim()
+    return trimmed ? content : undefined
+  }
+
+  if (!Array.isArray(content)) return undefined
+
+  const text = content
+    .map(part => {
+      if (typeof part === 'string') return part
+      if (!isRecord(part)) return ''
+      return typeof part.text === 'string' ? part.text : ''
+    })
+    .join('\n')
+    .trim()
+
+  return text || undefined
+}
+
+function extractOpenAIChatAnswer(data: unknown): string | undefined {
+  if (!isRecord(data) || !Array.isArray(data.choices)) return undefined
+
+  for (const choice of data.choices) {
+    if (!isRecord(choice)) continue
+
+    if (isRecord(choice.message)) {
+      const content = extractTextContent(choice.message.content)
+      if (content) return content
+    }
+
+    const text = extractTextContent(choice.text)
+    if (text) return text
+  }
+
+  return undefined
+}
+
+function extractAnthropicChatAnswer(data: unknown): string | undefined {
+  if (!isRecord(data) || !Array.isArray(data.content)) return undefined
+
+  const text = data.content
+    .map(block => {
+      if (!isRecord(block) || block.type !== 'text') return ''
+      return typeof block.text === 'string' ? block.text : ''
+    })
+    .join('\n')
+    .trim()
+
+  return text || undefined
+}
+
+function throwInvalidChatResponse(provider: string, data: unknown): never {
+  const providerMessage = extractProviderMessage(data)
+  const suffix = providerMessage ? `: ${providerMessage}` : ''
+  throw new Error(`${provider} API returned an invalid chat response${suffix}`)
 }
 
 // Simple in-memory vector store
@@ -206,7 +372,7 @@ async function chatOpenAICompatible(
     headers["X-Title"] = "UniversalReader";
   }
 
-  const response = await fetch(endpoint, {
+  const response = await postChatRequest(endpoint, {
     method: "POST",
     headers,
     signal,
@@ -218,11 +384,16 @@ async function chatOpenAICompatible(
   });
 
   if (!response.ok) {
-    throwChatApiError("OpenAI-compatible", response.status);
+    await throwChatApiError("OpenAI-compatible", response);
   }
 
-  const data = await response.json() as { choices?: { message: { content: string } }[] };
-  return data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+  const data = await readJsonResponse(response, 'OpenAI-compatible')
+  const answer = extractOpenAIChatAnswer(data)
+  if (!answer) {
+    throwInvalidChatResponse('OpenAI-compatible', data)
+  }
+
+  return answer
 }
 
 async function chatAnthropicCompatible(
@@ -231,7 +402,7 @@ async function chatAnthropicCompatible(
 ): Promise<string> {
   const baseUrl = trimTrailingSlash(getValidatedBaseUrl());
 
-  const response = await fetch(`${baseUrl}/v1/messages`, {
+  const response = await postChatRequest(`${baseUrl}/v1/messages`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -247,20 +418,16 @@ async function chatAnthropicCompatible(
   });
 
   if (!response.ok) {
-    throwChatApiError("Anthropic-compatible", response.status);
+    await throwChatApiError("Anthropic-compatible", response);
   }
 
-  const data = await response.json() as {
-    content?: Array<{ type: string; text?: string }>;
-  };
+  const data = await readJsonResponse(response, 'Anthropic-compatible')
+  const answer = extractAnthropicChatAnswer(data)
+  if (!answer) {
+    throwInvalidChatResponse('Anthropic-compatible', data)
+  }
 
-  const text = data.content
-    ?.filter(block => block.type === "text")
-    .map(block => block.text || "")
-    .join("\n")
-    .trim();
-
-  return text || "Sorry, I couldn't generate a response.";
+  return answer
 }
 
 // Call configured chat API for answer generation with retry logic
@@ -600,6 +767,42 @@ Answer:`;
   };
 }
 
+async function testConnection(): Promise<{
+  success: boolean;
+  error?: string;
+  apiStyle?: ApiStyle;
+  baseUrl?: string;
+  model?: string;
+  answerPreview?: string;
+}> {
+  try {
+    if (!getApiKey()) {
+      throw new Error("API key is not configured.");
+    }
+
+    const apiStyle = getApiStyle();
+    const baseUrl = getValidatedBaseUrl();
+    const model = getChatModel();
+    const answer = await chat([
+      { role: "user", content: "Please reply with exactly: OK" }
+    ], 1);
+
+    return {
+      success: true,
+      apiStyle,
+      baseUrl,
+      model,
+      answerPreview: answer.slice(0, 120),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      error: sanitizeProviderError(message),
+    };
+  }
+}
+
 // Clear QA state
 function clearQA(): void {
   documents = [];
@@ -621,6 +824,7 @@ function clearQA(): void {
 export const qaService = {
   loadBookForQA,
   askQuestion,
+  testConnection,
   clearQA,
   getStatus,
 };
