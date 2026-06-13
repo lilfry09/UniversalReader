@@ -2,6 +2,26 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 
+function isIgnorableResizeObserverError(message: unknown) {
+  return typeof message === 'string' && message.includes('ResizeObserver')
+}
+
+window.addEventListener('error', (event) => {
+  if (!isIgnorableResizeObserverError(event.message)) return
+
+  event.preventDefault()
+  event.stopImmediatePropagation()
+}, true)
+
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event.reason
+  const message = reason instanceof Error ? reason.message : String(reason)
+  if (!isIgnorableResizeObserverError(message)) return
+
+  event.preventDefault()
+  event.stopImmediatePropagation()
+}, true)
+
 function showCriticalError(message: string, source?: string, lineno?: number, colno?: number, stack?: string) {
   const errorDiv = document.createElement('div')
   errorDiv.style.position = 'fixed'
@@ -21,16 +41,22 @@ function showCriticalError(message: string, source?: string, lineno?: number, co
 
 window.onerror = function (message, source, lineno, colno, error) {
   // Ignore harmless ResizeObserver errors
-  if (typeof message === 'string' && message.includes('ResizeObserver')) {
-    return;
+  if (isIgnorableResizeObserverError(message)) {
+    return true
   }
 
   showCriticalError(String(message), String(source), lineno, colno, error?.stack)
-};
+  return false
+}
 
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason
   const message = reason instanceof Error ? reason.message : String(reason)
+  if (isIgnorableResizeObserverError(message)) {
+    event.preventDefault()
+    return
+  }
+
   const stack = reason instanceof Error ? reason.stack : undefined
   showCriticalError(`Unhandled Promise Rejection: ${message}`, 'unhandledrejection', 0, 0, stack)
 })
